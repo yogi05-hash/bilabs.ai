@@ -20,9 +20,9 @@ export default function Navbar() {
         <Image
           src="/logo.png"
           alt="BiLabs"
-          width={120}
-          height={40}
-          style={{ height: 32, width: "auto", objectFit: "contain" }}
+          width={160}
+          height={50}
+          style={{ height: 44, width: "auto", objectFit: "contain" }}
           priority
         />
       </Link>

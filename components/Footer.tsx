@@ -10,9 +10,9 @@ export default function Footer() {
             <Image
               src="/logo.png"
               alt="BiLabs"
-              width={140}
-              height={46}
-              style={{ height: 36, width: "auto", objectFit: "contain" }}
+              width={180}
+              height={56}
+              style={{ height: 48, width: "auto", objectFit: "contain" }}
             />
           </div>
           <p style={{ fontSize: 14, color: "var(--text-2)", lineHeight: 1.6, maxWidth: 280 }}>
