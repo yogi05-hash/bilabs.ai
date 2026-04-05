@@ -14,98 +14,105 @@ const HeroScene = dynamic(() => import("@/components/HeroScene"), { ssr: false }
 
 const services = [
   {
-    icon: "💬",
-    title: "AI Chatbots & Support Agents",
-    desc: "24/7 customer support that actually resolves issues. Trained on your docs, integrated with your CRM, handling tickets while your team sleeps.",
-    result: "80% fewer support tickets",
-    gradient: "linear-gradient(135deg, #F5B731, #F0D060)",
-  },
-  {
     icon: "⚙️",
-    title: "Workflow Automation",
-    desc: "Kill repetitive tasks. Email sorting, data entry, report generation, invoice processing — automated end-to-end with AI that learns your patterns.",
-    result: "40hrs/week saved per team",
-    gradient: "linear-gradient(135deg, #E87B35, #81ecec)",
-  },
-  {
-    icon: "📞",
-    title: "AI Voice Agents",
-    desc: "Phone agents that book appointments, qualify leads, and handle inbound calls. Natural conversation, zero wait times, works 24/7.",
-    result: "3x more leads captured",
-    gradient: "linear-gradient(135deg, #fd79a8, #fab1a0)",
+    title: "AI Workflow Automation",
+    desc: "Stop doing repetitive work. We automate your emails, data entry, invoices, and reports — so your team can focus on what actually grows the business.",
+    price: "£149 setup + £49/mo",
+    result: "Save 20+ hours/week",
+    gradient: "linear-gradient(135deg, #F5B731, #F0D060)",
   },
   {
     icon: "✍️",
     title: "AI Content Engine",
-    desc: "Blog posts, social media, ad copy, email campaigns — generated in your brand voice. Review, approve, publish. Scale content without scaling headcount.",
+    desc: "30 social media posts + 4 blog articles per month, written in your brand voice. You review and publish. Content marketing on autopilot.",
+    price: "£99/mo",
     result: "10x content output",
-    gradient: "linear-gradient(135deg, #fdcb6e, #ffeaa7)",
+    gradient: "linear-gradient(135deg, #E87B35, #F5B731)",
   },
   {
-    icon: "📊",
-    title: "AI Analytics & Insights",
-    desc: "Dashboards that think. Ask questions in plain English, get instant answers from your data. Predictive analytics that spot trends before they happen.",
-    result: "Decisions in minutes, not weeks",
-    gradient: "linear-gradient(135deg, #74b9ff, #F0D060)",
+    icon: "📞",
+    title: "AI Voice Agent",
+    desc: "An AI that answers your phone, books appointments, qualifies leads, and handles FAQs. Natural conversation, 24/7, never calls in sick.",
+    price: "£299 setup + £79/mo",
+    result: "Never miss a lead",
+    gradient: "linear-gradient(135deg, #F0D060, #E87B35)",
+  },
+  {
+    icon: "🎯",
+    title: "AI Lead Generation",
+    desc: "We build an AI system that finds your ideal customers, scrapes their details, qualifies them, and sends personalised outreach — all on autopilot.",
+    price: "£149/mo",
+    result: "Leads while you sleep",
+    gradient: "linear-gradient(135deg, #F5B731, #E87B35)",
   },
   {
     icon: "🔌",
-    title: "Custom AI Integrations",
-    desc: "Plug AI into Salesforce, HubSpot, Slack, Shopify, or any tool you use. We build the connectors so AI works inside your existing workflow.",
-    result: "Zero workflow disruption",
-    gradient: "linear-gradient(135deg, #55efc4, #00b894)",
+    title: "Custom AI Solutions",
+    desc: "Need something specific? We build bespoke AI automations tailored to your business. CRM integrations, internal tools, data pipelines — whatever you need.",
+    price: "From £999",
+    result: "Built for your business",
+    gradient: "linear-gradient(135deg, #E87B35, #F0D060)",
+  },
+  {
+    icon: "💬",
+    title: "AI Chatbots",
+    desc: "Need a chatbot for your website? We've got you covered with yourbotchat.com — our dedicated chatbot platform. Simple setup, powerful AI, from just £29/mo.",
+    price: "From £29/mo",
+    result: "Via yourbotchat.com",
+    gradient: "linear-gradient(135deg, #F0D060, #F5B731)",
+    link: "https://yourbotchat.com",
   },
 ];
 
 const processContent = [
   {
-    title: "1. Free Discovery Call",
-    description: "We learn about your business in a 30-minute call. No sales pitch — we identify 2-3 high-impact automation opportunities you can act on immediately, whether you work with us or not.",
+    title: "1. Free AI Audit (15 min)",
+    description: "Quick call — no sales pitch. We look at your business and show you exactly where AI can save you time and money. You'll walk away with actionable ideas whether you hire us or not.",
+    content: (
+      <div className="h-full w-full flex items-center justify-center">
+        <div className="text-center p-6">
+          <div className="text-5xl mb-3">📞</div>
+          <div className="text-lg font-semibold text-white">Free Audit</div>
+          <div className="text-sm text-white/50 mt-1">15 min call</div>
+        </div>
+      </div>
+    ),
+  },
+  {
+    title: "2. We Pick the Quick Win",
+    description: "We identify the ONE automation that will have the biggest impact for the least cost. Usually something under £200 that saves hours every week. No massive contracts.",
     content: (
       <div className="h-full w-full flex items-center justify-center">
         <div className="text-center p-6">
           <div className="text-5xl mb-3">🎯</div>
-          <div className="text-lg font-semibold text-white">Discovery</div>
-          <div className="text-sm text-white/50 mt-1">30 min call</div>
+          <div className="text-lg font-semibold text-white">Quick Win</div>
+          <div className="text-sm text-white/50 mt-1">Biggest impact first</div>
         </div>
       </div>
     ),
   },
   {
-    title: "2. Custom Proposal",
-    description: "Within 48 hours you get a clear proposal — exactly what we'll build, how long it takes, and what it costs. Fixed price, no surprises. Most projects are $5K-$25K.",
+    title: "3. Built & Live in Days",
+    description: "Most of our automations go live within 3-5 days. Not months. You see it working, you test it, and you only pay once you're happy. Zero risk.",
     content: (
       <div className="h-full w-full flex items-center justify-center">
         <div className="text-center p-6">
-          <div className="text-5xl mb-3">📋</div>
-          <div className="text-lg font-semibold text-white">Proposal</div>
-          <div className="text-sm text-white/50 mt-1">48 hours</div>
+          <div className="text-5xl mb-3">⚡</div>
+          <div className="text-lg font-semibold text-white">Live in Days</div>
+          <div className="text-sm text-white/50 mt-1">Not months</div>
         </div>
       </div>
     ),
   },
   {
-    title: "3. Build & Demo Weekly",
-    description: "We build in sprints. Every Friday you see a working demo. You give feedback, we iterate. No disappearing for months — you see progress from day one.",
+    title: "4. Scale What Works",
+    description: "Once you see the ROI from one automation, we add more. Most clients start with one £99-£149/mo service and expand to 3-4 within a few months.",
     content: (
       <div className="h-full w-full flex items-center justify-center">
         <div className="text-center p-6">
-          <div className="text-5xl mb-3">🛠️</div>
-          <div className="text-lg font-semibold text-white">Build</div>
-          <div className="text-sm text-white/50 mt-1">Weekly demos</div>
-        </div>
-      </div>
-    ),
-  },
-  {
-    title: "4. Launch & Support",
-    description: "We deploy to production, train your team, and provide 30 days of free support. Most clients see ROI within the first month. Then we're on retainer for ongoing improvements.",
-    content: (
-      <div className="h-full w-full flex items-center justify-center">
-        <div className="text-center p-6">
-          <div className="text-5xl mb-3">🚀</div>
-          <div className="text-lg font-semibold text-white">Launch</div>
-          <div className="text-sm text-white/50 mt-1">30 day support</div>
+          <div className="text-5xl mb-3">📈</div>
+          <div className="text-lg font-semibold text-white">Scale Up</div>
+          <div className="text-sm text-white/50 mt-1">Add more over time</div>
         </div>
       </div>
     ),
@@ -114,45 +121,48 @@ const processContent = [
 
 const testimonials = [
   {
-    text: "bilabs built us an AI chatbot that handles 80% of our support tickets. We went from 12 support reps to 4 — and our customer satisfaction actually went up.",
-    author: "Sarah Chen",
-    role: "VP Operations, TechScale",
+    text: "Started with just the content engine at £99/mo. Within 2 weeks we had more social media content than we'd produced in 6 months. Absolute no-brainer.",
+    author: "James K.",
+    role: "Founder, Digital Agency",
   },
   {
-    text: "Our sales team was spending 3 hours a day on data entry. bilabs automated the entire pipeline — CRM updates, follow-up emails, lead scoring. All hands-free now.",
-    author: "Marcus Reid",
-    role: "CEO, DataFlow Analytics",
+    text: "The AI voice agent changed everything. We were missing 40% of inbound calls. Now every call is answered, every lead is captured. Paying for itself 10x over.",
+    author: "Priya S.",
+    role: "Owner, Dental Practice",
   },
   {
-    text: "They shipped our AI voice agent in 10 days. It books appointments, qualifies leads, and handles objections better than most of our junior reps. Insane ROI.",
-    author: "Anika Patel",
-    role: "CTO, NovaBridge",
+    text: "They automated our entire invoicing workflow for £149. What used to take my assistant 8 hours a week now happens automatically. Best money I've ever spent.",
+    author: "Tom R.",
+    role: "Director, Construction Co.",
   },
 ];
 
 const pricing = [
   {
     name: "Starter",
-    price: "$5,000",
-    desc: "One focused AI automation",
-    features: ["Single workflow automation", "Integration with 1-2 tools", "2-week delivery", "30-day support", "Training session"],
-    cta: "Get Started",
+    price: "£99",
+    period: "/mo",
+    desc: "One AI automation to start",
+    features: ["Choose any one service", "Setup included", "Live within 5 days", "Email support", "Cancel anytime"],
+    cta: "Start for £99",
     popular: false,
   },
   {
     name: "Growth",
-    price: "$15,000",
-    desc: "Full AI transformation",
-    features: ["Up to 3 automations", "Custom AI chatbot or voice agent", "Full tool integrations", "4-week delivery", "60-day support", "Dedicated Slack channel"],
+    price: "£249",
+    period: "/mo",
+    desc: "Multiple automations, priority support",
+    features: ["Up to 3 services bundled", "Priority setup (48hrs)", "Dedicated Slack channel", "Monthly strategy call", "Cancel anytime"],
     cta: "Most Popular",
     popular: true,
   },
   {
-    name: "Enterprise",
-    price: "Custom",
-    desc: "AI at scale",
-    features: ["Unlimited automations", "Custom model development", "Priority support & SLA", "Dedicated team", "Ongoing optimization", "Quarterly strategy reviews"],
-    cta: "Talk to Us",
+    name: "Custom",
+    price: "Let's talk",
+    period: "",
+    desc: "Bespoke AI for your business",
+    features: ["Fully custom solution", "Unlimited automations", "Dedicated account manager", "Weekly check-ins", "SLA guarantee"],
+    cta: "Book a Call",
     popular: false,
   },
 ];
@@ -182,9 +192,9 @@ export default function Home() {
             className="text-5xl md:text-7xl font-bold tracking-tight leading-[1.05] max-w-[750px] mb-6"
             style={{ letterSpacing: "-0.04em" }}
           >
-            We automate your business{" "}
+            We put your business on{" "}
             <Highlight className="!from-[#F5B731] !to-[#F0D060]">
-              with AI that works
+              AI autopilot
             </Highlight>
           </motion.h1>
 
@@ -194,7 +204,7 @@ export default function Home() {
             transition={{ duration: 0.8, delay: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
           >
             <TextGenerateEffect
-              words="Chatbots, voice agents, workflow automation, content engines — we build the AI systems that save you thousands of hours and scale your business on autopilot."
+              words="Workflow automation, AI content, voice agents, lead generation — starting from just £99/mo. No big contracts. Cancel anytime. See results in days, not months."
               className="!text-lg !font-normal max-w-[580px] mb-10 [&_div]:!text-lg [&_span]:!text-[rgba(240,240,245,0.55)]"
               duration={0.3}
             />
@@ -204,30 +214,34 @@ export default function Home() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
-            className="flex gap-3 items-center"
+            className="flex gap-3 items-center flex-wrap"
           >
             <Link href="/contact" className="btn-primary" style={{ padding: "14px 32px", fontSize: 15, background: "#F5B731", color: "#0a0a0f" }}>
-              Book a Free Call
+              Free AI Audit →
             </Link>
             <Link href="/services" className="btn-secondary" style={{ padding: "14px 32px", fontSize: 15 }}>
-              See Our Work
+              See Pricing
             </Link>
+            <span style={{ fontSize: 13, color: "var(--text-3)", marginLeft: 8 }}>
+              15 min call &middot; No commitment
+            </span>
           </motion.div>
         </div>
       </HeroHighlight>
 
-      {/* ── TRUSTED BY ── */}
-      <section style={{ borderTop: "0.5px solid rgba(255,255,255,0.06)", borderBottom: "0.5px solid rgba(255,255,255,0.06)", padding: "40px 0", background: "var(--bg)" }}>
+      {/* ── SOCIAL PROOF BAR ── */}
+      <section style={{ borderTop: "0.5px solid rgba(255,255,255,0.06)", borderBottom: "0.5px solid rgba(255,255,255,0.06)", padding: "32px 0", background: "var(--bg)" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 40px" }}>
-          <div className="text-center mb-6" style={{ fontSize: 12, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 600 }}>
-            Trusted by growing teams
-          </div>
-          <div className="flex justify-center items-center gap-12 flex-wrap opacity-30">
-            {["TechScale", "DataFlow", "NovaBridge", "Meridian AI", "CloudPeak", "SynapseHQ"].map((name) => (
-              <span key={name} style={{ fontSize: 18, fontWeight: 700, letterSpacing: "-0.02em", color: "var(--text-1)" }}>
-                {name}
-              </span>
-            ))}
+          <div className="flex justify-center items-center gap-8 flex-wrap text-center" style={{ color: "var(--text-3)", fontSize: 13 }}>
+            <span>✓ No long contracts</span>
+            <span style={{ opacity: 0.3 }}>|</span>
+            <span>✓ Cancel anytime</span>
+            <span style={{ opacity: 0.3 }}>|</span>
+            <span>✓ Live in under a week</span>
+            <span style={{ opacity: 0.3 }}>|</span>
+            <span>✓ From just £99/mo</span>
+            <span style={{ opacity: 0.3 }}>|</span>
+            <span>✓ Free AI audit call</span>
           </div>
         </div>
       </section>
@@ -236,15 +250,15 @@ export default function Home() {
       <section className="section" style={{ paddingTop: 100, paddingBottom: 100 }}>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-10">
           {[
-            { target: 50, suffix: "+", label: "AI systems deployed" },
-            { target: 98, suffix: "%", label: "Client retention" },
-            { target: 10, suffix: "x", label: "Avg. ROI for clients" },
-            { target: 14, suffix: " days", label: "To first working demo" },
+            { target: 50, suffix: "+", label: "Automations deployed" },
+            { target: 20, suffix: "hrs", label: "Saved per client/week" },
+            { target: 5, suffix: " days", label: "Avg. time to go live" },
+            { target: 99, suffix: "/mo", prefix: "£", label: "Starting price" },
           ].map((s, i) => (
             <FadeIn key={i} delay={i * 0.1}>
               <div className="text-center">
                 <div className="stat-number">
-                  <Counter target={s.target} suffix={s.suffix} duration={2} />
+                  <Counter target={s.target} suffix={s.suffix} prefix={s.prefix} duration={2} />
                 </div>
                 <div className="stat-label">{s.label}</div>
               </div>
@@ -257,12 +271,12 @@ export default function Home() {
       <section className="section">
         <FadeIn>
           <div className="text-center mb-16">
-            <div className="section-tag">What We Build</div>
-            <h2 className="section-title mx-auto" style={{ textAlign: "center", maxWidth: 600 }}>
-              AI automation that pays for itself
+            <div className="section-tag">What We Automate</div>
+            <h2 className="section-title mx-auto" style={{ textAlign: "center", maxWidth: 650 }}>
+              Pick an automation. We build it. You save hours.
             </h2>
             <p className="section-subtitle mx-auto" style={{ textAlign: "center", maxWidth: 560 }}>
-              Every service is designed to deliver measurable ROI. If it doesn&apos;t save you time or money, we don&apos;t build it.
+              Each service is affordable, fast to set up, and designed to pay for itself within the first month.
             </p>
           </div>
         </FadeIn>
@@ -270,30 +284,15 @@ export default function Home() {
         <div className="grid-3" style={{ gap: 16 }}>
           {services.map((s, i) => (
             <FadeIn key={i} delay={i * 0.08}>
-              <div className="glass-card group" style={{ height: "100%", display: "flex", flexDirection: "column" }}>
-                <div
-                  className="service-icon"
-                  style={{
-                    background: s.gradient,
-                    transition: "transform 0.3s ease, box-shadow 0.3s ease",
-                  }}
-                >
-                  {s.icon}
+              {s.link ? (
+                <a href={s.link} target="_blank" rel="noopener noreferrer" className="glass-card block" style={{ height: "100%", display: "flex", flexDirection: "column", textDecoration: "none", color: "inherit" }}>
+                  <ServiceCardInner s={s} />
+                </a>
+              ) : (
+                <div className="glass-card" style={{ height: "100%", display: "flex", flexDirection: "column" }}>
+                  <ServiceCardInner s={s} />
                 </div>
-                <h3 className="text-base font-semibold mb-2" style={{ letterSpacing: "-0.02em" }}>
-                  {s.title}
-                </h3>
-                <p className="text-sm leading-relaxed mb-4" style={{ color: "var(--text-2)", flex: 1 }}>
-                  {s.desc}
-                </p>
-                <div style={{
-                  fontSize: 12, fontWeight: 600, color: "#F5B731",
-                  background: "rgba(245,183,49,0.1)", padding: "6px 12px",
-                  borderRadius: 6, display: "inline-block", width: "fit-content",
-                }}>
-                  {s.result}
-                </div>
-              </div>
+              )}
             </FadeIn>
           ))}
         </div>
@@ -304,34 +303,34 @@ export default function Home() {
         <ContainerScroll
           titleComponent={
             <div>
-              <p className="section-tag mb-4">See It In Action</p>
+              <p className="section-tag mb-4">See The Results</p>
               <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-4" style={{ letterSpacing: "-0.035em", color: "var(--text-1)" }}>
-                Real-time AI dashboards
+                Your business on
                 <br />
                 <span style={{ background: "var(--accent-gradient)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                  that run your ops
+                  AI autopilot
                 </span>
               </h2>
             </div>
           }
         >
-          <div className="h-full w-full bg-gradient-to-br from-[#0a0a1a] to-[#1a1040] flex items-center justify-center rounded-2xl p-8">
+          <div className="h-full w-full bg-gradient-to-br from-[#0a0a1a] to-[#1a1008] flex items-center justify-center rounded-2xl p-8">
             <div className="w-full max-w-2xl space-y-6">
               <div className="flex gap-4">
                 <div className="flex-1 rounded-xl bg-white/5 border border-white/10 p-5">
-                  <div className="text-xs text-white/40 mb-2">Tickets Resolved by AI</div>
-                  <div className="text-3xl font-bold" style={{ background: "linear-gradient(135deg, #F5B731, #F0D060)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>847</div>
-                  <div className="text-xs text-emerald-400 mt-1">↑ 23% this week</div>
+                  <div className="text-xs text-white/40 mb-2">Hours Saved This Month</div>
+                  <div className="text-3xl font-bold text-[#F5B731]">127</div>
+                  <div className="text-xs text-emerald-400 mt-1">↑ 34% vs last month</div>
                 </div>
                 <div className="flex-1 rounded-xl bg-white/5 border border-white/10 p-5">
-                  <div className="text-xs text-white/40 mb-2">Avg Response Time</div>
-                  <div className="text-3xl font-bold text-[#E87B35]">1.2s</div>
-                  <div className="text-xs text-emerald-400 mt-1">↓ from 4.5min</div>
+                  <div className="text-xs text-white/40 mb-2">Leads Captured</div>
+                  <div className="text-3xl font-bold text-[#E87B35]">89</div>
+                  <div className="text-xs text-emerald-400 mt-1">↑ from 12 (manual)</div>
                 </div>
                 <div className="flex-1 rounded-xl bg-white/5 border border-white/10 p-5">
-                  <div className="text-xs text-white/40 mb-2">Hours Saved</div>
-                  <div className="text-3xl font-bold text-[#fd79a8]">312</div>
-                  <div className="text-xs text-white/30 mt-1">this month</div>
+                  <div className="text-xs text-white/40 mb-2">Content Published</div>
+                  <div className="text-3xl font-bold text-[#F0D060]">34</div>
+                  <div className="text-xs text-white/30 mt-1">posts this month</div>
                 </div>
               </div>
               <div className="rounded-xl bg-white/5 border border-white/10 p-5 h-40 flex items-end gap-2">
@@ -341,7 +340,7 @@ export default function Home() {
                     className="flex-1 rounded-t"
                     style={{
                       height: `${20 + Math.sin(i * 0.4) * 20 + (i / 24) * 40 + Math.random() * 10}%`,
-                      background: `linear-gradient(to top, rgba(108,92,231,0.7), rgba(0,206,201,0.3))`,
+                      background: `linear-gradient(to top, rgba(245,183,49,0.7), rgba(232,123,53,0.3))`,
                     }}
                   />
                 ))}
@@ -351,14 +350,14 @@ export default function Home() {
         </ContainerScroll>
       </section>
 
-      {/* ── PROCESS — Sticky Scroll ── */}
+      {/* ── PROCESS ── */}
       <section className="section">
         <FadeIn>
           <div className="text-center mb-10">
             <div className="section-tag">How It Works</div>
-            <h2 className="section-title" style={{ textAlign: "center" }}>From call to launch in weeks</h2>
+            <h2 className="section-title" style={{ textAlign: "center" }}>Live in days. Not months.</h2>
             <p className="section-subtitle mx-auto" style={{ textAlign: "center" }}>
-              No 6-month timelines. No scope creep. A clear, fast process designed for results.
+              No 6-month timelines. No massive invoices. Start small, see results, then scale.
             </p>
           </div>
         </FadeIn>
@@ -372,14 +371,14 @@ export default function Home() {
         <FadeIn>
           <div className="text-center mb-16">
             <div className="section-tag">Results</div>
-            <h2 className="section-title" style={{ textAlign: "center" }}>Don&apos;t take our word for it</h2>
+            <h2 className="section-title" style={{ textAlign: "center" }}>What our clients say</h2>
           </div>
         </FadeIn>
         <div className="grid-3">
           {testimonials.map((t, i) => (
             <FadeIn key={i} delay={i * 0.12}>
               <div className="glass-card" style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-                <div style={{ fontSize: 24, marginBottom: 16, opacity: 0.3 }}>&ldquo;</div>
+                <div style={{ fontSize: 24, marginBottom: 16, color: "#F5B731", opacity: 0.5 }}>&ldquo;</div>
                 <p className="text-sm leading-relaxed mb-6" style={{ color: "var(--text-2)", flex: 1 }}>
                   {t.text}
                 </p>
@@ -394,13 +393,13 @@ export default function Home() {
       </section>
 
       {/* ── PRICING ── */}
-      <section className="section">
+      <section className="section" id="pricing">
         <FadeIn>
           <div className="text-center mb-16">
-            <div className="section-tag">Pricing</div>
-            <h2 className="section-title" style={{ textAlign: "center" }}>Simple, transparent pricing</h2>
+            <div className="section-tag">Simple Pricing</div>
+            <h2 className="section-title" style={{ textAlign: "center" }}>Start small. Scale when ready.</h2>
             <p className="section-subtitle mx-auto" style={{ textAlign: "center" }}>
-              Fixed price. No hourly billing. No surprises. You know exactly what you&apos;re paying before we start.
+              No annual contracts. No hidden fees. Cancel anytime. Start with what you need.
             </p>
           </div>
         </FadeIn>
@@ -415,7 +414,7 @@ export default function Home() {
                   display: "flex",
                   flexDirection: "column",
                   border: p.popular ? "1px solid rgba(245,183,49,0.35)" : undefined,
-                  boxShadow: p.popular ? "0 0 40px rgba(245,183,49,0.08)" : undefined,
+                  boxShadow: p.popular ? "0 0 40px rgba(245,183,49,0.06)" : undefined,
                   position: "relative",
                   overflow: "hidden",
                 }}
@@ -426,15 +425,18 @@ export default function Home() {
                     background: "#F5B731", color: "#0a0a0f", padding: "3px 10px", borderRadius: 100,
                     textTransform: "uppercase", letterSpacing: "0.05em",
                   }}>
-                    Popular
+                    Best Value
                   </div>
                 )}
                 <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-1)", marginBottom: 4 }}>{p.name}</div>
-                <div style={{
-                  fontSize: 40, fontWeight: 700, letterSpacing: "-0.04em", marginBottom: 4,
-                  background: "var(--accent-gradient)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-                }}>
-                  {p.price}
+                <div style={{ display: "flex", alignItems: "baseline", gap: 2, marginBottom: 4 }}>
+                  <span style={{
+                    fontSize: 40, fontWeight: 700, letterSpacing: "-0.04em",
+                    background: "var(--accent-gradient)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+                  }}>
+                    {p.price}
+                  </span>
+                  {p.period && <span style={{ fontSize: 14, color: "var(--text-3)" }}>{p.period}</span>}
                 </div>
                 <div style={{ fontSize: 13, color: "var(--text-3)", marginBottom: 24 }}>{p.desc}</div>
                 <ul style={{ flex: 1, display: "flex", flexDirection: "column", gap: 10, marginBottom: 24 }}>
@@ -461,25 +463,47 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ── CHATBOT CROSS-SELL ── */}
+      <section className="section" style={{ paddingTop: 60, paddingBottom: 60 }}>
+        <FadeIn>
+          <div className="glass-card" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 40, flexWrap: "wrap" }}>
+            <div style={{ flex: 1, minWidth: 280 }}>
+              <div style={{ fontSize: 13, color: "#F5B731", fontWeight: 600, marginBottom: 8 }}>JUST NEED A CHATBOT?</div>
+              <h3 style={{ fontSize: 24, fontWeight: 700, letterSpacing: "-0.03em", marginBottom: 8 }}>
+                Check out yourbotchat.com
+              </h3>
+              <p style={{ fontSize: 14, color: "var(--text-2)", lineHeight: 1.6 }}>
+                Our dedicated AI chatbot platform. Set up in minutes, trained on your business, from just £29/mo. No code needed.
+              </p>
+            </div>
+            <a href="https://yourbotchat.com" target="_blank" rel="noopener noreferrer" className="btn-primary" style={{ background: "#F5B731", color: "#0a0a0f", padding: "12px 28px", fontSize: 14, whiteSpace: "nowrap" }}>
+              Visit yourbotchat.com →
+            </a>
+          </div>
+        </FadeIn>
+      </section>
+
       {/* ── CTA ── */}
       <section className="section" style={{ textAlign: "center" }}>
         <FadeIn>
           <div style={{ position: "relative", padding: "80px 40px", borderRadius: 24, overflow: "hidden" }}>
-            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, #F5B731, #E87B35)", opacity: 0.06 }} />
+            <div style={{ position: "absolute", inset: 0, background: "var(--accent-gradient)", opacity: 0.06 }} />
             <div style={{
               position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
-              width: 600, height: 600, borderRadius: "50%", background: "#F5B731", filter: "blur(180px)", opacity: 0.08,
+              width: 600, height: 600, borderRadius: "50%", background: "#F5B731", filter: "blur(180px)", opacity: 0.06,
             }} />
             <div style={{ position: "relative", zIndex: 1 }}>
               <h2 className="text-4xl md:text-5xl font-bold mb-4" style={{ letterSpacing: "-0.035em" }}>
-                Stop doing manually what
-                <br />AI can do in seconds
+                Free 15-minute AI audit
               </h2>
-              <p className="text-base mb-9 max-w-[500px] mx-auto" style={{ color: "var(--text-2)" }}>
-                Book a free 30-minute call. We&apos;ll identify your top 3 automation opportunities — no strings attached.
+              <p className="text-base mb-3 max-w-[500px] mx-auto" style={{ color: "var(--text-2)" }}>
+                We&apos;ll show you exactly where AI can save you time and money — no pitch, no commitment. Walk away with actionable ideas.
+              </p>
+              <p className="text-sm mb-9" style={{ color: "var(--text-3)" }}>
+                Most businesses find at least 20 hours/week they can automate.
               </p>
               <Link href="/contact" className="btn-primary" style={{ padding: "16px 40px", fontSize: 16, background: "#F5B731", color: "#0a0a0f" }}>
-                Book Your Free Call →
+                Book Your Free Audit →
               </Link>
             </div>
           </div>
@@ -488,3 +512,24 @@ export default function Home() {
     </>
   );
 }
+
+function ServiceCardInner({ s }: { s: typeof services[number] }) {
+  return (
+    <>
+      <div className="service-icon" style={{ background: s.gradient }}>{s.icon}</div>
+      <h3 className="text-base font-semibold mb-1" style={{ letterSpacing: "-0.02em" }}>{s.title}</h3>
+      <div style={{ fontSize: 13, color: "#F5B731", fontWeight: 600, marginBottom: 8 }}>{s.price}</div>
+      <p className="text-sm leading-relaxed mb-4" style={{ color: "var(--text-2)", flex: 1 }}>{s.desc}</p>
+      <div style={{
+        fontSize: 12, fontWeight: 600, color: "#F5B731",
+        background: "rgba(245,183,49,0.1)", padding: "6px 12px",
+        borderRadius: 6, display: "inline-block", width: "fit-content",
+      }}>
+        {s.result}
+      </div>
+    </>
+  );
+}
+
+// Need to reference the type for ServiceCardInner
+type ServiceType = typeof services[number];

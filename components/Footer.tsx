@@ -28,11 +28,11 @@ export default function Footer() {
         </div>
         <div>
           <div className="footer-heading">Services</div>
-          <Link href="/services" className="footer-link">AI Chatbots</Link>
-          <Link href="/services" className="footer-link">Voice Agents</Link>
           <Link href="/services" className="footer-link">Workflow Automation</Link>
           <Link href="/services" className="footer-link">AI Content Engine</Link>
-          <Link href="/services" className="footer-link">Analytics &amp; Insights</Link>
+          <Link href="/services" className="footer-link">AI Voice Agents</Link>
+          <Link href="/services" className="footer-link">AI Lead Generation</Link>
+          <a href="https://yourbotchat.com" target="_blank" rel="noopener noreferrer" className="footer-link">AI Chatbots ↗</a>
         </div>
         <div>
           <div className="footer-heading">Connect</div>
