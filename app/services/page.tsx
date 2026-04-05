@@ -7,53 +7,58 @@ import { LampContainer } from "@/components/ui/lamp";
 
 const services = [
   {
-    icon: "🧠",
-    title: "AI Strategy & Consulting",
-    desc: "We audit your operations and data landscape to identify the highest-impact AI opportunities. You get a prioritized roadmap with clear timelines, resource needs, and expected ROI.",
-    features: ["AI readiness assessment", "Opportunity mapping", "Technology stack recommendations", "Implementation roadmap"],
+    icon: "💬",
+    title: "AI Chatbots & Support Agents",
+    desc: "Custom-trained chatbots that handle customer inquiries, resolve tickets, and escalate intelligently. Integrates with your helpdesk, CRM, and knowledge base.",
+    features: ["Trained on your docs & FAQs", "Multi-channel (web, WhatsApp, Slack)", "Smart escalation to humans", "Analytics & conversation insights"],
+    result: "80% ticket deflection",
     gradient: "linear-gradient(135deg, rgba(108,92,231,0.15), rgba(108,92,231,0.05))",
   },
   {
-    icon: "⚡",
-    title: "Custom Model Development",
-    desc: "Purpose-built machine learning and deep learning models trained on your data. From NLP and computer vision to predictive analytics — we build models that perform in the real world.",
-    features: ["Data pipeline design", "Model training & fine-tuning", "LLM customization", "Performance benchmarking"],
+    icon: "⚙️",
+    title: "Workflow Automation",
+    desc: "End-to-end automation of repetitive tasks. Email triage, data entry, report generation, invoice processing — AI handles it while you focus on what matters.",
+    features: ["Email classification & routing", "Auto data extraction from documents", "Scheduled report generation", "Multi-step approval workflows"],
+    result: "40+ hours saved per week",
     gradient: "linear-gradient(135deg, rgba(0,206,201,0.15), rgba(0,206,201,0.05))",
   },
   {
-    icon: "🔗",
-    title: "AI Integration & Automation",
-    desc: "We embed AI directly into your existing workflows and tech stack. APIs, real-time pipelines, and intelligent automation that works with what you already have.",
-    features: ["API development", "Workflow automation", "Real-time inference pipelines", "Legacy system integration"],
+    icon: "📞",
+    title: "AI Voice Agents",
+    desc: "AI that picks up the phone. Appointment booking, lead qualification, outbound campaigns, and inbound support — natural conversation that converts.",
+    features: ["Natural language phone calls", "Appointment booking & reminders", "Lead qualification scripts", "CRM auto-logging"],
+    result: "3x lead conversion",
     gradient: "linear-gradient(135deg, rgba(253,121,168,0.15), rgba(253,121,168,0.05))",
   },
   {
+    icon: "✍️",
+    title: "AI Content Engine",
+    desc: "Generate blog posts, social media content, ad copy, and email campaigns — all in your brand voice. Human reviews, AI produces.",
+    features: ["Brand voice training", "Multi-format output (blog, social, email)", "SEO optimization built-in", "Content calendar automation"],
+    result: "10x content output",
+    gradient: "linear-gradient(135deg, rgba(253,203,110,0.15), rgba(253,203,110,0.05))",
+  },
+  {
     icon: "📊",
-    title: "Data Engineering",
-    desc: "Clean data is the foundation of every AI system. We design and build the data infrastructure that makes your AI efforts possible and sustainable.",
-    features: ["Data warehouse design", "ETL pipeline development", "Data quality frameworks", "Real-time streaming"],
-    gradient: "linear-gradient(135deg, rgba(255,159,10,0.15), rgba(255,159,10,0.05))",
+    title: "AI Analytics & Insights",
+    desc: "Ask your data questions in plain English. Real-time dashboards with predictive analytics that surface insights before you think to look for them.",
+    features: ["Natural language querying", "Predictive trend detection", "Automated anomaly alerts", "Custom dashboard builder"],
+    result: "Decisions in seconds",
+    gradient: "linear-gradient(135deg, rgba(116,185,255,0.15), rgba(116,185,255,0.05))",
   },
   {
-    icon: "🛡️",
-    title: "AI Governance & Safety",
-    desc: "Responsible AI isn't optional. We help you build systems with proper monitoring, bias detection, and compliance frameworks baked in from day one.",
-    features: ["Bias detection & mitigation", "Model monitoring", "Compliance frameworks", "Explainability tooling"],
-    gradient: "linear-gradient(135deg, rgba(48,209,88,0.15), rgba(48,209,88,0.05))",
-  },
-  {
-    icon: "🚀",
-    title: "MLOps & Deployment",
-    desc: "Getting a model to production is where most teams struggle. We handle the infrastructure, CI/CD, monitoring, and scaling so your models actually ship.",
-    features: ["Model serving infrastructure", "CI/CD for ML", "A/B testing frameworks", "Auto-scaling & optimization"],
-    gradient: "linear-gradient(135deg, rgba(100,210,255,0.15), rgba(100,210,255,0.05))",
+    icon: "🔌",
+    title: "Custom AI Integrations",
+    desc: "We connect AI to the tools you already use. Salesforce, HubSpot, Slack, Shopify, Zapier, custom APIs — seamless, zero disruption.",
+    features: ["Any CRM / ERP integration", "API development & webhooks", "Data sync & migration", "Custom middleware"],
+    result: "Works with your stack",
+    gradient: "linear-gradient(135deg, rgba(85,239,196,0.15), rgba(85,239,196,0.05))",
   },
 ];
 
 export default function ServicesPage() {
   return (
     <div>
-      {/* Lamp hero */}
       <LampContainer className="!min-h-[70vh] !bg-[#050507]">
         <motion.div
           initial={{ opacity: 0.5, y: 100 }}
@@ -63,24 +68,35 @@ export default function ServicesPage() {
         >
           <div className="section-tag mb-4">Our Services</div>
           <h1 className="text-4xl md:text-6xl font-bold tracking-tight bg-gradient-to-br from-slate-200 to-slate-400 bg-clip-text text-transparent">
-            Everything you need to
+            AI automation that
             <br />
-            ship AI that works
+            pays for itself
           </h1>
           <p className="text-base mt-6 max-w-lg mx-auto" style={{ color: "var(--text-2)" }}>
-            From the first whiteboard session to a model running in production — we cover the full stack.
+            Every service is designed to deliver measurable ROI. Fixed pricing. No fluff.
           </p>
+          <Link href="/contact" className="btn-primary inline-block mt-8" style={{ background: "#6c5ce7", padding: "12px 28px" }}>
+            Book a Free Call
+          </Link>
         </motion.div>
       </LampContainer>
 
-      {/* services grid */}
       <section className="section" style={{ paddingTop: 80 }}>
         <div className="grid-2" style={{ gap: 24 }}>
           {services.map((s, i) => (
-            <FadeIn key={i} delay={i * 0.1}>
+            <FadeIn key={i} delay={i * 0.08}>
               <div className="glass-card" style={{ height: "100%" }}>
-                <div className="service-icon" style={{ background: s.gradient }}>{s.icon}</div>
-                <h3 className="text-xl font-semibold mb-2" style={{ letterSpacing: "-0.02em" }}>
+                <div className="flex items-start justify-between mb-4">
+                  <div className="service-icon" style={{ background: s.gradient, marginBottom: 0 }}>{s.icon}</div>
+                  <div style={{
+                    fontSize: 11, fontWeight: 600, color: "#6c5ce7",
+                    background: "rgba(108,92,231,0.08)", padding: "4px 10px",
+                    borderRadius: 6,
+                  }}>
+                    {s.result}
+                  </div>
+                </div>
+                <h3 className="text-lg font-semibold mb-2" style={{ letterSpacing: "-0.02em" }}>
                   {s.title}
                 </h3>
                 <p className="text-sm leading-relaxed mb-5" style={{ color: "var(--text-2)" }}>
@@ -100,36 +116,31 @@ export default function ServicesPage() {
         </div>
       </section>
 
-      {/* process steps */}
+      {/* how it works */}
       <section className="section">
         <FadeIn>
-          <div className="section-tag">How We Work</div>
-          <h2 className="section-title">Our process</h2>
-          <p className="section-subtitle" style={{ marginBottom: 60 }}>
-            A proven framework that minimizes risk and maximizes impact.
-          </p>
+          <div className="text-center mb-16">
+            <div className="section-tag">Simple Process</div>
+            <h2 className="section-title" style={{ textAlign: "center" }}>Call → Proposal → Build → Launch</h2>
+            <p className="section-subtitle mx-auto" style={{ textAlign: "center" }}>
+              Most projects go from first call to production in 2-4 weeks.
+            </p>
+          </div>
         </FadeIn>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {[
-            { step: "01", title: "Discover", desc: "We learn your business, data, and goals through deep-dive workshops." },
-            { step: "02", title: "Design", desc: "We architect the solution — models, pipelines, and integration points." },
-            { step: "03", title: "Build", desc: "Rapid prototyping with weekly demos. You see progress from week one." },
-            { step: "04", title: "Deploy", desc: "Production deployment with monitoring, scaling, and ongoing support." },
+            { step: "01", title: "Free Call", desc: "30 minutes. We identify your top automation opportunities.", time: "Day 0" },
+            { step: "02", title: "Proposal", desc: "Fixed-price proposal with clear scope and timeline.", time: "48 hours" },
+            { step: "03", title: "Build", desc: "Weekly demos. You see working software from week one.", time: "1-3 weeks" },
+            { step: "04", title: "Launch", desc: "Production deployment + 30 days of free support.", time: "Go live" },
           ].map((p, i) => (
             <FadeIn key={i} delay={i * 0.1}>
               <div className="glass-card text-center">
-                <div
-                  className="text-4xl font-bold mb-3"
-                  style={{
-                    letterSpacing: "-0.04em",
-                    background: "var(--accent-gradient)",
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                  }}
-                >
-                  {p.step}
-                </div>
+                <div className="text-xs font-semibold mb-3 uppercase tracking-wider" style={{ color: "var(--text-3)" }}>{p.time}</div>
+                <div className="text-3xl font-bold mb-3" style={{
+                  background: "var(--accent-gradient)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+                }}>{p.step}</div>
                 <h4 className="text-base font-semibold mb-2">{p.title}</h4>
                 <p className="text-sm leading-relaxed" style={{ color: "var(--text-2)" }}>{p.desc}</p>
               </div>
@@ -138,17 +149,16 @@ export default function ServicesPage() {
         </div>
       </section>
 
-      {/* CTA */}
       <section className="section text-center">
         <FadeIn>
           <h2 className="text-4xl font-bold mb-4" style={{ letterSpacing: "-0.03em" }}>
-            Have a project in mind?
+            Ready to automate?
           </h2>
           <p className="text-base mb-8 max-w-md mx-auto" style={{ color: "var(--text-2)" }}>
-            Let&apos;s talk about how we can help. Free consultation, no strings attached.
+            Free 30-minute call. We&apos;ll map out your automation roadmap — whether you work with us or not.
           </p>
-          <Link href="/contact" className="btn-primary" style={{ padding: "14px 32px", fontSize: 15 }}>
-            Start a Conversation
+          <Link href="/contact" className="btn-primary" style={{ padding: "14px 32px", fontSize: 15, background: "#6c5ce7" }}>
+            Book Your Free Call →
           </Link>
         </FadeIn>
       </section>

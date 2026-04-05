@@ -9,7 +9,7 @@ export default function Footer() {
             bi<span style={{ background: "var(--accent-gradient)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>labs</span>.ai
           </div>
           <p style={{ fontSize: 14, color: "var(--text-2)", lineHeight: 1.6, maxWidth: 280 }}>
-            Building intelligent systems that transform how businesses operate. From strategy to deployment.
+            AI automation agency. We build chatbots, voice agents, and workflow automations that save you thousands of hours.
           </p>
         </div>
         <div>
@@ -17,13 +17,15 @@ export default function Footer() {
           <Link href="/about" className="footer-link">About</Link>
           <Link href="/services" className="footer-link">Services</Link>
           <Link href="/contact" className="footer-link">Contact</Link>
+          <Link href="/contact" className="footer-link">Book a Call</Link>
         </div>
         <div>
           <div className="footer-heading">Services</div>
-          <Link href="/services" className="footer-link">AI Strategy</Link>
-          <Link href="/services" className="footer-link">Custom Models</Link>
-          <Link href="/services" className="footer-link">Data Engineering</Link>
-          <Link href="/services" className="footer-link">AI Integration</Link>
+          <Link href="/services" className="footer-link">AI Chatbots</Link>
+          <Link href="/services" className="footer-link">Voice Agents</Link>
+          <Link href="/services" className="footer-link">Workflow Automation</Link>
+          <Link href="/services" className="footer-link">AI Content Engine</Link>
+          <Link href="/services" className="footer-link">Analytics & Insights</Link>
         </div>
         <div>
           <div className="footer-heading">Connect</div>

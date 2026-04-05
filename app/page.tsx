@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import FadeIn from "@/components/FadeIn";
+import Counter from "@/components/Counter";
 import { HeroHighlight, Highlight } from "@/components/ui/hero-highlight";
 import { ContainerScroll } from "@/components/ui/container-scroll-animation";
 import { TextGenerateEffect } from "@/components/ui/text-generate-effect";
@@ -13,81 +14,98 @@ const HeroScene = dynamic(() => import("@/components/HeroScene"), { ssr: false }
 
 const services = [
   {
-    icon: "🧠",
-    title: "AI Strategy & Consulting",
-    desc: "We assess your operations and design an AI roadmap that delivers real ROI — not just buzzwords.",
-    gradient: "linear-gradient(135deg, rgba(108,92,231,0.15), rgba(108,92,231,0.05))",
+    icon: "💬",
+    title: "AI Chatbots & Support Agents",
+    desc: "24/7 customer support that actually resolves issues. Trained on your docs, integrated with your CRM, handling tickets while your team sleeps.",
+    result: "80% fewer support tickets",
+    gradient: "linear-gradient(135deg, #6c5ce7, #a29bfe)",
   },
   {
-    icon: "⚡",
-    title: "Custom Model Development",
-    desc: "Purpose-built machine learning models trained on your data, optimized for your specific use cases.",
-    gradient: "linear-gradient(135deg, rgba(0,206,201,0.15), rgba(0,206,201,0.05))",
+    icon: "⚙️",
+    title: "Workflow Automation",
+    desc: "Kill repetitive tasks. Email sorting, data entry, report generation, invoice processing — automated end-to-end with AI that learns your patterns.",
+    result: "40hrs/week saved per team",
+    gradient: "linear-gradient(135deg, #00cec9, #81ecec)",
   },
   {
-    icon: "🔗",
-    title: "AI Integration & Automation",
-    desc: "Seamlessly embed AI into your existing tech stack. APIs, pipelines, and intelligent workflows.",
-    gradient: "linear-gradient(135deg, rgba(253,121,168,0.15), rgba(253,121,168,0.05))",
+    icon: "📞",
+    title: "AI Voice Agents",
+    desc: "Phone agents that book appointments, qualify leads, and handle inbound calls. Natural conversation, zero wait times, works 24/7.",
+    result: "3x more leads captured",
+    gradient: "linear-gradient(135deg, #fd79a8, #fab1a0)",
   },
-];
-
-const stats = [
-  { num: "50+", label: "Projects delivered" },
-  { num: "3x", label: "Avg. efficiency gain" },
-  { num: "98%", label: "Client retention" },
-  { num: "<2wk", label: "Time to first prototype" },
+  {
+    icon: "✍️",
+    title: "AI Content Engine",
+    desc: "Blog posts, social media, ad copy, email campaigns — generated in your brand voice. Review, approve, publish. Scale content without scaling headcount.",
+    result: "10x content output",
+    gradient: "linear-gradient(135deg, #fdcb6e, #ffeaa7)",
+  },
+  {
+    icon: "📊",
+    title: "AI Analytics & Insights",
+    desc: "Dashboards that think. Ask questions in plain English, get instant answers from your data. Predictive analytics that spot trends before they happen.",
+    result: "Decisions in minutes, not weeks",
+    gradient: "linear-gradient(135deg, #74b9ff, #a29bfe)",
+  },
+  {
+    icon: "🔌",
+    title: "Custom AI Integrations",
+    desc: "Plug AI into Salesforce, HubSpot, Slack, Shopify, or any tool you use. We build the connectors so AI works inside your existing workflow.",
+    result: "Zero workflow disruption",
+    gradient: "linear-gradient(135deg, #55efc4, #00b894)",
+  },
 ];
 
 const processContent = [
   {
-    title: "Discovery & Strategy",
-    description:
-      "We start by deeply understanding your business, data landscape, and goals. Through collaborative workshops, we identify the highest-impact AI opportunities and build a prioritized roadmap.",
+    title: "1. Free Discovery Call",
+    description: "We learn about your business in a 30-minute call. No sales pitch — we identify 2-3 high-impact automation opportunities you can act on immediately, whether you work with us or not.",
     content: (
-      <div className="h-full w-full flex items-center justify-center text-white">
-        <div className="text-center">
-          <div className="text-5xl mb-4">🔍</div>
-          <div className="text-lg font-semibold">Discovery</div>
+      <div className="h-full w-full flex items-center justify-center">
+        <div className="text-center p-6">
+          <div className="text-5xl mb-3">🎯</div>
+          <div className="text-lg font-semibold text-white">Discovery</div>
+          <div className="text-sm text-white/50 mt-1">30 min call</div>
         </div>
       </div>
     ),
   },
   {
-    title: "Design & Architecture",
-    description:
-      "Our engineers architect the solution — selecting the right models, designing data pipelines, and mapping integration points. Every decision is documented and validated with your team.",
+    title: "2. Custom Proposal",
+    description: "Within 48 hours you get a clear proposal — exactly what we'll build, how long it takes, and what it costs. Fixed price, no surprises. Most projects are $5K-$25K.",
     content: (
-      <div className="h-full w-full flex items-center justify-center text-white">
-        <div className="text-center">
-          <div className="text-5xl mb-4">📐</div>
-          <div className="text-lg font-semibold">Architecture</div>
+      <div className="h-full w-full flex items-center justify-center">
+        <div className="text-center p-6">
+          <div className="text-5xl mb-3">📋</div>
+          <div className="text-lg font-semibold text-white">Proposal</div>
+          <div className="text-sm text-white/50 mt-1">48 hours</div>
         </div>
       </div>
     ),
   },
   {
-    title: "Build & Iterate",
-    description:
-      "Rapid prototyping with weekly demos. You see working software from week one. We iterate based on real feedback, not assumptions, until the solution meets your exact needs.",
+    title: "3. Build & Demo Weekly",
+    description: "We build in sprints. Every Friday you see a working demo. You give feedback, we iterate. No disappearing for months — you see progress from day one.",
     content: (
-      <div className="h-full w-full flex items-center justify-center text-white">
-        <div className="text-center">
-          <div className="text-5xl mb-4">🛠️</div>
-          <div className="text-lg font-semibold">Development</div>
+      <div className="h-full w-full flex items-center justify-center">
+        <div className="text-center p-6">
+          <div className="text-5xl mb-3">🛠️</div>
+          <div className="text-lg font-semibold text-white">Build</div>
+          <div className="text-sm text-white/50 mt-1">Weekly demos</div>
         </div>
       </div>
     ),
   },
   {
-    title: "Deploy & Scale",
-    description:
-      "Production deployment with monitoring, auto-scaling, and ongoing support. We don't just hand off code — we ensure your AI systems perform reliably at scale.",
+    title: "4. Launch & Support",
+    description: "We deploy to production, train your team, and provide 30 days of free support. Most clients see ROI within the first month. Then we're on retainer for ongoing improvements.",
     content: (
-      <div className="h-full w-full flex items-center justify-center text-white">
-        <div className="text-center">
-          <div className="text-5xl mb-4">🚀</div>
-          <div className="text-lg font-semibold">Production</div>
+      <div className="h-full w-full flex items-center justify-center">
+        <div className="text-center p-6">
+          <div className="text-5xl mb-3">🚀</div>
+          <div className="text-lg font-semibold text-white">Launch</div>
+          <div className="text-sm text-white/50 mt-1">30 day support</div>
         </div>
       </div>
     ),
@@ -96,26 +114,53 @@ const processContent = [
 
 const testimonials = [
   {
-    text: "bilabs.ai transformed our customer support with an AI system that reduced response times by 80%. The team understood our needs from day one.",
+    text: "bilabs built us an AI chatbot that handles 80% of our support tickets. We went from 12 support reps to 4 — and our customer satisfaction actually went up.",
     author: "Sarah Chen",
-    role: "VP of Operations, TechScale",
+    role: "VP Operations, TechScale",
   },
   {
-    text: "They didn't just build us a model — they built us a competitive advantage. Our forecasting accuracy improved by 40% within the first quarter.",
+    text: "Our sales team was spending 3 hours a day on data entry. bilabs automated the entire pipeline — CRM updates, follow-up emails, lead scoring. All hands-free now.",
     author: "Marcus Reid",
     role: "CEO, DataFlow Analytics",
   },
   {
-    text: "The team at bilabs.ai shipped our first AI prototype in 10 days. We've never worked with an agency this fast and this good.",
+    text: "They shipped our AI voice agent in 10 days. It books appointments, qualifies leads, and handles objections better than most of our junior reps. Insane ROI.",
     author: "Anika Patel",
     role: "CTO, NovaBridge",
+  },
+];
+
+const pricing = [
+  {
+    name: "Starter",
+    price: "$5,000",
+    desc: "One focused AI automation",
+    features: ["Single workflow automation", "Integration with 1-2 tools", "2-week delivery", "30-day support", "Training session"],
+    cta: "Get Started",
+    popular: false,
+  },
+  {
+    name: "Growth",
+    price: "$15,000",
+    desc: "Full AI transformation",
+    features: ["Up to 3 automations", "Custom AI chatbot or voice agent", "Full tool integrations", "4-week delivery", "60-day support", "Dedicated Slack channel"],
+    cta: "Most Popular",
+    popular: true,
+  },
+  {
+    name: "Enterprise",
+    price: "Custom",
+    desc: "AI at scale",
+    features: ["Unlimited automations", "Custom model development", "Priority support & SLA", "Dedicated team", "Ongoing optimization", "Quarterly strategy reviews"],
+    cta: "Talk to Us",
+    popular: false,
   },
 ];
 
 export default function Home() {
   return (
     <>
-      {/* ── HERO — Interactive dot grid + 3D scene ── */}
+      {/* ── HERO ── */}
       <HeroHighlight containerClassName="!h-screen !bg-[#050507]">
         <div className="canvas-wrap" style={{ zIndex: 1 }}>
           <HeroScene />
@@ -127,19 +172,19 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
           >
-            <div className="section-tag">AI-Powered Innovation</div>
+            <div className="section-tag">AI Automation Agency</div>
           </motion.div>
 
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
-            className="text-5xl md:text-7xl font-bold tracking-tight leading-[1.05] max-w-[700px] mb-6"
+            className="text-5xl md:text-7xl font-bold tracking-tight leading-[1.05] max-w-[750px] mb-6"
             style={{ letterSpacing: "-0.04em" }}
           >
-            We build the AI{" "}
+            We automate your business{" "}
             <Highlight className="!from-[#6c5ce7] !to-[#00cec9]">
-              that builds your future
+              with AI that works
             </Highlight>
           </motion.h1>
 
@@ -149,8 +194,8 @@ export default function Home() {
             transition={{ duration: 0.8, delay: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
           >
             <TextGenerateEffect
-              words="From strategy to deployment, we design and build custom AI systems that give your business a genuine competitive edge."
-              className="!text-lg !font-normal max-w-[520px] mb-10 [&_div]:!text-lg [&_span]:!text-[rgba(240,240,245,0.6)]"
+              words="Chatbots, voice agents, workflow automation, content engines — we build the AI systems that save you thousands of hours and scale your business on autopilot."
+              className="!text-lg !font-normal max-w-[580px] mb-10 [&_div]:!text-lg [&_span]:!text-[rgba(240,240,245,0.55)]"
               duration={0.3}
             />
           </motion.div>
@@ -159,25 +204,48 @@ export default function Home() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
-            className="flex gap-3"
+            className="flex gap-3 items-center"
           >
-            <Link href="/contact" className="btn-primary" style={{ padding: "14px 32px", fontSize: 15 }}>
-              Book a Demo
+            <Link href="/contact" className="btn-primary" style={{ padding: "14px 32px", fontSize: 15, background: "#6c5ce7" }}>
+              Book a Free Call
             </Link>
             <Link href="/services" className="btn-secondary" style={{ padding: "14px 32px", fontSize: 15 }}>
-              View Services
+              See Our Work
             </Link>
           </motion.div>
         </div>
       </HeroHighlight>
 
+      {/* ── TRUSTED BY ── */}
+      <section style={{ borderTop: "0.5px solid rgba(255,255,255,0.06)", borderBottom: "0.5px solid rgba(255,255,255,0.06)", padding: "40px 0", background: "var(--bg)" }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 40px" }}>
+          <div className="text-center mb-6" style={{ fontSize: 12, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 600 }}>
+            Trusted by growing teams
+          </div>
+          <div className="flex justify-center items-center gap-12 flex-wrap opacity-30">
+            {["TechScale", "DataFlow", "NovaBridge", "Meridian AI", "CloudPeak", "SynapseHQ"].map((name) => (
+              <span key={name} style={{ fontSize: 18, fontWeight: 700, letterSpacing: "-0.02em", color: "var(--text-1)" }}>
+                {name}
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── STATS ── */}
-      <section className="section" style={{ paddingTop: 80, paddingBottom: 80 }}>
+      <section className="section" style={{ paddingTop: 100, paddingBottom: 100 }}>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-10">
-          {stats.map((s, i) => (
+          {[
+            { target: 50, suffix: "+", label: "AI systems deployed" },
+            { target: 98, suffix: "%", label: "Client retention" },
+            { target: 10, suffix: "x", label: "Avg. ROI for clients" },
+            { target: 14, suffix: " days", label: "To first working demo" },
+          ].map((s, i) => (
             <FadeIn key={i} delay={i * 0.1}>
               <div className="text-center">
-                <div className="stat-number">{s.num}</div>
+                <div className="stat-number">
+                  <Counter target={s.target} suffix={s.suffix} duration={2} />
+                </div>
                 <div className="stat-label">{s.label}</div>
               </div>
             </FadeIn>
@@ -188,43 +256,60 @@ export default function Home() {
       {/* ── SERVICES ── */}
       <section className="section">
         <FadeIn>
-          <div className="section-tag">What We Do</div>
-          <h2 className="section-title">End-to-end AI solutions</h2>
-          <p className="section-subtitle" style={{ marginBottom: 60 }}>
-            We handle the full lifecycle — from identifying opportunities to deploying production-grade AI systems.
-          </p>
+          <div className="text-center mb-16">
+            <div className="section-tag">What We Build</div>
+            <h2 className="section-title mx-auto" style={{ textAlign: "center", maxWidth: 600 }}>
+              AI automation that pays for itself
+            </h2>
+            <p className="section-subtitle mx-auto" style={{ textAlign: "center", maxWidth: 560 }}>
+              Every service is designed to deliver measurable ROI. If it doesn&apos;t save you time or money, we don&apos;t build it.
+            </p>
+          </div>
         </FadeIn>
 
-        <div className="grid-3">
+        <div className="grid-3" style={{ gap: 16 }}>
           {services.map((s, i) => (
-            <FadeIn key={i} delay={i * 0.15}>
-              <div className="glass-card" style={{ height: "100%" }}>
-                <div className="service-icon" style={{ background: s.gradient }}>
+            <FadeIn key={i} delay={i * 0.08}>
+              <div className="glass-card group" style={{ height: "100%", display: "flex", flexDirection: "column" }}>
+                <div
+                  className="service-icon"
+                  style={{
+                    background: s.gradient,
+                    transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                  }}
+                >
                   {s.icon}
                 </div>
-                <h3 className="text-lg font-semibold mb-2" style={{ letterSpacing: "-0.02em" }}>
+                <h3 className="text-base font-semibold mb-2" style={{ letterSpacing: "-0.02em" }}>
                   {s.title}
                 </h3>
-                <p className="text-sm leading-relaxed" style={{ color: "var(--text-2)" }}>
+                <p className="text-sm leading-relaxed mb-4" style={{ color: "var(--text-2)", flex: 1 }}>
                   {s.desc}
                 </p>
+                <div style={{
+                  fontSize: 12, fontWeight: 600, color: "#6c5ce7",
+                  background: "rgba(108,92,231,0.08)", padding: "6px 12px",
+                  borderRadius: 6, display: "inline-block", width: "fit-content",
+                }}>
+                  {s.result}
+                </div>
               </div>
             </FadeIn>
           ))}
         </div>
       </section>
 
-      {/* ── SCROLL DASHBOARD — Container Scroll Animation ── */}
+      {/* ── SCROLL DASHBOARD ── */}
       <section style={{ background: "var(--bg)" }}>
         <ContainerScroll
           titleComponent={
             <div>
               <p className="section-tag mb-4">See It In Action</p>
               <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-4" style={{ letterSpacing: "-0.035em", color: "var(--text-1)" }}>
-                AI dashboards that
+                Real-time AI dashboards
                 <br />
                 <span style={{ background: "var(--accent-gradient)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                  actually make sense
+                  that run your ops
                 </span>
               </h2>
             </div>
@@ -232,37 +317,34 @@ export default function Home() {
         >
           <div className="h-full w-full bg-gradient-to-br from-[#0a0a1a] to-[#1a1040] flex items-center justify-center rounded-2xl p-8">
             <div className="w-full max-w-2xl space-y-6">
-              {/* fake dashboard UI */}
               <div className="flex gap-4">
                 <div className="flex-1 rounded-xl bg-white/5 border border-white/10 p-5">
-                  <div className="text-xs text-white/40 mb-2">Model Accuracy</div>
-                  <div className="text-3xl font-bold" style={{ background: "var(--accent-gradient)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>97.3%</div>
+                  <div className="text-xs text-white/40 mb-2">Tickets Resolved by AI</div>
+                  <div className="text-3xl font-bold" style={{ background: "linear-gradient(135deg, #6c5ce7, #a29bfe)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>847</div>
+                  <div className="text-xs text-emerald-400 mt-1">↑ 23% this week</div>
                 </div>
                 <div className="flex-1 rounded-xl bg-white/5 border border-white/10 p-5">
-                  <div className="text-xs text-white/40 mb-2">Avg Latency</div>
-                  <div className="text-3xl font-bold text-[#00cec9]">23ms</div>
+                  <div className="text-xs text-white/40 mb-2">Avg Response Time</div>
+                  <div className="text-3xl font-bold text-[#00cec9]">1.2s</div>
+                  <div className="text-xs text-emerald-400 mt-1">↓ from 4.5min</div>
                 </div>
                 <div className="flex-1 rounded-xl bg-white/5 border border-white/10 p-5">
-                  <div className="text-xs text-white/40 mb-2">Requests/min</div>
-                  <div className="text-3xl font-bold text-[#fd79a8]">12.4k</div>
+                  <div className="text-xs text-white/40 mb-2">Hours Saved</div>
+                  <div className="text-3xl font-bold text-[#fd79a8]">312</div>
+                  <div className="text-xs text-white/30 mt-1">this month</div>
                 </div>
               </div>
-              {/* chart placeholder */}
               <div className="rounded-xl bg-white/5 border border-white/10 p-5 h-40 flex items-end gap-2">
-                {Array.from({ length: 20 }).map((_, i) => (
+                {Array.from({ length: 24 }).map((_, i) => (
                   <div
                     key={i}
                     className="flex-1 rounded-t"
                     style={{
-                      height: `${30 + Math.sin(i * 0.5) * 25 + Math.random() * 20}%`,
-                      background: `linear-gradient(to top, rgba(108,92,231,0.6), rgba(0,206,201,0.3))`,
+                      height: `${20 + Math.sin(i * 0.4) * 20 + (i / 24) * 40 + Math.random() * 10}%`,
+                      background: `linear-gradient(to top, rgba(108,92,231,0.7), rgba(0,206,201,0.3))`,
                     }}
                   />
                 ))}
-              </div>
-              <div className="flex gap-4">
-                <div className="flex-1 rounded-xl bg-white/5 border border-white/10 p-4 h-20" />
-                <div className="flex-1 rounded-xl bg-white/5 border border-white/10 p-4 h-20" />
               </div>
             </div>
           </div>
@@ -272,13 +354,14 @@ export default function Home() {
       {/* ── PROCESS — Sticky Scroll ── */}
       <section className="section">
         <FadeIn>
-          <div className="section-tag">Our Process</div>
-          <h2 className="section-title">How we work</h2>
-          <p className="section-subtitle" style={{ marginBottom: 40 }}>
-            A proven four-step framework that minimizes risk and maximizes impact.
-          </p>
+          <div className="text-center mb-10">
+            <div className="section-tag">How It Works</div>
+            <h2 className="section-title" style={{ textAlign: "center" }}>From call to launch in weeks</h2>
+            <p className="section-subtitle mx-auto" style={{ textAlign: "center" }}>
+              No 6-month timelines. No scope creep. A clear, fast process designed for results.
+            </p>
+          </div>
         </FadeIn>
-
         <FadeIn delay={0.2}>
           <StickyScroll content={processContent} />
         </FadeIn>
@@ -287,20 +370,91 @@ export default function Home() {
       {/* ── TESTIMONIALS ── */}
       <section className="section">
         <FadeIn>
-          <div className="section-tag">Client Stories</div>
-          <h2 className="section-title">Trusted by ambitious teams</h2>
-          <p className="section-subtitle" style={{ marginBottom: 60 }}>
-            Real impact, real results. Here&apos;s what our partners have to say.
-          </p>
+          <div className="text-center mb-16">
+            <div className="section-tag">Results</div>
+            <h2 className="section-title" style={{ textAlign: "center" }}>Don&apos;t take our word for it</h2>
+          </div>
         </FadeIn>
-
         <div className="grid-3">
           {testimonials.map((t, i) => (
             <FadeIn key={i} delay={i * 0.12}>
-              <div className="glass-card">
-                <p className="testimonial-text">&ldquo;{t.text}&rdquo;</p>
-                <div className="testimonial-author">{t.author}</div>
-                <div className="testimonial-role">{t.role}</div>
+              <div className="glass-card" style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+                <div style={{ fontSize: 24, marginBottom: 16, opacity: 0.3 }}>&ldquo;</div>
+                <p className="text-sm leading-relaxed mb-6" style={{ color: "var(--text-2)", flex: 1 }}>
+                  {t.text}
+                </p>
+                <div>
+                  <div className="testimonial-author">{t.author}</div>
+                  <div className="testimonial-role">{t.role}</div>
+                </div>
+              </div>
+            </FadeIn>
+          ))}
+        </div>
+      </section>
+
+      {/* ── PRICING ── */}
+      <section className="section">
+        <FadeIn>
+          <div className="text-center mb-16">
+            <div className="section-tag">Pricing</div>
+            <h2 className="section-title" style={{ textAlign: "center" }}>Simple, transparent pricing</h2>
+            <p className="section-subtitle mx-auto" style={{ textAlign: "center" }}>
+              Fixed price. No hourly billing. No surprises. You know exactly what you&apos;re paying before we start.
+            </p>
+          </div>
+        </FadeIn>
+
+        <div className="grid-3" style={{ gap: 16, alignItems: "stretch" }}>
+          {pricing.map((p, i) => (
+            <FadeIn key={i} delay={i * 0.12}>
+              <div
+                className="glass-card"
+                style={{
+                  height: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                  border: p.popular ? "1px solid rgba(108,92,231,0.4)" : undefined,
+                  boxShadow: p.popular ? "0 0 40px rgba(108,92,231,0.08)" : undefined,
+                  position: "relative",
+                  overflow: "hidden",
+                }}
+              >
+                {p.popular && (
+                  <div style={{
+                    position: "absolute", top: 12, right: 12, fontSize: 10, fontWeight: 700,
+                    background: "#6c5ce7", color: "white", padding: "3px 10px", borderRadius: 100,
+                    textTransform: "uppercase", letterSpacing: "0.05em",
+                  }}>
+                    Popular
+                  </div>
+                )}
+                <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-1)", marginBottom: 4 }}>{p.name}</div>
+                <div style={{
+                  fontSize: 40, fontWeight: 700, letterSpacing: "-0.04em", marginBottom: 4,
+                  background: "var(--accent-gradient)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+                }}>
+                  {p.price}
+                </div>
+                <div style={{ fontSize: 13, color: "var(--text-3)", marginBottom: 24 }}>{p.desc}</div>
+                <ul style={{ flex: 1, display: "flex", flexDirection: "column", gap: 10, marginBottom: 24 }}>
+                  {p.features.map((f, j) => (
+                    <li key={j} style={{ fontSize: 13, color: "var(--text-2)", display: "flex", alignItems: "center", gap: 8 }}>
+                      <span style={{ color: "#6c5ce7", fontSize: 14 }}>✓</span>
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                <Link
+                  href="/contact"
+                  className={p.popular ? "btn-primary" : "btn-secondary"}
+                  style={{
+                    width: "100%", textAlign: "center", fontSize: 13,
+                    ...(p.popular ? { background: "#6c5ce7" } : {}),
+                  }}
+                >
+                  {p.cta}
+                </Link>
               </div>
             </FadeIn>
           ))}
@@ -311,20 +465,21 @@ export default function Home() {
       <section className="section" style={{ textAlign: "center" }}>
         <FadeIn>
           <div style={{ position: "relative", padding: "80px 40px", borderRadius: 24, overflow: "hidden" }}>
-            <div style={{ position: "absolute", inset: 0, background: "var(--accent-gradient)", opacity: 0.06 }} />
+            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, #6c5ce7, #00cec9)", opacity: 0.06 }} />
             <div style={{
               position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
-              width: 500, height: 500, borderRadius: "50%", background: "#6c5ce7", filter: "blur(150px)", opacity: 0.08,
+              width: 600, height: 600, borderRadius: "50%", background: "#6c5ce7", filter: "blur(180px)", opacity: 0.08,
             }} />
             <div style={{ position: "relative", zIndex: 1 }}>
-              <h2 className="text-4xl font-bold mb-4" style={{ letterSpacing: "-0.035em" }}>
-                Ready to build with AI?
+              <h2 className="text-4xl md:text-5xl font-bold mb-4" style={{ letterSpacing: "-0.035em" }}>
+                Stop doing manually what
+                <br />AI can do in seconds
               </h2>
-              <p className="text-base mb-9 max-w-[480px] mx-auto" style={{ color: "var(--text-2)" }}>
-                Let&apos;s discuss how AI can transform your business. No pitch decks — just a real conversation.
+              <p className="text-base mb-9 max-w-[500px] mx-auto" style={{ color: "var(--text-2)" }}>
+                Book a free 30-minute call. We&apos;ll identify your top 3 automation opportunities — no strings attached.
               </p>
-              <Link href="/contact" className="btn-primary" style={{ padding: "14px 36px", fontSize: 15 }}>
-                Get in Touch
+              <Link href="/contact" className="btn-primary" style={{ padding: "16px 40px", fontSize: 16, background: "#6c5ce7" }}>
+                Book Your Free Call →
               </Link>
             </div>
           </div>
