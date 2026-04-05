@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { motion } from "framer-motion";
 import FadeIn from "@/components/FadeIn";
+import { LampContainer } from "@/components/ui/lamp";
 
 const services = [
   {
@@ -50,41 +52,44 @@ const services = [
 
 export default function ServicesPage() {
   return (
-    <div style={{ paddingTop: 64 }}>
-      {/* hero */}
-      <section className="section" style={{ paddingBottom: 60 }}>
-        <FadeIn>
-          <div className="section-tag">Our Services</div>
-          <h1 className="section-title" style={{ fontSize: 56 }}>
+    <div>
+      {/* Lamp hero */}
+      <LampContainer className="!min-h-[70vh] !bg-[#050507]">
+        <motion.div
+          initial={{ opacity: 0.5, y: 100 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.8, ease: "easeInOut" }}
+          className="text-center"
+        >
+          <div className="section-tag mb-4">Our Services</div>
+          <h1 className="text-4xl md:text-6xl font-bold tracking-tight bg-gradient-to-br from-slate-200 to-slate-400 bg-clip-text text-transparent">
             Everything you need to
             <br />
-            <span style={{ background: "var(--accent-gradient)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-              ship AI that works
-            </span>
+            ship AI that works
           </h1>
-          <p className="section-subtitle">
+          <p className="text-base mt-6 max-w-lg mx-auto" style={{ color: "var(--text-2)" }}>
             From the first whiteboard session to a model running in production — we cover the full stack.
           </p>
-        </FadeIn>
-      </section>
+        </motion.div>
+      </LampContainer>
 
       {/* services grid */}
-      <section className="section" style={{ paddingTop: 0 }}>
+      <section className="section" style={{ paddingTop: 80 }}>
         <div className="grid-2" style={{ gap: 24 }}>
           {services.map((s, i) => (
             <FadeIn key={i} delay={i * 0.1}>
               <div className="glass-card" style={{ height: "100%" }}>
                 <div className="service-icon" style={{ background: s.gradient }}>{s.icon}</div>
-                <h3 style={{ fontSize: 20, fontWeight: 600, marginBottom: 10, letterSpacing: "-0.02em" }}>
+                <h3 className="text-xl font-semibold mb-2" style={{ letterSpacing: "-0.02em" }}>
                   {s.title}
                 </h3>
-                <p style={{ fontSize: 14, color: "var(--text-2)", lineHeight: 1.7, marginBottom: 20 }}>
+                <p className="text-sm leading-relaxed mb-5" style={{ color: "var(--text-2)" }}>
                   {s.desc}
                 </p>
-                <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: 8 }}>
+                <ul className="flex flex-col gap-2">
                   {s.features.map((f, j) => (
-                    <li key={j} style={{ fontSize: 13, color: "var(--text-2)", display: "flex", alignItems: "center", gap: 8 }}>
-                      <span style={{ width: 5, height: 5, borderRadius: "50%", background: "var(--accent)", flexShrink: 0 }} />
+                    <li key={j} className="text-sm flex items-center gap-2" style={{ color: "var(--text-2)" }}>
+                      <span className="w-[5px] h-[5px] rounded-full bg-[#6c5ce7] shrink-0" />
                       {f}
                     </li>
                   ))}
@@ -95,7 +100,7 @@ export default function ServicesPage() {
         </div>
       </section>
 
-      {/* process */}
+      {/* process steps */}
       <section className="section">
         <FadeIn>
           <div className="section-tag">How We Work</div>
@@ -105,7 +110,7 @@ export default function ServicesPage() {
           </p>
         </FadeIn>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 20 }}>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
           {[
             { step: "01", title: "Discover", desc: "We learn your business, data, and goals through deep-dive workshops." },
             { step: "02", title: "Design", desc: "We architect the solution — models, pipelines, and integration points." },
@@ -113,16 +118,20 @@ export default function ServicesPage() {
             { step: "04", title: "Deploy", desc: "Production deployment with monitoring, scaling, and ongoing support." },
           ].map((p, i) => (
             <FadeIn key={i} delay={i * 0.1}>
-              <div className="glass-card" style={{ textAlign: "center" }}>
-                <div style={{
-                  fontSize: 36, fontWeight: 700, letterSpacing: "-0.04em",
-                  background: "var(--accent-gradient)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-                  marginBottom: 12,
-                }}>
+              <div className="glass-card text-center">
+                <div
+                  className="text-4xl font-bold mb-3"
+                  style={{
+                    letterSpacing: "-0.04em",
+                    background: "var(--accent-gradient)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                  }}
+                >
                   {p.step}
                 </div>
-                <h4 style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>{p.title}</h4>
-                <p style={{ fontSize: 13, color: "var(--text-2)", lineHeight: 1.6 }}>{p.desc}</p>
+                <h4 className="text-base font-semibold mb-2">{p.title}</h4>
+                <p className="text-sm leading-relaxed" style={{ color: "var(--text-2)" }}>{p.desc}</p>
               </div>
             </FadeIn>
           ))}
@@ -130,12 +139,12 @@ export default function ServicesPage() {
       </section>
 
       {/* CTA */}
-      <section className="section" style={{ textAlign: "center" }}>
+      <section className="section text-center">
         <FadeIn>
-          <h2 style={{ fontSize: 36, fontWeight: 700, letterSpacing: "-0.03em", marginBottom: 16 }}>
+          <h2 className="text-4xl font-bold mb-4" style={{ letterSpacing: "-0.03em" }}>
             Have a project in mind?
           </h2>
-          <p style={{ fontSize: 16, color: "var(--text-2)", marginBottom: 32, maxWidth: 440, margin: "0 auto 32px" }}>
+          <p className="text-base mb-8 max-w-md mx-auto" style={{ color: "var(--text-2)" }}>
             Let&apos;s talk about how we can help. Free consultation, no strings attached.
           </p>
           <Link href="/contact" className="btn-primary" style={{ padding: "14px 32px", fontSize: 15 }}>
