@@ -75,7 +75,7 @@ export default function ServicesPage() {
           <p className="text-base mt-6 max-w-lg mx-auto" style={{ color: "var(--text-2)" }}>
             Every service is designed to deliver measurable ROI. Fixed pricing. No fluff.
           </p>
-          <Link href="/contact" className="btn-primary inline-block mt-8" style={{ background: "#6c5ce7", padding: "12px 28px" }}>
+          <Link href="/contact" className="btn-primary inline-block mt-8" style={{ background: "#F5B731", color: "#0a0a0f", padding: "12px 28px" }}>
             Book a Free Call
           </Link>
         </motion.div>
@@ -89,8 +89,8 @@ export default function ServicesPage() {
                 <div className="flex items-start justify-between mb-4">
                   <div className="service-icon" style={{ background: s.gradient, marginBottom: 0 }}>{s.icon}</div>
                   <div style={{
-                    fontSize: 11, fontWeight: 600, color: "#6c5ce7",
-                    background: "rgba(108,92,231,0.08)", padding: "4px 10px",
+                    fontSize: 11, fontWeight: 600, color: "#F5B731",
+                    background: "rgba(245,183,49,0.1)", padding: "4px 10px",
                     borderRadius: 6,
                   }}>
                     {s.result}
@@ -105,7 +105,7 @@ export default function ServicesPage() {
                 <ul className="flex flex-col gap-2">
                   {s.features.map((f, j) => (
                     <li key={j} className="text-sm flex items-center gap-2" style={{ color: "var(--text-2)" }}>
-                      <span className="w-[5px] h-[5px] rounded-full bg-[#6c5ce7] shrink-0" />
+                      <span className="w-[5px] h-[5px] rounded-full bg-[#F5B731] shrink-0" />
                       {f}
                     </li>
                   ))}
@@ -157,7 +157,7 @@ export default function ServicesPage() {
           <p className="text-base mb-8 max-w-md mx-auto" style={{ color: "var(--text-2)" }}>
             Free 30-minute call. We&apos;ll map out your automation roadmap — whether you work with us or not.
           </p>
-          <Link href="/contact" className="btn-primary" style={{ padding: "14px 32px", fontSize: 15, background: "#6c5ce7" }}>
+          <Link href="/contact" className="btn-primary" style={{ padding: "14px 32px", fontSize: 15, background: "#F5B731", color: "#0a0a0f" }}>
             Book Your Free Call →
           </Link>
         </FadeIn>

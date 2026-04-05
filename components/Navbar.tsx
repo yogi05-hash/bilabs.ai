@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 
 const links = [
@@ -15,8 +16,15 @@ export default function Navbar() {
 
   return (
     <nav className="nav">
-      <Link href="/" className="nav-logo">
-        bi<span>labs</span>.ai
+      <Link href="/" style={{ display: "flex", alignItems: "center" }}>
+        <Image
+          src="/logo.png"
+          alt="BiLabs"
+          width={120}
+          height={40}
+          style={{ height: 32, width: "auto", objectFit: "contain" }}
+          priority
+        />
       </Link>
       <ul className="nav-links">
         {links.map((l) => (
@@ -31,7 +39,7 @@ export default function Navbar() {
           </li>
         ))}
         <li>
-          <Link href="/contact" className="btn-primary" style={{ padding: "8px 18px", fontSize: 13 }}>
+          <Link href="/contact" className="btn-primary" style={{ padding: "8px 18px", fontSize: 13, background: "#F5B731", color: "#0a0a0f" }}>
             Book a Demo
           </Link>
         </li>

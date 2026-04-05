@@ -18,14 +18,14 @@ const services = [
     title: "AI Chatbots & Support Agents",
     desc: "24/7 customer support that actually resolves issues. Trained on your docs, integrated with your CRM, handling tickets while your team sleeps.",
     result: "80% fewer support tickets",
-    gradient: "linear-gradient(135deg, #6c5ce7, #a29bfe)",
+    gradient: "linear-gradient(135deg, #F5B731, #F0D060)",
   },
   {
     icon: "⚙️",
     title: "Workflow Automation",
     desc: "Kill repetitive tasks. Email sorting, data entry, report generation, invoice processing — automated end-to-end with AI that learns your patterns.",
     result: "40hrs/week saved per team",
-    gradient: "linear-gradient(135deg, #00cec9, #81ecec)",
+    gradient: "linear-gradient(135deg, #E87B35, #81ecec)",
   },
   {
     icon: "📞",
@@ -46,7 +46,7 @@ const services = [
     title: "AI Analytics & Insights",
     desc: "Dashboards that think. Ask questions in plain English, get instant answers from your data. Predictive analytics that spot trends before they happen.",
     result: "Decisions in minutes, not weeks",
-    gradient: "linear-gradient(135deg, #74b9ff, #a29bfe)",
+    gradient: "linear-gradient(135deg, #74b9ff, #F0D060)",
   },
   {
     icon: "🔌",
@@ -183,7 +183,7 @@ export default function Home() {
             style={{ letterSpacing: "-0.04em" }}
           >
             We automate your business{" "}
-            <Highlight className="!from-[#6c5ce7] !to-[#00cec9]">
+            <Highlight className="!from-[#F5B731] !to-[#F0D060]">
               with AI that works
             </Highlight>
           </motion.h1>
@@ -206,7 +206,7 @@ export default function Home() {
             transition={{ duration: 0.8, delay: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
             className="flex gap-3 items-center"
           >
-            <Link href="/contact" className="btn-primary" style={{ padding: "14px 32px", fontSize: 15, background: "#6c5ce7" }}>
+            <Link href="/contact" className="btn-primary" style={{ padding: "14px 32px", fontSize: 15, background: "#F5B731", color: "#0a0a0f" }}>
               Book a Free Call
             </Link>
             <Link href="/services" className="btn-secondary" style={{ padding: "14px 32px", fontSize: 15 }}>
@@ -287,8 +287,8 @@ export default function Home() {
                   {s.desc}
                 </p>
                 <div style={{
-                  fontSize: 12, fontWeight: 600, color: "#6c5ce7",
-                  background: "rgba(108,92,231,0.08)", padding: "6px 12px",
+                  fontSize: 12, fontWeight: 600, color: "#F5B731",
+                  background: "rgba(245,183,49,0.1)", padding: "6px 12px",
                   borderRadius: 6, display: "inline-block", width: "fit-content",
                 }}>
                   {s.result}
@@ -320,12 +320,12 @@ export default function Home() {
               <div className="flex gap-4">
                 <div className="flex-1 rounded-xl bg-white/5 border border-white/10 p-5">
                   <div className="text-xs text-white/40 mb-2">Tickets Resolved by AI</div>
-                  <div className="text-3xl font-bold" style={{ background: "linear-gradient(135deg, #6c5ce7, #a29bfe)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>847</div>
+                  <div className="text-3xl font-bold" style={{ background: "linear-gradient(135deg, #F5B731, #F0D060)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>847</div>
                   <div className="text-xs text-emerald-400 mt-1">↑ 23% this week</div>
                 </div>
                 <div className="flex-1 rounded-xl bg-white/5 border border-white/10 p-5">
                   <div className="text-xs text-white/40 mb-2">Avg Response Time</div>
-                  <div className="text-3xl font-bold text-[#00cec9]">1.2s</div>
+                  <div className="text-3xl font-bold text-[#E87B35]">1.2s</div>
                   <div className="text-xs text-emerald-400 mt-1">↓ from 4.5min</div>
                 </div>
                 <div className="flex-1 rounded-xl bg-white/5 border border-white/10 p-5">
@@ -414,8 +414,8 @@ export default function Home() {
                   height: "100%",
                   display: "flex",
                   flexDirection: "column",
-                  border: p.popular ? "1px solid rgba(108,92,231,0.4)" : undefined,
-                  boxShadow: p.popular ? "0 0 40px rgba(108,92,231,0.08)" : undefined,
+                  border: p.popular ? "1px solid rgba(245,183,49,0.35)" : undefined,
+                  boxShadow: p.popular ? "0 0 40px rgba(245,183,49,0.08)" : undefined,
                   position: "relative",
                   overflow: "hidden",
                 }}
@@ -423,7 +423,7 @@ export default function Home() {
                 {p.popular && (
                   <div style={{
                     position: "absolute", top: 12, right: 12, fontSize: 10, fontWeight: 700,
-                    background: "#6c5ce7", color: "white", padding: "3px 10px", borderRadius: 100,
+                    background: "#F5B731", color: "#0a0a0f", padding: "3px 10px", borderRadius: 100,
                     textTransform: "uppercase", letterSpacing: "0.05em",
                   }}>
                     Popular
@@ -440,7 +440,7 @@ export default function Home() {
                 <ul style={{ flex: 1, display: "flex", flexDirection: "column", gap: 10, marginBottom: 24 }}>
                   {p.features.map((f, j) => (
                     <li key={j} style={{ fontSize: 13, color: "var(--text-2)", display: "flex", alignItems: "center", gap: 8 }}>
-                      <span style={{ color: "#6c5ce7", fontSize: 14 }}>✓</span>
+                      <span style={{ color: "#F5B731", fontSize: 14 }}>✓</span>
                       {f}
                     </li>
                   ))}
@@ -450,7 +450,7 @@ export default function Home() {
                   className={p.popular ? "btn-primary" : "btn-secondary"}
                   style={{
                     width: "100%", textAlign: "center", fontSize: 13,
-                    ...(p.popular ? { background: "#6c5ce7" } : {}),
+                    ...(p.popular ? { background: "#F5B731", color: "#0a0a0f" } : {}),
                   }}
                 >
                   {p.cta}
@@ -465,10 +465,10 @@ export default function Home() {
       <section className="section" style={{ textAlign: "center" }}>
         <FadeIn>
           <div style={{ position: "relative", padding: "80px 40px", borderRadius: 24, overflow: "hidden" }}>
-            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, #6c5ce7, #00cec9)", opacity: 0.06 }} />
+            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, #F5B731, #E87B35)", opacity: 0.06 }} />
             <div style={{
               position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
-              width: 600, height: 600, borderRadius: "50%", background: "#6c5ce7", filter: "blur(180px)", opacity: 0.08,
+              width: 600, height: 600, borderRadius: "50%", background: "#F5B731", filter: "blur(180px)", opacity: 0.08,
             }} />
             <div style={{ position: "relative", zIndex: 1 }}>
               <h2 className="text-4xl md:text-5xl font-bold mb-4" style={{ letterSpacing: "-0.035em" }}>
@@ -478,7 +478,7 @@ export default function Home() {
               <p className="text-base mb-9 max-w-[500px] mx-auto" style={{ color: "var(--text-2)" }}>
                 Book a free 30-minute call. We&apos;ll identify your top 3 automation opportunities — no strings attached.
               </p>
-              <Link href="/contact" className="btn-primary" style={{ padding: "16px 40px", fontSize: 16, background: "#6c5ce7" }}>
+              <Link href="/contact" className="btn-primary" style={{ padding: "16px 40px", fontSize: 16, background: "#F5B731", color: "#0a0a0f" }}>
                 Book Your Free Call →
               </Link>
             </div>

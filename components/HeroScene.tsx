@@ -20,7 +20,7 @@ function AnimatedSphere() {
       <mesh ref={meshRef} scale={2.2}>
         <icosahedronGeometry args={[1, 8]} />
         <MeshDistortMaterial
-          color="#6c5ce7"
+          color="#F5B731"
           roughness={0.15}
           metalness={0.9}
           distort={0.3}
@@ -46,7 +46,7 @@ function FloatingRing() {
   return (
     <mesh ref={meshRef} position={[0, 0, 0]} scale={3.2}>
       <torusGeometry args={[1, 0.02, 16, 100]} />
-      <meshStandardMaterial color="#00cec9" emissive="#00cec9" emissiveIntensity={0.5} transparent opacity={0.6} />
+      <meshStandardMaterial color="#E87B35" emissive="#E87B35" emissiveIntensity={0.5} transparent opacity={0.6} />
     </mesh>
   );
 }
@@ -77,7 +77,7 @@ function Particles() {
           args={[positions, 3]}
         />
       </bufferGeometry>
-      <pointsMaterial size={0.02} color="#6c5ce7" transparent opacity={0.6} sizeAttenuation />
+      <pointsMaterial size={0.02} color="#F5B731" transparent opacity={0.6} sizeAttenuation />
     </points>
   );
 }
@@ -92,8 +92,8 @@ export default function HeroScene() {
       >
         <ambientLight intensity={0.3} />
         <directionalLight position={[5, 5, 5]} intensity={0.8} />
-        <pointLight position={[-3, -3, 2]} intensity={0.5} color="#00cec9" />
-        <pointLight position={[3, 3, 2]} intensity={0.5} color="#6c5ce7" />
+        <pointLight position={[-3, -3, 2]} intensity={0.5} color="#E87B35" />
+        <pointLight position={[3, 3, 2]} intensity={0.5} color="#F5B731" />
         <AnimatedSphere />
         <FloatingRing />
         <Particles />

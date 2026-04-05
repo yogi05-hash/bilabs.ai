@@ -1,12 +1,19 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export default function Footer() {
   return (
     <footer className="footer">
       <div className="footer-grid">
         <div>
-          <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 12, letterSpacing: "-0.03em" }}>
-            bi<span style={{ background: "var(--accent-gradient)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>labs</span>.ai
+          <div style={{ marginBottom: 16 }}>
+            <Image
+              src="/logo.png"
+              alt="BiLabs"
+              width={140}
+              height={46}
+              style={{ height: 36, width: "auto", objectFit: "contain" }}
+            />
           </div>
           <p style={{ fontSize: 14, color: "var(--text-2)", lineHeight: 1.6, maxWidth: 280 }}>
             AI automation agency. We build chatbots, voice agents, and workflow automations that save you thousands of hours.
@@ -25,7 +32,7 @@ export default function Footer() {
           <Link href="/services" className="footer-link">Voice Agents</Link>
           <Link href="/services" className="footer-link">Workflow Automation</Link>
           <Link href="/services" className="footer-link">AI Content Engine</Link>
-          <Link href="/services" className="footer-link">Analytics & Insights</Link>
+          <Link href="/services" className="footer-link">Analytics &amp; Insights</Link>
         </div>
         <div>
           <div className="footer-heading">Connect</div>
