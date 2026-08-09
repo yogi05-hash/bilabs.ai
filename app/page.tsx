@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-const HeroScene = dynamic(() => import("@/components/HeroScene"), { ssr: false });
+const ShipLog = dynamic(() => import("@/components/ShipLog"), { ssr: false });
 const VideoMaker = dynamic(() => import("@/components/VideoMaker"), { ssr: false });
 
 /* ------------------------------------------------------------------ */
@@ -40,19 +40,12 @@ function Hero() {
         overflow: "hidden",
       }}
     >
-      <HeroScene />
-
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: "radial-gradient(ellipse 60% 50% at 50% 50%, transparent 0%, var(--bg) 70%)",
-          pointerEvents: "none",
-          zIndex: 1,
-        }}
-      />
+      <div className="hero-bg" />
+      <div className="hero-glow" />
 
       <div className="section" style={{ position: "relative", zIndex: 2, paddingTop: 140, paddingBottom: 100 }}>
+        <div className="hero-grid">
+        <div>
         <FadeIn>
           <div
             style={{
@@ -77,11 +70,11 @@ function Hero() {
         <FadeIn delay={0.1}>
           <h1
             style={{
-              fontSize: "clamp(40px, 7vw, 80px)",
+              fontSize: "clamp(38px, 4.8vw, 64px)",
               fontWeight: 700,
-              letterSpacing: "-0.04em",
-              lineHeight: 1.05,
-              maxWidth: 800,
+              letterSpacing: "-0.03em",
+              lineHeight: 1.08,
+              maxWidth: 640,
               marginBottom: 24,
             }}
           >
@@ -125,6 +118,12 @@ function Hero() {
             </Link>
           </div>
         </FadeIn>
+        </div>
+
+        <FadeIn delay={0.35}>
+          <ShipLog />
+        </FadeIn>
+        </div>
 
         <FadeIn delay={0.5}>
           <div
