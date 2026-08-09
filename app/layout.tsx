@@ -8,8 +8,8 @@ import { cn } from "@/lib/utils";
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
-  title: "bilabs.ai — AI Agency",
-  description: "We build intelligent systems that transform how businesses operate. Custom AI solutions, from strategy to deployment.",
+  title: "BiLabs — We build AI that does the work for you",
+  description: "AI chatbots, content generators, and workflow automations built for your business and live in weeks. UK & India teams, 50+ automations deployed.",
 };
 
 export default function RootLayout({

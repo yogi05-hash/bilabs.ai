@@ -72,7 +72,7 @@ function buildSource(brand: string, message: string) {
       },
       {
         type: "text",
-        text: "AI that actually ships.",
+        text: "AI that does the work for you.",
         time: 4.6,
         duration: 1.9,
         y: "44%",

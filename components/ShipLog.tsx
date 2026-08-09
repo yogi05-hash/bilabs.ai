@@ -71,7 +71,7 @@ export default function ShipLog() {
             color: "var(--text-3)",
           }}
         >
-          bilabs — ship log
+          bilabs — live systems
         </span>
         <span
           style={{

@@ -87,7 +87,7 @@ function Hero() {
                 backgroundClip: "text",
               }}
             >
-              actually ships
+              does the work for you
             </span>
           </h1>
         </FadeIn>
@@ -102,9 +102,9 @@ function Hero() {
               marginBottom: 40,
             }}
           >
-            From AI chatbots to reel generators — we don&apos;t just consult, we build and
-            launch real products. Plus automation systems that save your team
-            thousands of hours.
+            Chatbots that answer your customers, videos that make themselves, and
+            automations that clear the busywork — built for your business and live
+            in weeks.
           </p>
         </FadeIn>
 
