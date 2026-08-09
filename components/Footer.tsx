@@ -12,37 +12,38 @@ export default function Footer() {
               alt="BiLabs"
               width={180}
               height={56}
-              style={{ height: 48, width: "auto", objectFit: "contain" }}
+              style={{ height: 44, width: "auto", objectFit: "contain" }}
             />
           </div>
           <p style={{ fontSize: 14, color: "var(--text-2)", lineHeight: 1.6, maxWidth: 280 }}>
-            AI automation agency. We build chatbots, voice agents, and workflow automations that save you thousands of hours.
+            AI-first agency building intelligent products and automation systems.
+            From chatbots to video AI — we ship products that work.
           </p>
         </div>
         <div>
           <div className="footer-heading">Company</div>
           <Link href="/about" className="footer-link">About</Link>
-          <Link href="/services" className="footer-link">Services</Link>
+          <Link href="/#services" className="footer-link">Services</Link>
+          <Link href="/#products" className="footer-link">Products</Link>
           <Link href="/contact" className="footer-link">Contact</Link>
-          <Link href="/contact" className="footer-link">Book a Call</Link>
         </div>
         <div>
-          <div className="footer-heading">Services</div>
-          <Link href="/services" className="footer-link">Workflow Automation</Link>
-          <Link href="/services" className="footer-link">AI Content Engine</Link>
-          <Link href="/services" className="footer-link">AI Voice Agents</Link>
-          <Link href="/services" className="footer-link">AI Lead Generation</Link>
-          <a href="https://yourbotchat.com" target="_blank" rel="noopener noreferrer" className="footer-link">AI Chatbots ↗</a>
+          <div className="footer-heading">Products</div>
+          <a href="https://yourbotchat.com" target="_blank" rel="noopener noreferrer" className="footer-link">YourBotChat ↗</a>
+          <a href="https://reelmakerbot.com" target="_blank" rel="noopener noreferrer" className="footer-link">ReelMakerBot ↗</a>
+          <a href="https://showbizy.ai" target="_blank" rel="noopener noreferrer" className="footer-link">Showbizy ↗</a>
         </div>
         <div>
           <div className="footer-heading">Connect</div>
-          <span className="footer-link">hello@bilabs.ai</span>
+          <a href="mailto:hello@bilabs.ai" className="footer-link">hello@bilabs.ai</a>
           <span className="footer-link">Twitter / X</span>
           <span className="footer-link">LinkedIn</span>
+          <span className="footer-link">Instagram</span>
         </div>
       </div>
-      <div className="footer-bottom">
-        &copy; {new Date().getFullYear()} bilabs.ai. All rights reserved.
+      <div className="footer-bottom" style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
+        <span>&copy; {new Date().getFullYear()} bilabs.ai. All rights reserved.</span>
+        <span>Built with AI, shipped by humans.</span>
       </div>
     </footer>
   );
