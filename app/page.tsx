@@ -24,6 +24,7 @@ import {
 import Link from "next/link";
 
 const HeroScene = dynamic(() => import("@/components/HeroScene"), { ssr: false });
+const VideoMaker = dynamic(() => import("@/components/VideoMaker"), { ssr: false });
 
 /* ------------------------------------------------------------------ */
 /*  HERO                                                               */
@@ -758,6 +759,7 @@ export default function Home() {
       <Stats />
       <Services />
       <Products />
+      <VideoMaker />
       <Process />
       <Testimonials />
       <Pricing />
