@@ -70,11 +70,11 @@ function Hero() {
         <FadeIn delay={0.1}>
           <h1
             style={{
-              fontSize: "clamp(38px, 4.8vw, 64px)",
+              fontSize: "clamp(36px, 4.4vw, 58px)",
               fontWeight: 700,
               letterSpacing: "-0.03em",
-              lineHeight: 1.08,
-              maxWidth: 640,
+              lineHeight: 1.1,
+              maxWidth: 660,
               marginBottom: 24,
             }}
           >
@@ -87,7 +87,7 @@ function Hero() {
                 backgroundClip: "text",
               }}
             >
-              does the work for you
+              does the work for&nbsp;you
             </span>
           </h1>
         </FadeIn>
