@@ -7,11 +7,11 @@ import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
 
 const links = [
-  { href: "/#services", label: "Services" },
-  { href: "/#products", label: "Products" },
+  { href: "/#pricing", label: "Packages" },
+  { href: "/#industries", label: "Industries" },
   { href: "/#video-demo", label: "Live Demo" },
   { href: "/#process", label: "Process" },
-  { href: "/#pricing", label: "Pricing" },
+  { href: "/#products", label: "Our Products" },
   { href: "/contact", label: "Contact" },
 ];
 

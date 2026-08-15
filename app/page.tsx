@@ -63,7 +63,7 @@ function Hero() {
             }}
           >
             <Sparkles size={14} style={{ color: "#F5B731" }} />
-            AI Products &amp; Automation Agency
+            AI automation for UK businesses — fixed monthly price
           </div>
         </FadeIn>
 
@@ -102,9 +102,10 @@ function Hero() {
               marginBottom: 40,
             }}
           >
-            Chatbots that answer your customers, videos that make themselves, and
-            automations that clear the busywork — built for your business and live
-            in weeks.
+            An AI receptionist that answers every call. Follow-ups that send
+            themselves. Busywork that just… happens. Packaged for estate agents,
+            clinics, accountants, recruiters and more — live in weeks, from
+            £299/month.
           </p>
         </FadeIn>
 
@@ -113,8 +114,8 @@ function Hero() {
             <Link href="/contact" className="btn-primary" style={{ gap: 8, fontSize: 15, padding: "14px 28px" }}>
               Get Free AI Audit <ArrowRight size={16} />
             </Link>
-            <Link href="#products" className="btn-secondary" style={{ gap: 8, fontSize: 15, padding: "14px 28px" }}>
-              See Our Products
+            <Link href="#pricing" className="btn-secondary" style={{ gap: 8, fontSize: 15, padding: "14px 28px" }}>
+              See Packages &amp; Pricing
             </Link>
           </div>
         </FadeIn>
@@ -186,83 +187,196 @@ function Stats() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  SERVICES                                                           */
+/*  PACKAGES — productised systems; this IS the pricing                */
 /* ------------------------------------------------------------------ */
-function Services() {
-  const services = [
+function Packages() {
+  const packs = [
     {
-      icon: <Zap size={24} />,
-      title: "AI Workflow Automation",
-      desc: "Automate repetitive tasks across your business. CRM updates, email sequences, data processing — all running on autopilot.",
-      price: "From £149/mo",
+      name: "AI Receptionist",
+      range: "\u00a3299\u2013\u00a3799",
+      desc: "Never miss another call, WhatsApp or enquiry \u2014 even at 2am.",
+      features: [
+        "Answers calls & WhatsApp 24/7",
+        "Books appointments straight into your diary",
+        "Missed-call instant text-back",
+        "Trained on your services, prices & FAQs",
+        "Monthly answered-vs-missed report",
+      ],
+      cta: "Get my receptionist",
+      highlight: false,
     },
     {
-      icon: <Bot size={24} />,
-      title: "AI Chatbots & Assistants",
-      desc: "Customer support bots trained on your data. Handle 80% of queries automatically. Live on your website in minutes.",
-      price: "From £29/mo",
+      name: "AI Sales & Follow-up",
+      range: "\u00a3500\u2013\u00a31,500",
+      desc: "Every lead answered in under a minute \u2014 and followed up until they decide.",
+      features: [
+        "Instant response to every new lead",
+        "Follow-up sequences on email, WhatsApp & SMS",
+        "Leads qualified and routed to your team",
+        "Syncs with your CRM \u2014 or replaces the spreadsheet",
+        "Weekly pipeline report",
+        "AI Receptionist available as an add-on",
+      ],
+      cta: "Stop losing leads",
+      highlight: true,
     },
     {
-      icon: <Mic size={24} />,
-      title: "AI Voice Agents",
-      desc: "Phone-based AI agents that handle inbound calls, book appointments, and qualify leads — 24/7, no human needed.",
-      price: "From £79/mo",
-    },
-    {
-      icon: <Target size={24} />,
-      title: "AI Lead Generation",
-      desc: "Intelligent prospecting that finds, qualifies, and nurtures leads. Personalised outreach at scale powered by AI.",
-      price: "From £149/mo",
-    },
-    {
-      icon: <BarChart3 size={24} />,
-      title: "AI Content Engine",
-      desc: "Automated content creation for social media, blogs, and email. On-brand, on-schedule, on autopilot.",
-      price: "From £99/mo",
-    },
-    {
-      icon: <Code2 size={24} />,
-      title: "Custom AI Solutions",
-      desc: "Bespoke AI products built from scratch. Computer vision, NLP, recommendation engines — whatever your business needs.",
-      price: "From £999",
+      name: "Full Business Automation",
+      range: "\u00a32,000\u2013\u00a35,000",
+      desc: "Reception, sales, paperwork and back-office \u2014 on autopilot.",
+      features: [
+        "Receptionist + Sales systems included",
+        "Invoice chasing & document collection",
+        "Quotes, intake forms & onboarding flows",
+        "Custom integrations with your software",
+        "Dedicated automation engineer",
+        "Monthly optimisation & new automations",
+      ],
+      cta: "Automate my business",
+      highlight: false,
     },
   ];
 
   return (
-    <section id="services" style={{ background: "var(--bg-card)" }}>
+    <section id="pricing" style={{ background: "var(--bg-card)" }}>
       <div className="section">
         <FadeIn>
-          <div className="section-tag">Services</div>
-          <h2 className="section-title">AI automation for every part of your business</h2>
-          <p className="section-subtitle">
-            We handle everything — strategy, build, deployment, and ongoing optimisation.
-          </p>
+          <div style={{ textAlign: "center", marginBottom: 48 }}>
+            <div className="section-tag">Packages &amp; Pricing</div>
+            <h2 className="section-title" style={{ maxWidth: 560, margin: "0 auto 16px" }}>
+              Pick a system. It&apos;s working within weeks.
+            </h2>
+            <p className="section-subtitle" style={{ margin: "0 auto" }}>
+              Fixed monthly price. Setup included. No long contracts — cancel monthly.
+            </p>
+          </div>
         </FadeIn>
 
-        <div className="grid-3" style={{ marginTop: 48 }}>
-          {services.map((s, i) => (
-            <FadeIn key={i} delay={i * 0.08}>
-              <div className="glass-card" style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-                <div
-                  className="service-icon"
-                  style={{ background: "rgba(245, 183, 49, 0.1)", color: "#F5B731" }}
-                >
-                  {s.icon}
+        <div className="grid-3">
+          {packs.map((p, i) => (
+            <FadeIn key={i} delay={i * 0.1}>
+              <div
+                className="glass-card"
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  height: "100%",
+                  border: p.highlight ? "1px solid #F5B731" : undefined,
+                  boxShadow: p.highlight ? "0 0 40px rgba(245, 183, 49, 0.1)" : undefined,
+                }}
+              >
+                {p.highlight && (
+                  <div
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 700,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.1em",
+                      color: "#F5B731",
+                      marginBottom: 12,
+                    }}
+                  >
+                    Most Popular
+                  </div>
+                )}
+
+                <h3 style={{ fontSize: 20, fontWeight: 600, marginBottom: 10 }}>{p.name}</h3>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 6 }}>
+                  <span style={{ fontSize: 34, fontWeight: 700, letterSpacing: "-0.03em" }}>{p.range}</span>
+                  <span style={{ fontSize: 14, color: "var(--text-3)" }}>/month</span>
                 </div>
-                <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 10 }}>{s.title}</h3>
-                <p style={{ fontSize: 14, color: "var(--text-2)", lineHeight: 1.7, flex: 1 }}>{s.desc}</p>
-                <div
+                <p style={{ fontSize: 14, color: "var(--text-2)", marginBottom: 24, lineHeight: 1.6 }}>{p.desc}</p>
+
+                <ul style={{ listStyle: "none", padding: 0, flex: 1, marginBottom: 24 }}>
+                  {p.features.map((f, j) => (
+                    <li
+                      key={j}
+                      style={{
+                        display: "flex",
+                        alignItems: "flex-start",
+                        gap: 10,
+                        fontSize: 14,
+                        color: "var(--text-2)",
+                        marginBottom: 12,
+                        lineHeight: 1.5,
+                      }}
+                    >
+                      <Check size={15} style={{ color: "#F5B731", flexShrink: 0, marginTop: 3 }} />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+
+                <Link
+                  href="/contact"
+                  className={p.highlight ? "btn-primary" : "btn-secondary"}
                   style={{
-                    marginTop: 20,
-                    paddingTop: 16,
-                    borderTop: "1px solid var(--border)",
-                    fontSize: 14,
-                    fontWeight: 600,
-                    color: "#F5B731",
+                    width: "100%",
+                    textAlign: "center",
+                    ...(p.highlight ? { background: "#F5B731", color: "#0a0a0f" } : {}),
                   }}
                 >
-                  {s.price}
-                </div>
+                  {p.cta}
+                </Link>
+              </div>
+            </FadeIn>
+          ))}
+        </div>
+
+        <FadeIn>
+          <p style={{ textAlign: "center", marginTop: 32, fontSize: 14, color: "var(--text-3)" }}>
+            Not sure which fits? The free audit tells you in 15 minutes — no obligation.
+          </p>
+        </FadeIn>
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  INDUSTRIES                                                         */
+/* ------------------------------------------------------------------ */
+function Industries() {
+  const industries = [
+    { emoji: "\ud83c\udfe0", name: "Estate agents", line: "Every viewing enquiry answered in seconds \u2014 evenings and weekends included." },
+    { emoji: "\ud83e\uddfe", name: "Accountants", line: "Documents chased, invoices followed up, deadlines never missed." },
+    { emoji: "\ud83e\udd1d", name: "Recruitment agencies", line: "Candidates screened, qualified and booked while your consultants sleep." },
+    { emoji: "\ud83c\udfe5", name: "Private clinics", line: "Cancelled slots refilled automatically; reminders patients actually read." },
+    { emoji: "\ud83c\udf7d\ufe0f", name: "Restaurants & hotels", line: "Bookings, changes and questions handled on WhatsApp, 24/7." },
+    { emoji: "\u2696\ufe0f", name: "Solicitors", line: "Client intake completed and filed before the first call." },
+    { emoji: "\ud83c\udfd7\ufe0f", name: "Construction", line: "Quotes followed up; subcontractor paperwork chased for you." },
+    { emoji: "\ud83c\udfed", name: "Small manufacturers", line: "Order-status questions answered instantly; reorders triggered on time." },
+  ];
+
+  return (
+    <section id="industries">
+      <div className="section">
+        <FadeIn>
+          <div style={{ textAlign: "center", marginBottom: 48 }}>
+            <div className="section-tag">Industries</div>
+            <h2 className="section-title" style={{ maxWidth: 560, margin: "0 auto 16px" }}>
+              Built for your industry, not adapted to it
+            </h2>
+            <p className="section-subtitle" style={{ margin: "0 auto" }}>
+              We don&apos;t sell generic AI consulting. We install systems already shaped
+              around how your sector actually works.
+            </p>
+          </div>
+        </FadeIn>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(255px, 1fr))",
+            gap: 16,
+          }}
+        >
+          {industries.map((ind, i) => (
+            <FadeIn key={i} delay={i * 0.05}>
+              <div className="glass-card" style={{ height: "100%", padding: 24 }}>
+                <div style={{ fontSize: 28, marginBottom: 12 }}>{ind.emoji}</div>
+                <h3 style={{ fontSize: 16.5, fontWeight: 600, marginBottom: 8 }}>{ind.name}</h3>
+                <p style={{ fontSize: 13.5, color: "var(--text-2)", lineHeight: 1.65 }}>{ind.line}</p>
               </div>
             </FadeIn>
           ))}
@@ -503,168 +617,24 @@ function Process() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  PRICING                                                            */
+/*  SCENARIOS \u2014 what a day looks like with the systems installed       */
 /* ------------------------------------------------------------------ */
-function Pricing() {
-  const plans = [
+function Scenarios() {
+  const rows = [
     {
-      name: "Starter",
-      price: "£499",
-      period: "one-time",
-      desc: "Perfect for small businesses starting with AI",
-      features: [
-        "1 AI automation workflow",
-        "Basic chatbot setup",
-        "Email support",
-        "1 month maintenance",
-        "Performance dashboard",
-      ],
-      cta: "Get Started",
-      highlight: false,
+      pack: "AI RECEPTIONIST",
+      who: "A three-branch estate agency",
+      text: "Saturday, 6pm. A buyer enquires about a listing. The AI answers on WhatsApp, checks budget and timing, and books a Monday viewing straight into the negotiator\u2019s diary. Nobody at the agency touched a thing.",
     },
     {
-      name: "Growth",
-      price: "£199",
-      period: "/month",
-      desc: "For businesses scaling with AI",
-      features: [
-        "Up to 5 automation workflows",
-        "Advanced chatbot with lead capture",
-        "AI content generation",
-        "Priority support",
-        "Monthly strategy call",
-        "Analytics & reporting",
-      ],
-      cta: "Start Growing",
-      highlight: true,
+      pack: "AI SALES & FOLLOW-UP",
+      who: "An accountancy practice at year-end",
+      text: "Forty clients owe documents. The system chases each one politely across email and WhatsApp, logs what arrives, and escalates only the three who went quiet. The partners stay billable.",
     },
     {
-      name: "Enterprise",
-      price: "Custom",
-      period: "",
-      desc: "Full AI transformation for your business",
-      features: [
-        "Unlimited automations",
-        "Custom AI product development",
-        "Voice agents & phone bots",
-        "Dedicated account manager",
-        "24/7 priority support",
-        "Custom integrations",
-        "SLA guarantee",
-      ],
-      cta: "Talk to Us",
-      highlight: false,
-    },
-  ];
-
-  return (
-    <section id="pricing">
-      <div className="section">
-        <FadeIn>
-          <div style={{ textAlign: "center", marginBottom: 48 }}>
-            <div className="section-tag">Pricing</div>
-            <h2 className="section-title" style={{ maxWidth: 500, margin: "0 auto 16px" }}>
-              Simple, transparent pricing
-            </h2>
-            <p className="section-subtitle" style={{ margin: "0 auto" }}>
-              No hidden fees. No long contracts. Scale up or down anytime.
-            </p>
-          </div>
-        </FadeIn>
-
-        <div className="grid-3">
-          {plans.map((p, i) => (
-            <FadeIn key={i} delay={i * 0.1}>
-              <div
-                className="glass-card"
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  height: "100%",
-                  border: p.highlight ? "1px solid #F5B731" : undefined,
-                  boxShadow: p.highlight ? "0 0 40px rgba(245, 183, 49, 0.1)" : undefined,
-                }}
-              >
-                {p.highlight && (
-                  <div
-                    style={{
-                      fontSize: 11,
-                      fontWeight: 700,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.1em",
-                      color: "#F5B731",
-                      marginBottom: 12,
-                    }}
-                  >
-                    Most Popular
-                  </div>
-                )}
-
-                <h3 style={{ fontSize: 20, fontWeight: 600, marginBottom: 8 }}>{p.name}</h3>
-                <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginBottom: 4 }}>
-                  <span style={{ fontSize: 44, fontWeight: 700, letterSpacing: "-0.03em" }}>{p.price}</span>
-                  {p.period && <span style={{ fontSize: 14, color: "var(--text-3)" }}>{p.period}</span>}
-                </div>
-                <p style={{ fontSize: 14, color: "var(--text-2)", marginBottom: 24 }}>{p.desc}</p>
-
-                <ul style={{ listStyle: "none", padding: 0, flex: 1, marginBottom: 24 }}>
-                  {p.features.map((f, j) => (
-                    <li
-                      key={j}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 10,
-                        fontSize: 14,
-                        color: "var(--text-2)",
-                        marginBottom: 12,
-                      }}
-                    >
-                      <Check size={15} style={{ color: "#F5B731", flexShrink: 0 }} />
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-
-                <Link
-                  href="/contact"
-                  className={p.highlight ? "btn-primary" : "btn-secondary"}
-                  style={{
-                    width: "100%",
-                    textAlign: "center",
-                    ...(p.highlight ? { background: "#F5B731", color: "#0a0a0f" } : {}),
-                  }}
-                >
-                  {p.cta}
-                </Link>
-              </div>
-            </FadeIn>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/*  TESTIMONIALS                                                       */
-/* ------------------------------------------------------------------ */
-function Testimonials() {
-  const reviews = [
-    {
-      text: "BiLabs built our AI chatbot in under a week. It now handles 70% of our customer queries automatically. The ROI was immediate.",
-      name: "Sarah M.",
-      role: "Operations Director, E-commerce",
-    },
-    {
-      text: "Their workflow automation saved our team 25 hours per week. What used to take 3 people now runs on autopilot.",
-      name: "James P.",
-      role: "CEO, Marketing Agency",
-    },
-    {
-      text: "We tried building AI in-house for 6 months and got nowhere. BiLabs shipped a working solution in 3 weeks.",
-      name: "Priya K.",
-      role: "CTO, SaaS Startup",
+      pack: "FULL AUTOMATION",
+      who: "A private dental clinic",
+      text: "A patient cancels at 8am. The system offers the slot to the waitlist, confirms a replacement by 8:20, updates the diary and sends directions \u2014 before the front desk finishes their coffee.",
     },
   ];
 
@@ -673,22 +643,30 @@ function Testimonials() {
       <div className="section">
         <FadeIn>
           <div style={{ textAlign: "center", marginBottom: 48 }}>
-            <div className="section-tag">Testimonials</div>
-            <h2 className="section-title" style={{ maxWidth: 500, margin: "0 auto" }}>
-              What our clients say
+            <div className="section-tag">What it looks like</div>
+            <h2 className="section-title" style={{ maxWidth: 520, margin: "0 auto" }}>
+              A working day with BiLabs installed
             </h2>
           </div>
         </FadeIn>
 
         <div className="grid-3">
-          {reviews.map((r, i) => (
+          {rows.map((r, i) => (
             <FadeIn key={i} delay={i * 0.1}>
-              <div className="glass-card">
-                <p className="testimonial-text">&ldquo;{r.text}&rdquo;</p>
-                <div>
-                  <div className="testimonial-author">{r.name}</div>
-                  <div className="testimonial-role">{r.role}</div>
+              <div className="glass-card" style={{ height: "100%" }}>
+                <div
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    letterSpacing: "0.1em",
+                    color: "#F5B731",
+                    marginBottom: 10,
+                  }}
+                >
+                  {r.pack}
                 </div>
+                <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 12 }}>{r.who}</div>
+                <p style={{ fontSize: 14, color: "var(--text-2)", lineHeight: 1.75 }}>{r.text}</p>
               </div>
             </FadeIn>
           ))}
@@ -731,8 +709,8 @@ function CTA() {
             ?
           </h2>
           <p style={{ fontSize: 18, color: "var(--text-2)", marginBottom: 32, maxWidth: 480, margin: "0 auto 32px" }}>
-            Book a free AI audit. We&apos;ll show you exactly where AI can save you
-            time, money, and headaches.
+            Book a free 15-minute AI audit. We&apos;ll map exactly what to automate first
+            — and what it saves you every month.
           </p>
           <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>
             <Link href="/contact" className="btn-primary" style={{ gap: 8, fontSize: 16, padding: "16px 32px" }}>
@@ -756,12 +734,12 @@ export default function Home() {
     <>
       <Hero />
       <Stats />
-      <Services />
-      <Products />
+      <Packages />
+      <Industries />
       <VideoMaker />
       <Process />
-      <Testimonials />
-      <Pricing />
+      <Scenarios />
+      <Products />
       <CTA />
     </>
   );
