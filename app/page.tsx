@@ -40,37 +40,39 @@ export default function Home() {
 
 function Hero() {
   return (
-    <section className="hero-warm">
-      <div className="wrap">
-        <div className="hero-grid" style={{ paddingTop: 104 }}>
-          <FadeIn>
-            <div style={{ paddingBottom: 48 }}>
-              <h1
-                style={{
-                  fontSize: "clamp(2.4rem, 6vw, 3.9rem)",
-                  lineHeight: 1.03,
-                  letterSpacing: "-0.04em",
-                  fontWeight: 700,
-                  margin: 0,
-                  color: "var(--ink)",
-                  maxWidth: 460,
-                }}
-              >
-                Get your business recommended by <span style={{ color: "var(--brand)" }}>AI</span>.
-              </h1>
-              <p style={{ fontSize: 16, lineHeight: 1.6, color: "var(--ink-2)", margin: "18px 0 26px", maxWidth: 420 }}>
-                AI visibility, website assistants and business automation. Built around your business.
-              </p>
-              <HeroCheck />
-            </div>
-          </FadeIn>
+    <section className="hero-warm hero-full">
+      {/* Full-bleed clip, still scrubbed by the mouse rather than played.
+          No controls attribute — if you see playback controls, the browser
+          has been told to show them. */}
+      <div className="hero-video">
+        <ScrubVideo src="/hero.mp4" />
+      </div>
+      <div className="hero-scrim" aria-hidden />
 
-          <div className="hero-media">
-            {/* Same clip as before, framed to the right as the mockup does —
-                it still scrubs with the mouse rather than being a still. */}
-            <ScrubVideo src="/hero.mp4" />
+      <div className="wrap hero-copy-full">
+        <FadeIn>
+          <div style={{ maxWidth: 560 }}>
+            <h1
+              style={{
+                fontSize: "clamp(2.4rem, 6vw, 4rem)",
+                lineHeight: 1.03,
+                letterSpacing: "-0.04em",
+                fontWeight: 700,
+                margin: 0,
+                color: "var(--ink)",
+              }}
+            >
+              Get your business recommended by <span style={{ color: "var(--brand)" }}>AI</span>.
+            </h1>
+            <p style={{ fontSize: 17, lineHeight: 1.55, color: "var(--ink)", margin: "18px 0 0", maxWidth: 470, fontWeight: 500 }}>
+              Customers now ask ChatGPT, Claude and Google AI who to call.
+            </p>
+            <p style={{ fontSize: 15.5, lineHeight: 1.6, color: "var(--ink-2)", margin: "10px 0 26px", maxWidth: 460 }}>
+              We publish your business so they can read it — and answer every enquiry that follows, 24/7.
+            </p>
+            <HeroCheck />
           </div>
-        </div>
+        </FadeIn>
       </div>
     </section>
   );

@@ -737,13 +737,28 @@ html, body { background: var(--warm-page); color: var(--ink); }
 .btn-line:hover { border-color: var(--ink); }
 
 .hero-warm { background: var(--warm-hero); position: relative; overflow: hidden; }
-.hero-grid { display: grid; grid-template-columns: 1fr; gap: 24px; align-items: end; }
-@media (min-width: 900px) { .hero-grid { grid-template-columns: 1.08fr .92fr; align-items: stretch; gap: 20px; } }
-/* The figure runs the full height of the hero on the right, as the mockup
-   has it, rather than sitting in a short box at the bottom. */
-.hero-media { position: relative; height: 290px; align-self: end; margin-top: 24px; }
-@media (min-width: 900px) { .hero-media { height: auto; min-height: 470px; margin-top: -104px; align-self: stretch; } }
-.hero-media video { width: 100%; height: 100%; object-fit: cover; object-position: 62% 18%; display: block; }
+
+/* Full-bleed: the clip runs the whole width of the hero, with the copy
+   sitting over it. */
+.hero-full { min-height: 100svh; display: flex; align-items: flex-end; }
+@media (min-width: 900px) { .hero-full { align-items: center; } }
+
+.hero-video { position: absolute; inset: 0; z-index: 0; }
+.hero-video video { width: 100%; height: 100%; object-fit: cover; object-position: 70% center; display: block; }
+
+/* Keeps black type readable wherever the figure drifts to. */
+.hero-scrim {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: linear-gradient(90deg, rgba(231,227,220,.97) 0%, rgba(231,227,220,.86) 34%, rgba(231,227,220,.3) 62%, rgba(231,227,220,0) 80%);
+}
+@media (max-width: 899px) {
+  .hero-scrim { background: linear-gradient(180deg, rgba(231,227,220,.35) 0%, rgba(231,227,220,.75) 42%, rgba(231,227,220,.97) 72%); }
+}
+
+/* padding-block only — the shorthand was resetting .wrap's horizontal
+   padding to 0 and pinning the copy to the viewport edge on mobile. */
+.hero-copy-full { position: relative; z-index: 2; width: 100%; padding-top: 120px; padding-bottom: 56px; }
+@media (min-width: 900px) { .hero-copy-full { padding-bottom: 90px; } }
 
 .strip { background: var(--warm-page); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 .strip-row { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 34px; padding: 18px 0; }
