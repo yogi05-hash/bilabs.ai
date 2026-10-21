@@ -31,7 +31,7 @@ const STEPS = [
 const FAQS = [
   {
     q: "Can you guarantee ChatGPT will recommend me?",
-    a: "No — and anyone who promises that is guessing. What an assistant says is its own decision, drawn from whatever it can read. What we control is whether your business is readable: accurate, structured, current, and published where these systems look. That is what we sell, and it is what the audit measures.",
+    a: "No. We improve access and clarity; each platform decides what it indexes and recommends. What we control is whether your business is readable — accurate, structured, current, and published where these systems look. That is what we sell, and what the audit measures. Anyone promising you a guaranteed AI ranking is guessing.",
   },
   {
     q: "What exactly do I get for £149?",
@@ -55,7 +55,9 @@ export default function Home() {
   return (
     <GuideProvider>
       <Hero />
+      <TrustStrip />
       <Problem />
+      <ClearerInfo />
       <Check />
       <HowItWorks />
       <Packages />
@@ -119,7 +121,7 @@ function Hero() {
         <h1
           style={{ fontSize: "clamp(2.2rem, 6vw, 4rem)", lineHeight: 1.03, letterSpacing: "-0.035em", fontWeight: 400, color: "#000", margin: 0 }}
         >
-          Get your business recommended by AI.
+          Get your business recommended by <span className="accent">AI</span>.
         </h1>
 
         <p style={{ fontSize: "clamp(18px, 4vw, 26px)", lineHeight: 1.35, color: "#000", marginTop: 20, minHeight: 54 }}>
@@ -247,8 +249,8 @@ function HowItWorks() {
           {STEPS.map((s, i) => (
             <FadeIn key={s.n} delay={i * 0.08}>
               <button type="button" onClick={() => guide.open("how-it-works")} className="glass-card ask-card" style={{ padding: 26, height: "100%" }}>
-                <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: ".16em", color: "var(--accent)" }}>{s.n}</span>
-                <h3 style={{ fontSize: 20, fontWeight: 700, margin: "10px 0 0", color: "var(--text-1)" }}>{s.t}</h3>
+                <span className="step-num">{s.n}</span>
+                <h3 style={{ fontSize: 20, fontWeight: 700, margin: "12px 0 0", color: "var(--text-1)" }}>{s.t}</h3>
                 <p style={{ fontSize: 15, lineHeight: 1.7, color: "var(--text-2)", margin: "10px 0 0" }}>{s.d}</p>
                 <p className="ask-hint">Ask about this →</p>
               </button>
@@ -441,21 +443,119 @@ function Faq() {
 
 function Closing() {
   return (
-    <section style={{ borderTop: "1px solid var(--border-strong)" }}>
-      <div className="section" style={{ paddingTop: 90, paddingBottom: 110, textAlign: "center" }}>
+    <section className="band-amber">
+      <div className="section" style={{ paddingTop: 70, paddingBottom: 70 }}>
         <FadeIn>
-          <h2 className="section-title" style={{ margin: "0 auto" }}>Find out what AI says about you.</h2>
-          <p style={{ fontSize: 17, lineHeight: 1.75, color: "var(--text-2)", maxWidth: 560, margin: "16px auto 0" }}>
-            The check is free and takes about fifteen seconds. The fix starts at £149.
-          </p>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 14, justifyContent: "center", marginTop: 32 }}>
-            <a href="#check" className="btn-primary" style={{ padding: "15px 30px", fontSize: 15 }}>Run the free check</a>
-            <a href={bookHref} {...bookProps} className="btn-secondary" style={{ padding: "15px 30px", fontSize: 15 }}>Book a free 15-min call</a>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 28, alignItems: "center", justifyContent: "space-between" }}>
+            <h2 style={{ fontSize: "clamp(1.8rem, 4vw, 2.6rem)", lineHeight: 1.1, letterSpacing: "-0.03em", fontWeight: 700, margin: 0, color: "#1a1205", maxWidth: 520 }}>
+              Let&apos;s make AI useful for your business.
+            </h2>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
+              <a href="#check" style={{
+                display: "inline-flex", alignItems: "center", gap: 8, padding: "15px 30px",
+                borderRadius: 999, background: "#0a0a0c", color: "#fff", fontWeight: 600, fontSize: 15,
+              }}>
+                Start with a free check ↗
+              </a>
+              <a href={bookHref} {...bookProps} style={{
+                display: "inline-flex", alignItems: "center", padding: "15px 30px",
+                borderRadius: 999, background: "transparent", color: "#1a1205",
+                border: "1px solid rgba(26,18,5,.35)", fontWeight: 600, fontSize: 15,
+              }}>
+                Book a 15-min call
+              </a>
+            </div>
           </div>
-          <p style={{ marginTop: 24, fontSize: 13.5, color: "var(--text-3)" }}>
-            Or email <Link href="mailto:hello@bilabs.ai" style={{ color: "var(--accent)" }}>hello@bilabs.ai</Link>
+          <p style={{ marginTop: 20, fontSize: 13.5, color: "rgba(26,18,5,.7)" }}>
+            Or email hello@bilabs.ai
           </p>
         </FadeIn>
+      </div>
+    </section>
+  );
+}
+
+/* --------------------------- trust strip --------------------------- */
+
+function TrustStrip() {
+  const items = ["Be understood", "Answer enquiries", "Save time"];
+  return (
+    <section style={{ borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)", background: "rgba(0,0,0,.015)" }}>
+      <div className="section" style={{ paddingTop: 22, paddingBottom: 22 }}>
+        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "14px 36px" }}>
+          <p style={{ margin: 0, fontWeight: 600, fontSize: 15.5, color: "var(--text-1)" }}>
+            Built for the way customers discover, ask and buy.
+          </p>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "10px 28px" }}>
+            {items.map((i) => (
+              <span key={i} style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 14.5, color: "var(--text-2)" }}>
+                <span style={{ width: 6, height: 6, borderRadius: 999, background: "var(--brand)" }} />
+                {i}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ----------------------- clearer information ----------------------- */
+
+/* Shows what "readable to AI" actually means, as a thing you can look at
+ * rather than a claim. The caption is the honest limit, kept in the same
+ * eyeline as the promise. */
+function ClearerInfo() {
+  const guide = useGuide();
+  const rows = [
+    { label: "Services", w: ["78%", "54%"] },
+    { label: "Location", w: ["62%", "40%"] },
+    { label: "Opening hours", w: ["70%", "48%"] },
+    { label: "FAQs", w: ["84%", "58%"] },
+  ];
+
+  return (
+    <section className="band-dark">
+      <div className="section" style={{ paddingTop: 80, paddingBottom: 80 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 48, alignItems: "center" }}>
+          <FadeIn>
+            <h2 style={{ fontSize: "clamp(1.9rem, 4.4vw, 2.8rem)", lineHeight: 1.08, letterSpacing: "-0.03em", fontWeight: 700, margin: 0, color: "#fff" }}>
+              Give AI clearer <span className="accent" style={{ color: "var(--brand)" }}>information.</span>
+            </h2>
+            <p style={{ fontSize: 16.5, lineHeight: 1.75, color: "rgba(255,255,255,.66)", marginTop: 16, maxWidth: 440 }}>
+              We organise and publish your business information so AI systems that support it can access it.
+            </p>
+            <ul style={{ listStyle: "none", padding: 0, margin: "26px 0 0", display: "flex", flexDirection: "column", gap: 14 }}>
+              {["Clear service and product pages", "Structured business information", "Crawler access checks"].map((t) => (
+                <li key={t} style={{ display: "flex", gap: 12, alignItems: "center", fontSize: 15.5, color: "rgba(255,255,255,.88)" }}>
+                  <span className="tick">✓</span>{t}
+                </li>
+              ))}
+            </ul>
+            <button type="button" onClick={() => guide.open("get-found")} className="btn-secondary" style={{ marginTop: 28, padding: "12px 24px", fontSize: 14.5 }}>
+              How this works →
+            </button>
+          </FadeIn>
+
+          <FadeIn delay={0.1}>
+            <div>
+              <div style={{ background: "#fff", borderRadius: 16, padding: "20px 22px", boxShadow: "0 24px 60px rgba(0,0,0,.4)" }}>
+                <p style={{ margin: "0 0 10px", fontSize: 14.5, fontWeight: 700, color: "#0a0a0c" }}>Your business profile</p>
+                {rows.map((r) => (
+                  <div key={r.label} className="profile-row">
+                    <span style={{ fontSize: 13.5, fontWeight: 600, color: "#0a0a0c", width: 104, flexShrink: 0 }}>{r.label}</span>
+                    <span style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
+                      {r.w.map((w, i) => <span key={i} className="profile-bar" style={{ width: w }} />)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <p style={{ margin: "14px 0 0", fontSize: 12.5, textAlign: "center", color: "rgba(255,255,255,.45)" }}>
+                Access does not guarantee indexing or recommendations.
+              </p>
+            </div>
+          </FadeIn>
+        </div>
       </div>
     </section>
   );

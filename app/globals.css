@@ -651,3 +651,27 @@ html, body {
 
 .hero-copy { position: relative; z-index: 1; max-width: 640px; }
 .hero-cursor { display: inline-block; width: 2px; height: 1.1em; background: #000; vertical-align: middle; margin-left: 2px; animation: blink 1s step-end infinite; }
+
+/* ---- amber, back as an accent ------------------------------------- *
+ * Buttons stay black (the Mainframe pill), but the brand colour returns
+ * on emphasis words, ticks, step numerals and the closing band. A pure
+ * monochrome site threw away the one colour BiLabs already owns.
+ * ------------------------------------------------------------------ */
+:root { --brand: #F5B731; --brand-ink: #B8841A; }
+
+.accent { color: var(--brand-ink); }
+.tick {
+  display: grid; place-items: center; flex-shrink: 0;
+  width: 22px; height: 22px; border-radius: 999px;
+  background: var(--brand); color: #1a1205; font-size: 12px; font-weight: 700;
+}
+.step-num {
+  font-size: clamp(38px, 7vw, 56px); line-height: 1; font-weight: 700;
+  color: var(--brand); letter-spacing: -0.04em;
+}
+.band-amber { background: var(--brand); color: #1a1205; }
+.band-dark { background: #0a0a0c; color: #fff; }
+.band-dark .section-title, .band-dark h2, .band-dark h3 { color: #fff; }
+.profile-row { display: flex; align-items: center; gap: 12px; padding: 13px 0; border-bottom: 1px solid rgba(0,0,0,.08); }
+.profile-row:last-child { border-bottom: none; }
+.profile-bar { height: 9px; border-radius: 999px; background: rgba(0,0,0,.09); }
