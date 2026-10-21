@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import FadeIn from "@/components/FadeIn";
-import ShipLog from "@/components/ShipLog";
+import ScrubVideo from "@/components/ScrubVideo";
+import { useTypewriter } from "@/components/useTypewriter";
 import { GuideProvider, useGuide } from "@/components/AIGuide";
 import VisibilityReport from "@/components/VisibilityReport";
 import { PACKAGES } from "@/lib/packages";
@@ -67,14 +68,29 @@ export default function Home() {
 
 /* ------------------------------- hero ------------------------------ */
 
+const TYPED = "Customers now ask ChatGPT, Claude and Google AI who to call.";
+
+const HERO_PILLS = [
+  { label: "Run the free check", href: "#check" },
+  { label: "See the packages", href: "#packages" },
+  { label: "Our work", href: "/work" },
+];
+
 function Hero() {
   const guide = useGuide();
   const [site, setSite] = useState("");
+  const { displayed, done } = useTypewriter(TYPED);
+  const [pillsIn, setPillsIn] = useState(false);
+
+  // Pills arrive on their own clock, not the typewriter's.
+  useEffect(() => {
+    const t = setTimeout(() => setPillsIn(true), 400);
+    return () => clearTimeout(t);
+  }, []);
 
   const go = (e: React.FormEvent) => {
     e.preventDefault();
-    const el = document.getElementById("check");
-    el?.scrollIntoView({ behavior: "smooth", block: "start" });
+    document.getElementById("check")?.scrollIntoView({ behavior: "smooth", block: "start" });
     const field = document.querySelector<HTMLInputElement>('input[aria-label="Your website"]');
     if (field && site.trim()) {
       field.value = site.trim();
@@ -84,47 +100,74 @@ function Hero() {
   };
 
   return (
-    <section className="section" style={{ paddingTop: 150, paddingBottom: 90 }}>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(330px, 1fr))", gap: 56, alignItems: "center" }}>
-        <FadeIn>
-          <div className="section-tag">AI visibility · done for you</div>
-          <h1 style={{ fontSize: "clamp(2.4rem, 5.5vw, 4rem)", lineHeight: 1.05, letterSpacing: "-0.035em", fontWeight: 700, margin: "18px 0 0" }}>
-            Get your business{" "}
-            <span style={{ background: "var(--accent-gradient)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-              recommended by AI
-            </span>
-            .
-          </h1>
-          <p style={{ fontSize: 18, lineHeight: 1.7, color: "var(--text-2)", margin: "22px 0 0", maxWidth: 560 }}>
-            Customers now ask ChatGPT, Claude and Google AI who to call. We make sure your business is the one
-            they can actually read — and that every enquiry gets answered, 24/7.
-          </p>
+    <section className="hero">
+      {/* The live-systems terminal that used to sit here is gone: its figures
+          — 50+ automations, 1,204 videos, 31 hours saved — were invented. */}
+      <ScrubVideo src="/hero.mp4" />
 
-          <form onSubmit={go} style={{ display: "flex", flexWrap: "wrap", gap: 10, marginTop: 32, maxWidth: 520 }}>
-            <input
-              value={site}
-              onChange={(e) => setSite(e.target.value)}
-              placeholder="yourbusiness.co.uk"
-              aria-label="Your website address"
-              className="form-input"
-              style={{ flex: "1 1 220px", minWidth: 0, padding: "14px 18px" }}
-            />
-            <button type="submit" className="btn-primary" style={{ padding: "14px 26px", fontSize: 15 }}>
-              Free AI Visibility Report
-            </button>
-          </form>
+      <div className="hero-copy">
+        <p
+          aria-hidden
+          className="select-none"
+          style={{ pointerEvents: "none", fontSize: "clamp(18px, 4vw, 26px)", lineHeight: 1.3, color: "#000", filter: "blur(4px)", marginBottom: 20 }}
+        >
+          Hey there, this is BiLabs,
+          <br />
+          we make businesses legible to AI.
+        </p>
 
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 18, alignItems: "center", marginTop: 20 }}>
-            <span style={{ fontSize: 13, color: "var(--text-3)" }}>Free · no card · about 15 seconds</span>
-            <button type="button" onClick={() => guide.open("hero")} style={{ background: "none", border: "none", color: "var(--accent)", fontSize: 13, fontWeight: 600, cursor: "pointer", padding: 0 }}>
-              What is this? →
-            </button>
-          </div>
-        </FadeIn>
+        <h1
+          style={{ fontSize: "clamp(2.2rem, 6vw, 4rem)", lineHeight: 1.03, letterSpacing: "-0.035em", fontWeight: 400, color: "#000", margin: 0 }}
+        >
+          Get your business recommended by AI.
+        </h1>
 
-        <FadeIn delay={0.15}>
-          <ShipLog />
-        </FadeIn>
+        <p style={{ fontSize: "clamp(18px, 4vw, 26px)", lineHeight: 1.35, color: "#000", marginTop: 20, minHeight: 54 }}>
+          {displayed}
+          {!done && (
+            <span className="hero-cursor" />
+          )}
+        </p>
+
+        <p style={{ fontSize: 16, lineHeight: 1.6, color: "rgba(0,0,0,.62)", marginTop: 14, maxWidth: 540 }}>
+          We publish your business so they can read it — and answer every enquiry that follows, 24/7.
+        </p>
+
+        <form onSubmit={go} style={{ display: "flex", flexWrap: "wrap", gap: 10, marginTop: 28, maxWidth: 540 }}>
+          <input
+            value={site}
+            onChange={(e) => setSite(e.target.value)}
+            placeholder="yourbusiness.co.uk"
+            aria-label="Your website address"
+            className="form-input"
+            style={{ flex: "1 1 220px", minWidth: 0, padding: "14px 18px" }}
+          />
+          <button type="submit" className="btn-primary" style={{ padding: "14px 26px", fontSize: 15 }}>
+            Free AI Visibility Report
+          </button>
+        </form>
+
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            marginTop: 24,
+            opacity: pillsIn ? 1 : 0,
+            transform: pillsIn ? "translateY(0)" : "translateY(8px)",
+            transition: "opacity .4s ease, transform .4s ease",
+          }}
+        >
+          {HERO_PILLS.map((p) => (
+            <a key={p.href} href={p.href} className="pill">{p.label}</a>
+          ))}
+          <button type="button" onClick={() => guide.open("hero")} className="pill pill-outline">
+            What is this?
+          </button>
+        </div>
+
+        <p style={{ fontSize: 13, color: "rgba(0,0,0,.45)", marginTop: 14 }}>
+          Free · no card · about 15 seconds
+        </p>
       </div>
     </section>
   );

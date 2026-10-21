@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
@@ -32,19 +31,26 @@ export default function Navbar() {
     <nav
       className="nav"
       style={{
-        background: scrolled ? "rgba(5, 5, 7, 0.85)" : "rgba(5, 5, 7, 0.5)",
-        borderBottom: scrolled ? "0.5px solid var(--border)" : "none",
+        // light theme: these inline values were overriding the stylesheet
+        background: scrolled ? "rgba(255, 255, 255, 0.88)" : "rgba(255, 255, 255, 0.55)",
+        backdropFilter: "blur(12px)",
+        borderBottom: scrolled ? "1px solid rgba(0,0,0,0.1)" : "1px solid rgba(0,0,0,0.05)",
       }}
     >
-      <Link href="/" style={{ display: "flex", alignItems: "center" }}>
-        <Image
-          src="/logo.png"
-          alt="BiLabs"
-          width={160}
-          height={50}
-          style={{ height: 40, width: "auto", objectFit: "contain" }}
-          priority
-        />
+      <Link href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
+        <span
+          style={{
+            fontFamily: "var(--font-heading)",
+            fontSize: 24,
+            letterSpacing: "-0.03em",
+            color: "#000",
+          }}
+        >
+          BiLabs
+        </span>
+        <span aria-hidden style={{ fontSize: 26, color: "#000", userSelect: "none", letterSpacing: "-0.02em" }}>
+          &#10035;&#xFE0E;
+        </span>
       </Link>
 
       {/* Desktop */}
@@ -64,7 +70,7 @@ export default function Navbar() {
           <Link
             href="/#check"
             className="btn-primary"
-            style={{ padding: "8px 18px", fontSize: 13, background: "#F5B731", color: "#0a0a0f" }}
+            style={{ padding: "9px 20px", fontSize: 13 }}
           >
             Free AI check
           </Link>
@@ -94,7 +100,7 @@ export default function Navbar() {
             top: 64,
             left: 0,
             right: 0,
-            background: "rgba(5, 5, 7, 0.95)",
+            background: "rgba(255, 255, 255, 0.96)",
             backdropFilter: "blur(20px)",
             borderBottom: "0.5px solid var(--border)",
             padding: "16px 20px",
@@ -119,9 +125,7 @@ export default function Navbar() {
               display: "block",
               textAlign: "center",
               marginTop: 12,
-              padding: "10px",
-              background: "#F5B731",
-              color: "#0a0a0f",
+              padding: "11px",
             }}
           >
             Free AI check

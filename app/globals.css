@@ -507,3 +507,147 @@ body {
 .ask-card { cursor: pointer; text-align: left; width: 100%; transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease; }
 .ask-card:hover { transform: translateY(-3px); border-color: rgba(245,183,49,.45); box-shadow: 0 18px 40px rgba(0,0,0,.35); }
 .ask-hint { color: var(--accent); font-size: 13px; font-weight: 600; margin-top: 14px; }
+
+/* ================================================================== *
+ *  Mainframe light theme
+ *
+ *  Overrides the dark tokens above rather than editing them in place,
+ *  so one block controls every page — home, /work, /contact, /about —
+ *  and reverting is deleting this block.
+ * ================================================================== */
+
+:root {
+  --font-heading: 'HelveticaNowDisplay-Medium', 'Helvetica Neue', Arial, sans-serif;
+  --font-body: 'HelveticaNowDisplayW01-Rg', 'Helvetica Neue', Arial, sans-serif;
+
+  --bg: #ffffff;
+  --bg-card: #ffffff;
+  --bg-card-hover: #fafafa;
+  --bg-glass: rgba(255, 255, 255, 0.82);
+  --bg-glass-light: rgba(255, 255, 255, 0.6);
+
+  --text-1: #000000;
+  --text-2: rgba(0, 0, 0, 0.62);
+  --text-3: rgba(0, 0, 0, 0.38);
+
+  --accent: #000000;
+  --accent-2: #000000;
+  --accent-gradient: none;
+
+  --border: rgba(0, 0, 0, 0.1);
+  --border-strong: rgba(0, 0, 0, 0.12);
+
+  --glow-amber: rgba(0, 0, 0, 0.12);
+  --glow-orange: rgba(0, 0, 0, 0.08);
+}
+
+html, body {
+  background: #fff;
+  color: #000;
+  font-family: var(--font-body);
+}
+
+/* the accent gradient was painting headline spans transparent */
+.nav-logo span,
+[style*="--accent-gradient"] {
+  background: none !important;
+  -webkit-text-fill-color: #000 !important;
+  color: #000 !important;
+}
+
+.nav { background: rgba(255, 255, 255, 0.72); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); }
+.nav-link { color: rgba(0, 0, 0, 0.62); }
+.nav-link:hover { color: #000; }
+
+/* pills, as on Mainframe */
+.btn-primary {
+  color: #fff;
+  background: #000;
+  border: 1px solid #000;
+  border-radius: 999px;
+  font-weight: 500;
+}
+.btn-primary:hover { background: #fff; color: #000; transform: none; box-shadow: none; opacity: 1; }
+
+.btn-secondary {
+  color: #000;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 999px;
+  font-weight: 500;
+}
+.btn-secondary:hover { background: #000; color: #fff; border-color: #000; }
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 18px;
+}
+
+.ask-card:hover { border-color: rgba(0, 0, 0, 0.45); box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08); }
+.ask-hint { color: #000; }
+
+.form-input, .form-textarea, .form-select {
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  color: #000;
+  border-radius: 12px;
+}
+.form-input::placeholder, .form-textarea::placeholder { color: rgba(0, 0, 0, 0.35); }
+.form-input:focus, .form-textarea:focus, .form-select:focus { border-color: #000; outline: none; }
+.form-label { color: rgba(0, 0, 0, 0.7); }
+
+.section-tag { color: rgba(0, 0, 0, 0.45); }
+.section-title { color: #000; letter-spacing: -0.03em; }
+.footer-link { color: rgba(0, 0, 0, 0.6); }
+.footer-link:hover { color: #000; }
+
+/* guide panel goes light too */
+.guide-panel { background: #fff; border-left: 1px solid rgba(0, 0, 0, 0.1); box-shadow: 0 -24px 60px rgba(0, 0, 0, 0.18); }
+.guide-quick { border-color: rgba(0, 0, 0, 0.14); color: #000; }
+.guide-quick:hover { background: #000; border-color: #000; color: #fff; }
+
+/* the hero sits over a video; content needs to float above it */
+.over-video { position: relative; z-index: 1; }
+
+@keyframes blink { 0%, 100% { opacity: 1 } 50% { opacity: 0 } }
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  color: #000;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 999px;
+  font-size: 13px;
+  padding: 0.3em 16px;
+  margin: 0 0.2em 0.4em;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background .2s ease, color .2s ease;
+}
+@media (min-width: 640px) { .pill { font-size: 15px; padding: 0.3em 20px; } }
+.pill:hover { background: #000; color: #fff; }
+.pill-outline { background: transparent; border-color: #000; }
+.pill-outline:hover { background: #000; color: #fff; }
+
+/* Tailwind utility classes do not take effect in this project — the codebase
+ * is inline styles and bespoke classes throughout — so the hero gets a real
+ * class rather than px-5 / md:justify-center, which silently did nothing. */
+.hero {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 100svh;
+  overflow: hidden;
+  padding: 110px 20px 48px;
+}
+@media (min-width: 640px) { .hero { padding-left: 32px; padding-right: 32px; } }
+@media (min-width: 768px) { .hero { justify-content: center; padding-bottom: 0; padding-left: 40px; padding-right: 40px; } }
+@media (min-width: 1100px) { .hero { padding-left: max(40px, calc((100vw - 1200px) / 2)); } }
+
+.hero-copy { position: relative; z-index: 1; max-width: 640px; }
+.hero-cursor { display: inline-block; width: 2px; height: 1.1em; background: #000; vertical-align: middle; margin-left: 2px; animation: blink 1s step-end infinite; }
