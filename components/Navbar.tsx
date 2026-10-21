@@ -6,12 +6,14 @@ import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
 
+// Every one of these must resolve to a section that exists on the homepage —
+// the previous set pointed at #industries, #video-demo and #products, none of
+// which survived the rebuild.
 const links = [
-  { href: "/#pricing", label: "Packages" },
-  { href: "/#industries", label: "Industries" },
-  { href: "/#video-demo", label: "Live Demo" },
-  { href: "/#process", label: "Process" },
-  { href: "/#products", label: "Our Products" },
+  { href: "/#check", label: "Free check" },
+  { href: "/#problem", label: "Why it matters" },
+  { href: "/#process", label: "How it works" },
+  { href: "/#packages", label: "Packages" },
   { href: "/contact", label: "Contact" },
 ];
 
@@ -60,11 +62,11 @@ export default function Navbar() {
         ))}
         <li>
           <Link
-            href="/contact"
+            href="/#check"
             className="btn-primary"
             style={{ padding: "8px 18px", fontSize: 13, background: "#F5B731", color: "#0a0a0f" }}
           >
-            Get Free AI Audit
+            Free AI check
           </Link>
         </li>
       </ul>
@@ -110,7 +112,7 @@ export default function Navbar() {
             </Link>
           ))}
           <Link
-            href="/contact"
+            href="/#check"
             className="btn-primary"
             onClick={() => setOpen(false)}
             style={{
@@ -122,7 +124,7 @@ export default function Navbar() {
               color: "#0a0a0f",
             }}
           >
-            Get Free AI Audit
+            Free AI check
           </Link>
         </div>
       )}

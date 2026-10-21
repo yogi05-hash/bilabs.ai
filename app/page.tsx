@@ -1,746 +1,387 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import FadeIn from "@/components/FadeIn";
-import Counter from "@/components/Counter";
-import {
-  Bot,
-  Zap,
-  Mic,
-  Target,
-  Code2,
-  Video,
-  MessageSquare,
-  ArrowRight,
-  Check,
-  ExternalLink,
-  Sparkles,
-  BarChart3,
-  Globe,
-  Shield,
-  Clock,
-  Users,
-} from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
+import FadeIn from "@/components/FadeIn";
+import ShipLog from "@/components/ShipLog";
+import { GuideProvider, useGuide } from "@/components/AIGuide";
+import VisibilityReport from "@/components/VisibilityReport";
+import { PACKAGES } from "@/lib/packages";
 
-const ShipLog = dynamic(() => import("@/components/ShipLog"), { ssr: false });
-const VideoMaker = dynamic(() => import("@/components/VideoMaker"), { ssr: false });
+/* ------------------------------------------------------------------ *
+ *  BiLabs — done-for-you AI visibility.
+ *
+ *  The spine of the page is Audit → Fix → Answer, and every section can
+ *  open the guide with its own context. One promise is deliberately absent
+ *  throughout: that we can make an assistant recommend anyone. We make a
+ *  business readable; the FAQ says so in as many words.
+ * ------------------------------------------------------------------ */
 
-/* ------------------------------------------------------------------ */
-/*  HERO                                                               */
-/* ------------------------------------------------------------------ */
-function Hero() {
-  return (
-    <section
-      style={{
-        position: "relative",
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        overflow: "hidden",
-      }}
-    >
-      <div className="hero-bg" />
-      <div className="hero-glow" />
+const CALENDLY = process.env.NEXT_PUBLIC_CALENDLY_URL || "";
+const bookHref = CALENDLY || "/contact?package=call";
+const bookProps = CALENDLY ? { target: "_blank", rel: "noopener noreferrer" } : {};
 
-      <div className="section" style={{ position: "relative", zIndex: 2, paddingTop: 140, paddingBottom: 100 }}>
-        <div className="hero-grid">
-        <div>
-        <FadeIn>
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-              padding: "6px 16px",
-              borderRadius: 100,
-              border: "1px solid var(--border-strong)",
-              background: "var(--bg-glass)",
-              backdropFilter: "blur(10px)",
-              fontSize: 13,
-              color: "var(--text-2)",
-              marginBottom: 32,
-            }}
-          >
-            <Sparkles size={14} style={{ color: "#F5B731" }} />
-            AI automation for UK businesses — fixed monthly price
-          </div>
-        </FadeIn>
+const STEPS = [
+  { n: "01", t: "Audit", d: "We ask the assistants your customers ask, and write down exactly what they say about you — and who they name instead." },
+  { n: "02", t: "Fix", d: "We publish your real services, hours, prices and location in a structured form AI systems can fetch, and keep it current." },
+  { n: "03", t: "Answer", d: "An AI receptionist picks up every enquiry that arrives, 24/7, answers from your facts and emails you the lead." },
+];
 
-        <FadeIn delay={0.1}>
-          <h1
-            style={{
-              fontSize: "clamp(36px, 4.4vw, 58px)",
-              fontWeight: 700,
-              letterSpacing: "-0.03em",
-              lineHeight: 1.1,
-              maxWidth: 660,
-              marginBottom: 24,
-            }}
-          >
-            We build AI that{" "}
-            <span
-              style={{
-                background: "var(--accent-gradient)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                backgroundClip: "text",
-              }}
-            >
-              does the work for&nbsp;you
-            </span>
-          </h1>
-        </FadeIn>
+const FAQS = [
+  {
+    q: "Can you guarantee ChatGPT will recommend me?",
+    a: "No — and anyone who promises that is guessing. What an assistant says is its own decision, drawn from whatever it can read. What we control is whether your business is readable: accurate, structured, current, and published where these systems look. That is what we sell, and it is what the audit measures.",
+  },
+  {
+    q: "What exactly do I get for £149?",
+    a: "A written report: the questions we asked, what the assistants answered, which businesses they named instead of you, and a prioritised list of what to fix. It is yours to keep and act on, whether or not you ever work with us again.",
+  },
+  {
+    q: "How is this different from SEO?",
+    a: "SEO is about ranking a page in a list of links. This is about whether an assistant answering a spoken question has accurate facts about you to draw on. They overlap — both reward clear, structured, honest information — but the output is an answer, not a results page.",
+  },
+  {
+    q: "How long does it take?",
+    a: "The audit is back within a few working days. Get Found by AI is usually live within two weeks, depending on how quickly we can agree your services and prices. The AI Front Desk adds a few days on top for the assistant to be set up and tested.",
+  },
+  {
+    q: "Does the assistant make things up?",
+    a: "It answers only from facts you have given it. If it has not been told a price, it says it will check rather than inventing one, and it never confirms a booking itself — it shares your booking link or takes details for you to confirm.",
+  },
+];
 
-        <FadeIn delay={0.2}>
-          <p
-            style={{
-              fontSize: 20,
-              lineHeight: 1.7,
-              color: "var(--text-2)",
-              maxWidth: 540,
-              marginBottom: 40,
-            }}
-          >
-            An AI receptionist that answers every call. Follow-ups that send
-            themselves. Busywork that just… happens. Packaged for estate agents,
-            clinics, accountants, recruiters and more — live in weeks, from
-            £299/month.
-          </p>
-        </FadeIn>
-
-        <FadeIn delay={0.3}>
-          <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-            <Link href="/contact" className="btn-primary" style={{ gap: 8, fontSize: 15, padding: "14px 28px" }}>
-              Get Free AI Audit <ArrowRight size={16} />
-            </Link>
-            <Link href="#pricing" className="btn-secondary" style={{ gap: 8, fontSize: 15, padding: "14px 28px" }}>
-              See Packages &amp; Pricing
-            </Link>
-          </div>
-        </FadeIn>
-        </div>
-
-        <FadeIn delay={0.35}>
-          <ShipLog />
-        </FadeIn>
-        </div>
-
-        <FadeIn delay={0.5}>
-          <div
-            style={{
-              marginTop: 64,
-              display: "flex",
-              gap: 40,
-              flexWrap: "wrap",
-              borderTop: "1px solid var(--border)",
-              paddingTop: 32,
-            }}
-          >
-            {[
-              { icon: <Shield size={16} />, text: "Enterprise-grade AI" },
-              { icon: <Clock size={16} />, text: "Ship in weeks, not months" },
-              { icon: <Globe size={16} />, text: "UK & India teams" },
-              { icon: <Users size={16} />, text: "50+ automations deployed" },
-            ].map((item, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, color: "var(--text-2)" }}>
-                <span style={{ color: "#F5B731" }}>{item.icon}</span>
-                {item.text}
-              </div>
-            ))}
-          </div>
-        </FadeIn>
-      </div>
-    </section>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/*  STATS                                                              */
-/* ------------------------------------------------------------------ */
-function Stats() {
-  const stats = [
-    { target: 50, suffix: "+", label: "AI Systems Deployed" },
-    { target: 20, suffix: "hrs", label: "Saved per Week / Client" },
-    { target: 3, suffix: "", label: "AI Products Live" },
-    { target: 98, suffix: "%", label: "Client Retention" },
-  ];
-
-  return (
-    <section style={{ borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)" }}>
-      <div className="section" style={{ padding: "60px 40px" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 32, textAlign: "center" }}>
-          {stats.map((s, i) => (
-            <FadeIn key={i} delay={i * 0.1}>
-              <div>
-                <div className="stat-number">
-                  <Counter target={s.target} suffix={s.suffix} />
-                </div>
-                <div className="stat-label">{s.label}</div>
-              </div>
-            </FadeIn>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/*  PACKAGES — productised systems; this IS the pricing                */
-/* ------------------------------------------------------------------ */
-function Packages() {
-  const packs = [
-    {
-      name: "AI Receptionist",
-      range: "\u00a3299\u2013\u00a3799",
-      desc: "Never miss another call, WhatsApp or enquiry \u2014 even at 2am.",
-      features: [
-        "Answers calls & WhatsApp 24/7",
-        "Books appointments straight into your diary",
-        "Missed-call instant text-back",
-        "Trained on your services, prices & FAQs",
-        "Monthly answered-vs-missed report",
-      ],
-      cta: "Get my receptionist",
-      highlight: false,
-    },
-    {
-      name: "AI Sales & Follow-up",
-      range: "\u00a3500\u2013\u00a31,500",
-      desc: "Every lead answered in under a minute \u2014 and followed up until they decide.",
-      features: [
-        "Instant response to every new lead",
-        "Follow-up sequences on email, WhatsApp & SMS",
-        "Leads qualified and routed to your team",
-        "Syncs with your CRM \u2014 or replaces the spreadsheet",
-        "Weekly pipeline report",
-        "AI Receptionist available as an add-on",
-      ],
-      cta: "Stop losing leads",
-      highlight: true,
-    },
-    {
-      name: "Full Business Automation",
-      range: "\u00a32,000\u2013\u00a35,000",
-      desc: "Reception, sales, paperwork and back-office \u2014 on autopilot.",
-      features: [
-        "Receptionist + Sales systems included",
-        "Invoice chasing & document collection",
-        "Quotes, intake forms & onboarding flows",
-        "Custom integrations with your software",
-        "Dedicated automation engineer",
-        "Monthly optimisation & new automations",
-      ],
-      cta: "Automate my business",
-      highlight: false,
-    },
-  ];
-
-  return (
-    <section id="pricing" style={{ background: "var(--bg-card)" }}>
-      <div className="section">
-        <FadeIn>
-          <div style={{ textAlign: "center", marginBottom: 48 }}>
-            <div className="section-tag">Packages &amp; Pricing</div>
-            <h2 className="section-title" style={{ maxWidth: 560, margin: "0 auto 16px" }}>
-              Pick a system. It&apos;s working within weeks.
-            </h2>
-            <p className="section-subtitle" style={{ margin: "0 auto" }}>
-              Fixed monthly price. Setup included. No long contracts — cancel monthly.
-            </p>
-          </div>
-        </FadeIn>
-
-        <div className="grid-3">
-          {packs.map((p, i) => (
-            <FadeIn key={i} delay={i * 0.1}>
-              <div
-                className="glass-card"
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  height: "100%",
-                  border: p.highlight ? "1px solid #F5B731" : undefined,
-                  boxShadow: p.highlight ? "0 0 40px rgba(245, 183, 49, 0.1)" : undefined,
-                }}
-              >
-                {p.highlight && (
-                  <div
-                    style={{
-                      fontSize: 11,
-                      fontWeight: 700,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.1em",
-                      color: "#F5B731",
-                      marginBottom: 12,
-                    }}
-                  >
-                    Most Popular
-                  </div>
-                )}
-
-                <h3 style={{ fontSize: 20, fontWeight: 600, marginBottom: 10 }}>{p.name}</h3>
-                <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 6 }}>
-                  <span style={{ fontSize: 34, fontWeight: 700, letterSpacing: "-0.03em" }}>{p.range}</span>
-                  <span style={{ fontSize: 14, color: "var(--text-3)" }}>/month</span>
-                </div>
-                <p style={{ fontSize: 14, color: "var(--text-2)", marginBottom: 24, lineHeight: 1.6 }}>{p.desc}</p>
-
-                <ul style={{ listStyle: "none", padding: 0, flex: 1, marginBottom: 24 }}>
-                  {p.features.map((f, j) => (
-                    <li
-                      key={j}
-                      style={{
-                        display: "flex",
-                        alignItems: "flex-start",
-                        gap: 10,
-                        fontSize: 14,
-                        color: "var(--text-2)",
-                        marginBottom: 12,
-                        lineHeight: 1.5,
-                      }}
-                    >
-                      <Check size={15} style={{ color: "#F5B731", flexShrink: 0, marginTop: 3 }} />
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-
-                <Link
-                  href="/contact"
-                  className={p.highlight ? "btn-primary" : "btn-secondary"}
-                  style={{
-                    width: "100%",
-                    textAlign: "center",
-                    ...(p.highlight ? { background: "#F5B731", color: "#0a0a0f" } : {}),
-                  }}
-                >
-                  {p.cta}
-                </Link>
-              </div>
-            </FadeIn>
-          ))}
-        </div>
-
-        <FadeIn>
-          <p style={{ textAlign: "center", marginTop: 32, fontSize: 14, color: "var(--text-3)" }}>
-            Not sure which fits? The free audit tells you in 15 minutes — no obligation.
-          </p>
-        </FadeIn>
-      </div>
-    </section>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/*  INDUSTRIES                                                         */
-/* ------------------------------------------------------------------ */
-function Industries() {
-  const industries = [
-    { emoji: "\ud83c\udfe0", name: "Estate agents", line: "Every viewing enquiry answered in seconds \u2014 evenings and weekends included." },
-    { emoji: "\ud83e\uddfe", name: "Accountants", line: "Documents chased, invoices followed up, deadlines never missed." },
-    { emoji: "\ud83e\udd1d", name: "Recruitment agencies", line: "Candidates screened, qualified and booked while your consultants sleep." },
-    { emoji: "\ud83c\udfe5", name: "Private clinics", line: "Cancelled slots refilled automatically; reminders patients actually read." },
-    { emoji: "\ud83c\udf7d\ufe0f", name: "Restaurants & hotels", line: "Bookings, changes and questions handled on WhatsApp, 24/7." },
-    { emoji: "\u2696\ufe0f", name: "Solicitors", line: "Client intake completed and filed before the first call." },
-    { emoji: "\ud83c\udfd7\ufe0f", name: "Construction", line: "Quotes followed up; subcontractor paperwork chased for you." },
-    { emoji: "\ud83c\udfed", name: "Small manufacturers", line: "Order-status questions answered instantly; reorders triggered on time." },
-  ];
-
-  return (
-    <section id="industries">
-      <div className="section">
-        <FadeIn>
-          <div style={{ textAlign: "center", marginBottom: 48 }}>
-            <div className="section-tag">Industries</div>
-            <h2 className="section-title" style={{ maxWidth: 560, margin: "0 auto 16px" }}>
-              Built for your industry, not adapted to it
-            </h2>
-            <p className="section-subtitle" style={{ margin: "0 auto" }}>
-              We don&apos;t sell generic AI consulting. We install systems already shaped
-              around how your sector actually works.
-            </p>
-          </div>
-        </FadeIn>
-
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(255px, 1fr))",
-            gap: 16,
-          }}
-        >
-          {industries.map((ind, i) => (
-            <FadeIn key={i} delay={i * 0.05}>
-              <div className="glass-card" style={{ height: "100%", padding: 24 }}>
-                <div style={{ fontSize: 28, marginBottom: 12 }}>{ind.emoji}</div>
-                <h3 style={{ fontSize: 16.5, fontWeight: 600, marginBottom: 8 }}>{ind.name}</h3>
-                <p style={{ fontSize: 13.5, color: "var(--text-2)", lineHeight: 1.65 }}>{ind.line}</p>
-              </div>
-            </FadeIn>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/*  OUR PRODUCTS                                                       */
-/* ------------------------------------------------------------------ */
-function Products() {
-  const products = [
-    {
-      name: "YourBotChat",
-      url: "https://yourbotchat.com",
-      icon: <MessageSquare size={28} />,
-      tagline: "AI chatbot for any website — setup in 60 seconds",
-      description:
-        "Paste your website URL and get an AI chatbot trained on your content instantly. Captures leads 24/7, answers customer questions, and integrates with your existing tools. Used by 1,200+ businesses.",
-      features: ["60-second setup", "Trained on your content", "Lead capture & export", "Multi-language"],
-      color: "#F5B731",
-      gradient: "linear-gradient(135deg, #F5B731, #E87B35)",
-    },
-    {
-      name: "ReelMakerBot",
-      url: "https://reelmakerbot.com",
-      icon: <Video size={28} />,
-      tagline: "Turn any image into a stunning reel with AI",
-      description:
-        "Upload a photo, describe the vibe, and our AI generates a scroll-stopping Instagram Reel in 60 seconds. No editing skills needed. Built for creators and businesses across India.",
-      features: ["Image to video AI", "60-second generation", "9:16 reel format", "Starting at ₹299/mo"],
-      color: "#E8430A",
-      gradient: "linear-gradient(135deg, #E8430A, #FF5A1F)",
-    },
-    {
-      name: "Showbizy",
-      url: "https://showbizy.ai",
-      icon: <Sparkles size={28} />,
-      tagline: "AI-powered entertainment & talent platform",
-      description:
-        "Smart talent discovery and entertainment management powered by AI. Connecting creators, artists, and talent with opportunities using intelligent matching and automation.",
-      features: ["AI talent matching", "Smart discovery", "Automated booking", "Analytics dashboard"],
-      color: "#8B5CF6",
-      gradient: "linear-gradient(135deg, #8B5CF6, #A78BFA)",
-    },
-  ];
-
-  return (
-    <section id="products">
-      <div className="section">
-        <FadeIn>
-          <div className="section-tag">Our Products</div>
-          <h2 className="section-title">AI products we built and launched</h2>
-          <p className="section-subtitle">
-            We don&apos;t just build for clients — we build our own AI products too.
-            These are live, revenue-generating products used by thousands.
-          </p>
-        </FadeIn>
-
-        <div style={{ marginTop: 48, display: "flex", flexDirection: "column", gap: 24 }}>
-          {products.map((p, i) => (
-            <FadeIn key={i} delay={i * 0.12}>
-              <a
-                href={p.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ textDecoration: "none", color: "inherit", display: "block" }}
-              >
-                <div
-                  className="glass-card product-card"
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr",
-                    gap: 40,
-                    alignItems: "center",
-                    cursor: "pointer",
-                    position: "relative",
-                    overflow: "hidden",
-                  }}
-                >
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: -100,
-                      right: -100,
-                      width: 300,
-                      height: 300,
-                      background: p.gradient,
-                      opacity: 0.06,
-                      borderRadius: "50%",
-                      filter: "blur(60px)",
-                      pointerEvents: "none",
-                    }}
-                  />
-
-                  <div style={{ position: "relative" }}>
-                    <div
-                      style={{
-                        width: 56,
-                        height: 56,
-                        borderRadius: 14,
-                        background: `${p.color}15`,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        color: p.color,
-                        marginBottom: 20,
-                      }}
-                    >
-                      {p.icon}
-                    </div>
-
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                      <h3 style={{ fontSize: 24, fontWeight: 700 }}>{p.name}</h3>
-                      <ExternalLink size={16} style={{ color: "var(--text-3)" }} />
-                    </div>
-
-                    <p style={{ fontSize: 16, color: p.color, fontWeight: 500, marginBottom: 12 }}>
-                      {p.tagline}
-                    </p>
-
-                    <p style={{ fontSize: 15, color: "var(--text-2)", lineHeight: 1.7 }}>
-                      {p.description}
-                    </p>
-                  </div>
-
-                  <div style={{ position: "relative" }}>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                      {p.features.map((f, j) => (
-                        <div
-                          key={j}
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 10,
-                            padding: "14px 16px",
-                            borderRadius: 12,
-                            background: "var(--bg-glass-light)",
-                            border: "1px solid var(--border)",
-                            fontSize: 14,
-                            color: "var(--text-2)",
-                          }}
-                        >
-                          <Check size={14} style={{ color: p.color, flexShrink: 0 }} />
-                          {f}
-                        </div>
-                      ))}
-                    </div>
-
-                    <div
-                      style={{
-                        marginTop: 20,
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 8,
-                        padding: "10px 20px",
-                        borderRadius: 10,
-                        background: p.gradient,
-                        color: "white",
-                        fontSize: 14,
-                        fontWeight: 600,
-                      }}
-                    >
-                      Visit {p.name} <ArrowRight size={14} />
-                    </div>
-                  </div>
-                </div>
-              </a>
-            </FadeIn>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/*  PROCESS                                                            */
-/* ------------------------------------------------------------------ */
-function Process() {
-  const steps = [
-    { num: "01", title: "Discovery & AI Audit", desc: "We analyse your business, identify automation opportunities, and map out where AI creates the most impact. Free, no obligation." },
-    { num: "02", title: "Strategy & Design", desc: "We design the architecture — what to automate, which AI models to use, how it integrates with your existing stack." },
-    { num: "03", title: "Build & Deploy", desc: "Our engineers build, test, and deploy your AI system. Most projects go live within 2-4 weeks, not months." },
-    { num: "04", title: "Optimise & Scale", desc: "We monitor performance, fine-tune the AI, and scale what works. Continuous improvement, not set-and-forget." },
-  ];
-
-  return (
-    <section id="process" style={{ background: "var(--bg-card)" }}>
-      <div className="section">
-        <FadeIn>
-          <div className="section-tag">How We Work</div>
-          <h2 className="section-title">From idea to deployed AI in weeks</h2>
-        </FadeIn>
-
-        <div style={{ marginTop: 48 }}>
-          {steps.map((s, i) => (
-            <FadeIn key={i} delay={i * 0.1}>
-              <div
-                style={{
-                  display: "flex",
-                  gap: 32,
-                  padding: "40px 0",
-                  borderBottom: i < steps.length - 1 ? "1px solid var(--border)" : "none",
-                  alignItems: "flex-start",
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: 64,
-                    fontWeight: 700,
-                    letterSpacing: "-0.04em",
-                    background: "var(--accent-gradient)",
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                    backgroundClip: "text",
-                    opacity: 0.3,
-                    lineHeight: 1,
-                    flexShrink: 0,
-                    minWidth: 80,
-                  }}
-                >
-                  {s.num}
-                </span>
-                <div>
-                  <h3 style={{ fontSize: 22, fontWeight: 600, marginBottom: 8 }}>{s.title}</h3>
-                  <p style={{ fontSize: 16, color: "var(--text-2)", lineHeight: 1.7, maxWidth: 500 }}>{s.desc}</p>
-                </div>
-              </div>
-            </FadeIn>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/*  SCENARIOS \u2014 what a day looks like with the systems installed       */
-/* ------------------------------------------------------------------ */
-function Scenarios() {
-  const rows = [
-    {
-      pack: "AI RECEPTIONIST",
-      who: "A three-branch estate agency",
-      text: "Saturday, 6pm. A buyer enquires about a listing. The AI answers on WhatsApp, checks budget and timing, and books a Monday viewing straight into the negotiator\u2019s diary. Nobody at the agency touched a thing.",
-    },
-    {
-      pack: "AI SALES & FOLLOW-UP",
-      who: "An accountancy practice at year-end",
-      text: "Forty clients owe documents. The system chases each one politely across email and WhatsApp, logs what arrives, and escalates only the three who went quiet. The partners stay billable.",
-    },
-    {
-      pack: "FULL AUTOMATION",
-      who: "A private dental clinic",
-      text: "A patient cancels at 8am. The system offers the slot to the waitlist, confirms a replacement by 8:20, updates the diary and sends directions \u2014 before the front desk finishes their coffee.",
-    },
-  ];
-
-  return (
-    <section style={{ background: "var(--bg-card)" }}>
-      <div className="section">
-        <FadeIn>
-          <div style={{ textAlign: "center", marginBottom: 48 }}>
-            <div className="section-tag">What it looks like</div>
-            <h2 className="section-title" style={{ maxWidth: 520, margin: "0 auto" }}>
-              A working day with BiLabs installed
-            </h2>
-          </div>
-        </FadeIn>
-
-        <div className="grid-3">
-          {rows.map((r, i) => (
-            <FadeIn key={i} delay={i * 0.1}>
-              <div className="glass-card" style={{ height: "100%" }}>
-                <div
-                  style={{
-                    fontSize: 11,
-                    fontWeight: 700,
-                    letterSpacing: "0.1em",
-                    color: "#F5B731",
-                    marginBottom: 10,
-                  }}
-                >
-                  {r.pack}
-                </div>
-                <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 12 }}>{r.who}</div>
-                <p style={{ fontSize: 14, color: "var(--text-2)", lineHeight: 1.75 }}>{r.text}</p>
-              </div>
-            </FadeIn>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/*  CTA                                                                */
-/* ------------------------------------------------------------------ */
-function CTA() {
-  return (
-    <section>
-      <div className="section" style={{ textAlign: "center" }}>
-        <FadeIn>
-          <h2
-            style={{
-              fontSize: "clamp(32px, 5vw, 56px)",
-              fontWeight: 700,
-              letterSpacing: "-0.035em",
-              lineHeight: 1.1,
-              marginBottom: 20,
-              maxWidth: 600,
-              margin: "0 auto 20px",
-            }}
-          >
-            Ready to put{" "}
-            <span
-              style={{
-                background: "var(--accent-gradient)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                backgroundClip: "text",
-              }}
-            >
-              AI to work
-            </span>
-            ?
-          </h2>
-          <p style={{ fontSize: 18, color: "var(--text-2)", marginBottom: 32, maxWidth: 480, margin: "0 auto 32px" }}>
-            Book a free 15-minute AI audit. We&apos;ll map exactly what to automate first
-            — and what it saves you every month.
-          </p>
-          <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>
-            <Link href="/contact" className="btn-primary" style={{ gap: 8, fontSize: 16, padding: "16px 32px" }}>
-              Get Free AI Audit <ArrowRight size={16} />
-            </Link>
-            <a href="mailto:hello@bilabs.ai" className="btn-secondary" style={{ fontSize: 16, padding: "16px 32px" }}>
-              hello@bilabs.ai
-            </a>
-          </div>
-        </FadeIn>
-      </div>
-    </section>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/*  PAGE                                                               */
-/* ------------------------------------------------------------------ */
 export default function Home() {
   return (
-    <>
+    <GuideProvider>
       <Hero />
-      <Stats />
+      <Problem />
+      <Check />
+      <HowItWorks />
       <Packages />
-      <Industries />
-      <VideoMaker />
-      <Process />
-      <Scenarios />
-      <Products />
-      <CTA />
-    </>
+      <CaseStudy />
+      <Faq />
+      <Closing />
+    </GuideProvider>
+  );
+}
+
+/* ------------------------------- hero ------------------------------ */
+
+function Hero() {
+  const guide = useGuide();
+  const [site, setSite] = useState("");
+
+  const go = (e: React.FormEvent) => {
+    e.preventDefault();
+    const el = document.getElementById("check");
+    el?.scrollIntoView({ behavior: "smooth", block: "start" });
+    const field = document.querySelector<HTMLInputElement>('input[aria-label="Your website"]');
+    if (field && site.trim()) {
+      field.value = site.trim();
+      field.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+    setTimeout(() => document.querySelector<HTMLInputElement>('input[aria-label="Type of business"]')?.focus(), 500);
+  };
+
+  return (
+    <section className="section" style={{ paddingTop: 150, paddingBottom: 90 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(330px, 1fr))", gap: 56, alignItems: "center" }}>
+        <FadeIn>
+          <div className="section-tag">AI visibility · done for you</div>
+          <h1 style={{ fontSize: "clamp(2.4rem, 5.5vw, 4rem)", lineHeight: 1.05, letterSpacing: "-0.035em", fontWeight: 700, margin: "18px 0 0" }}>
+            Get your business{" "}
+            <span style={{ background: "var(--accent-gradient)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+              recommended by AI
+            </span>
+            .
+          </h1>
+          <p style={{ fontSize: 18, lineHeight: 1.7, color: "var(--text-2)", margin: "22px 0 0", maxWidth: 560 }}>
+            Customers now ask ChatGPT, Claude and Google AI who to call. We make sure your business is the one
+            they can actually read — and that every enquiry gets answered, 24/7.
+          </p>
+
+          <form onSubmit={go} style={{ display: "flex", flexWrap: "wrap", gap: 10, marginTop: 32, maxWidth: 520 }}>
+            <input
+              value={site}
+              onChange={(e) => setSite(e.target.value)}
+              placeholder="yourbusiness.co.uk"
+              aria-label="Your website address"
+              className="form-input"
+              style={{ flex: "1 1 220px", minWidth: 0, padding: "14px 18px" }}
+            />
+            <button type="submit" className="btn-primary" style={{ padding: "14px 26px", fontSize: 15 }}>
+              Free AI Visibility Report
+            </button>
+          </form>
+
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 18, alignItems: "center", marginTop: 20 }}>
+            <span style={{ fontSize: 13, color: "var(--text-3)" }}>Free · no card · about 15 seconds</span>
+            <button type="button" onClick={() => guide.open("hero")} style={{ background: "none", border: "none", color: "var(--accent)", fontSize: 13, fontWeight: 600, cursor: "pointer", padding: 0 }}>
+              What is this? →
+            </button>
+          </div>
+        </FadeIn>
+
+        <FadeIn delay={0.15}>
+          <ShipLog />
+        </FadeIn>
+      </div>
+    </section>
+  );
+}
+
+/* ----------------------------- problem ----------------------------- */
+
+function Problem() {
+  const guide = useGuide();
+  const cards = [
+    { t: "The question changed", d: "“Who's a good plumber near me?” used to open a search page. Now it gets answered — once, by an assistant, with a handful of names." },
+    { t: "You are not in the answer", d: "Assistants answer from what they can read. If your hours, services and prices only exist as pictures on a website, you are invisible to them." },
+    { t: "The enquiry still has to be answered", d: "Being named is worth nothing if the call goes to voicemail at 7pm. Most enquiries now arrive outside the hours anyone is at a desk." },
+  ];
+
+  return (
+    <section id="problem" style={{ borderTop: "1px solid var(--border-strong)", scrollMarginTop: 80 }}>
+      <div className="section" style={{ paddingTop: 90, paddingBottom: 90 }}>
+        <FadeIn>
+          <div className="section-tag">The shift</div>
+          <h2 className="section-title">Your customers stopped scrolling.</h2>
+          <p style={{ fontSize: 17, lineHeight: 1.75, color: "var(--text-2)", maxWidth: 640, marginTop: 14 }}>
+            They ask, and they act on the answer. Which makes one question worth knowing the answer to: what do these
+            systems currently say about you?
+          </p>
+        </FadeIn>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 18, marginTop: 44 }}>
+          {cards.map((c, i) => (
+            <FadeIn key={c.t} delay={i * 0.08}>
+              <button type="button" onClick={() => guide.open("problem")} className="glass-card ask-card" style={{ padding: 26, height: "100%" }}>
+                <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: "var(--text-1)" }}>{c.t}</h3>
+                <p style={{ fontSize: 15, lineHeight: 1.7, color: "var(--text-2)", margin: "10px 0 0" }}>{c.d}</p>
+                <p className="ask-hint">Ask about this →</p>
+              </button>
+            </FadeIn>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------ check ------------------------------ */
+
+function Check() {
+  return (
+    <section style={{ borderTop: "1px solid var(--border-strong)" }}>
+      <div className="section" style={{ paddingTop: 90, paddingBottom: 90 }}>
+        <FadeIn>
+          <div className="section-tag">Free check</div>
+          <h2 className="section-title">Ask an AI for your trade. See if you come up.</h2>
+          <p style={{ fontSize: 17, lineHeight: 1.75, color: "var(--text-2)", maxWidth: 640, margin: "14px 0 36px" }}>
+            We put a real question to an AI assistant with web search — “recommend a {"{trade}"} in {"{your area}"}” —
+            and show you the answer it gives, names and all.
+          </p>
+        </FadeIn>
+        <FadeIn delay={0.1}><VisibilityReport /></FadeIn>
+      </div>
+    </section>
+  );
+}
+
+/* --------------------------- how it works -------------------------- */
+
+function HowItWorks() {
+  const guide = useGuide();
+  return (
+    <section id="process" style={{ borderTop: "1px solid var(--border-strong)", scrollMarginTop: 80 }}>
+      <div className="section" style={{ paddingTop: 90, paddingBottom: 90 }}>
+        <FadeIn>
+          <div className="section-tag">How it works</div>
+          <h2 className="section-title">Audit → Fix → Answer.</h2>
+        </FadeIn>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 18, marginTop: 44 }}>
+          {STEPS.map((s, i) => (
+            <FadeIn key={s.n} delay={i * 0.08}>
+              <button type="button" onClick={() => guide.open("how-it-works")} className="glass-card ask-card" style={{ padding: 26, height: "100%" }}>
+                <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: ".16em", color: "var(--accent)" }}>{s.n}</span>
+                <h3 style={{ fontSize: 20, fontWeight: 700, margin: "10px 0 0", color: "var(--text-1)" }}>{s.t}</h3>
+                <p style={{ fontSize: 15, lineHeight: 1.7, color: "var(--text-2)", margin: "10px 0 0" }}>{s.d}</p>
+                <p className="ask-hint">Ask about this →</p>
+              </button>
+            </FadeIn>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ---------------------------- packages ----------------------------- */
+
+function Packages() {
+  const guide = useGuide();
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  const buy = async () => {
+    if (busy) return;
+    setBusy(true); setErr(null);
+    try {
+      const res = await fetch("/api/checkout", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
+      const data = await res.json();
+      if (!res.ok || !data.url) { setErr(data.error ?? "Could not start checkout."); return; }
+      window.location.href = data.url;
+    } catch {
+      setErr("Could not start checkout. Please email hello@bilabs.ai.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <section id="packages" style={{ borderTop: "1px solid var(--border-strong)", scrollMarginTop: 80 }}>
+      <div className="section" style={{ paddingTop: 90, paddingBottom: 90 }}>
+        <FadeIn>
+          <div className="section-tag">Packages</div>
+          <h2 className="section-title">Start where it hurts.</h2>
+          <p style={{ fontSize: 17, lineHeight: 1.75, color: "var(--text-2)", maxWidth: 620, margin: "14px 0 0" }}>
+            Three ways in. Most people start with the audit, because it tells you whether the rest is worth doing.
+          </p>
+        </FadeIn>
+
+        {err && <p style={{ marginTop: 20, color: "#fca5a5", fontSize: 14 }}>{err}</p>}
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(290px, 1fr))", gap: 18, marginTop: 44, alignItems: "stretch" }}>
+          {PACKAGES.map((p, i) => (
+            <FadeIn key={p.id} delay={i * 0.08}>
+              <div className="glass-card" style={{ padding: 28, height: "100%", display: "flex", flexDirection: "column", position: "relative", overflow: "hidden", borderColor: p.id === "get-found" ? "rgba(245,183,49,.45)" : undefined }}>
+                {p.id === "get-found" && <span aria-hidden style={{ position: "absolute", insetInline: 0, top: 0, height: 3, background: "var(--accent-gradient)" }} />}
+
+                <button type="button" onClick={() => guide.open(p.id)} className="ask-card" style={{ background: "none", border: "none", padding: 0, flex: 1, display: "flex", flexDirection: "column" }}>
+                  <h3 style={{ fontSize: 20, fontWeight: 700, margin: 0, color: "var(--text-1)" }}>{p.name}</h3>
+                  <p style={{ margin: "14px 0 0" }}>
+                    <span style={{ fontSize: 34, fontWeight: 700, letterSpacing: "-0.02em", color: "var(--text-1)" }}>{p.price}</span>
+                    {p.sub && <span style={{ fontSize: 14, color: "var(--text-3)" }}> {p.sub}</span>}
+                  </p>
+                  <p style={{ fontSize: 15, lineHeight: 1.7, color: "var(--text-2)", margin: "14px 0 0" }}>{p.blurb}</p>
+                  <ul style={{ listStyle: "none", padding: 0, margin: "18px 0 0", display: "flex", flexDirection: "column", gap: 10, flex: 1 }}>
+                    {p.points.map((pt) => (
+                      <li key={pt} style={{ display: "flex", gap: 10, fontSize: 14.5, lineHeight: 1.6, color: "var(--text-2)" }}>
+                        <span style={{ color: "var(--accent)" }}>✓</span><span>{pt}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="ask-hint">Is this the right one? →</p>
+                </button>
+
+                {p.cta === "checkout" ? (
+                  <button type="button" onClick={buy} disabled={busy} className="btn-primary" style={{ marginTop: 22, padding: "13px 0", fontSize: 14.5, width: "100%", opacity: busy ? 0.6 : 1 }}>
+                    {busy ? "Opening checkout…" : p.ctaLabel}
+                  </button>
+                ) : (
+                  <a href={bookHref} {...bookProps} className="btn-secondary" style={{ marginTop: 22, padding: "13px 0", fontSize: 14.5, width: "100%", textAlign: "center" }}>
+                    {p.ctaLabel}
+                  </a>
+                )}
+              </div>
+            </FadeIn>
+          ))}
+        </div>
+
+        <p style={{ marginTop: 22, fontSize: 13, color: "var(--text-3)", maxWidth: 680, lineHeight: 1.7 }}>
+          Prices in GBP, excluding VAT. We make your business readable to AI systems — no one can guarantee that an
+          assistant will recommend you, and we do not.
+        </p>
+      </div>
+    </section>
+  );
+}
+
+/* --------------------------- case study ---------------------------- */
+
+function CaseStudy() {
+  return (
+    <section style={{ borderTop: "1px solid var(--border-strong)" }}>
+      <div className="section" style={{ paddingTop: 90, paddingBottom: 90 }}>
+        <FadeIn>
+          <div className="section-tag">Results</div>
+          <h2 className="section-title">Case studies, once we have them.</h2>
+          <div className="glass-card" style={{ padding: 32, marginTop: 28, maxWidth: 700 }}>
+            <p style={{ fontSize: 16, lineHeight: 1.8, color: "var(--text-2)", margin: 0 }}>
+              We would rather leave this space empty than fill it with invented numbers. Client results go here as
+              soon as we have run long enough to report them honestly — the question we asked, what the assistants
+              said before, and what they said after.
+            </p>
+            <p style={{ fontSize: 15, lineHeight: 1.8, color: "var(--text-3)", margin: "16px 0 0" }}>
+              In the meantime, the free check above shows you the “before” for your own business, in about fifteen
+              seconds.
+            </p>
+          </div>
+        </FadeIn>
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------- faq ------------------------------- */
+
+function Faq() {
+  const guide = useGuide();
+  const [open, setOpen] = useState<number | null>(0);
+
+  return (
+    <section style={{ borderTop: "1px solid var(--border-strong)" }}>
+      <div className="section" style={{ paddingTop: 90, paddingBottom: 90, maxWidth: 820 }}>
+        <FadeIn>
+          <div className="section-tag">Questions</div>
+          <h2 className="section-title">The ones worth asking.</h2>
+        </FadeIn>
+
+        <div style={{ marginTop: 34, borderTop: "1px solid var(--border-strong)" }}>
+          {FAQS.map((f, i) => (
+            <div key={f.q} style={{ borderBottom: "1px solid var(--border-strong)" }}>
+              <button
+                onClick={() => setOpen(open === i ? null : i)}
+                aria-expanded={open === i}
+                style={{ width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 18, padding: "20px 0", background: "none", border: "none", cursor: "pointer", textAlign: "left" }}
+              >
+                <span style={{ fontSize: 16.5, fontWeight: 600, color: "var(--text-1)" }}>{f.q}</span>
+                <span style={{ color: "var(--accent)", fontSize: 20, transform: open === i ? "rotate(45deg)" : "none", transition: "transform .2s ease" }}>+</span>
+              </button>
+              {open === i && <p style={{ margin: "-4px 0 22px", fontSize: 15.5, lineHeight: 1.8, color: "var(--text-2)", maxWidth: 680 }}>{f.a}</p>}
+            </div>
+          ))}
+        </div>
+
+        <button type="button" onClick={() => guide.open("faq")} className="btn-secondary" style={{ marginTop: 30, padding: "13px 26px", fontSize: 14.5 }}>
+          Ask your own question
+        </button>
+      </div>
+    </section>
+  );
+}
+
+/* ----------------------------- closing ----------------------------- */
+
+function Closing() {
+  return (
+    <section style={{ borderTop: "1px solid var(--border-strong)" }}>
+      <div className="section" style={{ paddingTop: 90, paddingBottom: 110, textAlign: "center" }}>
+        <FadeIn>
+          <h2 className="section-title" style={{ margin: "0 auto" }}>Find out what AI says about you.</h2>
+          <p style={{ fontSize: 17, lineHeight: 1.75, color: "var(--text-2)", maxWidth: 560, margin: "16px auto 0" }}>
+            The check is free and takes about fifteen seconds. The fix starts at £149.
+          </p>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 14, justifyContent: "center", marginTop: 32 }}>
+            <a href="#check" className="btn-primary" style={{ padding: "15px 30px", fontSize: 15 }}>Run the free check</a>
+            <a href={bookHref} {...bookProps} className="btn-secondary" style={{ padding: "15px 30px", fontSize: 15 }}>Book a free 15-min call</a>
+          </div>
+          <p style={{ marginTop: 24, fontSize: 13.5, color: "var(--text-3)" }}>
+            Or email <Link href="mailto:hello@bilabs.ai" style={{ color: "var(--accent)" }}>hello@bilabs.ai</Link>
+          </p>
+        </FadeIn>
+      </div>
+    </section>
   );
 }
