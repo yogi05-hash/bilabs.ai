@@ -242,6 +242,38 @@ function Packages() {
   return (
     <section id="packages" style={{ borderTop: "1px solid var(--border-strong)", scrollMarginTop: 80 }}>
       <div className="section" style={{ paddingTop: 90, paddingBottom: 90 }}>
+        {/* Founding offer. Worded as a refund promise rather than an outcome
+            promise — we carry the risk, we do not claim to control what an
+            assistant says — and judged by the same free check on this page so
+            "mentions you" cannot become an argument later. */}
+        <FadeIn>
+          <div style={{
+            display: "flex", flexWrap: "wrap", alignItems: "center", gap: 18,
+            padding: "20px 24px", borderRadius: 16, marginBottom: 40,
+            background: "linear-gradient(135deg, rgba(245,183,49,.14), rgba(232,123,53,.07))",
+            border: "1px solid rgba(245,183,49,.4)",
+          }}>
+            <span style={{
+              fontSize: 11.5, fontWeight: 700, letterSpacing: ".14em", textTransform: "uppercase",
+              color: "#0a0a0f", background: "var(--accent)", borderRadius: 999, padding: "6px 12px", flexShrink: 0,
+            }}>
+              Founding client offer
+            </span>
+            <div style={{ flex: "1 1 300px", minWidth: 0 }}>
+              <p style={{ margin: 0, fontSize: 16.5, fontWeight: 600, color: "var(--text-1)" }}>
+                First 5 businesses: £99 setup, then £49/month.
+              </p>
+              <p style={{ margin: "6px 0 0", fontSize: 14, lineHeight: 1.65, color: "var(--text-2)" }}>
+                If no AI assistant mentions you within 60 days, we refund you — judged by the same free check
+                above, run on the day you start and again at day 60.
+              </p>
+            </div>
+            <a href={bookHref} {...bookProps} className="btn-primary" style={{ padding: "12px 22px", fontSize: 14, flexShrink: 0 }}>
+              Claim a founding place
+            </a>
+          </div>
+        </FadeIn>
+
         <FadeIn>
           <div className="section-tag">Packages</div>
           <h2 className="section-title">Start where it hurts.</h2>

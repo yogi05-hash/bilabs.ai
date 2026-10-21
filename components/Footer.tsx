@@ -23,6 +23,7 @@ export default function Footer() {
         <div>
           <div className="footer-heading">Company</div>
           <Link href="/about" className="footer-link">About</Link>
+          <Link href="/work" className="footer-link">Our work</Link>
           <Link href="/#packages" className="footer-link">Packages</Link>
           <Link href="/#check" className="footer-link">Free AI check</Link>
           <Link href="/contact" className="footer-link">Contact</Link>
