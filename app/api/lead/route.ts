@@ -12,14 +12,31 @@ import { NextRequest, NextResponse } from "next/server";
  * If the database write fails we return an error and the form says so, rather
  * than claiming success we cannot back up. */
 
-const SUPABASE_URL = (process.env.NEXT_PUBLIC_SUPABASE_URL || "").trim();
-const SERVICE_KEY = (process.env.SUPABASE_SERVICE_ROLE_KEY || "").trim();
-const RESEND_KEY = (process.env.RESEND_API_KEY || "").trim();
-const NOTIFY_TO = (process.env.LEAD_NOTIFY_TO || "hello@bilabs.ai").trim();
+/* Config values arrive with junk attached more often than you would think.
+ * This project's Supabase URL was stored as `"https://...supabase.co\n"` —
+ * surrounding quotes AND a trailing newline — which .trim() alone does not
+ * fix, and which failed only in production with an opaque Invalid URL. Strip
+ * whitespace and matching quotes on the way in so a sloppy value cannot take
+ * the form down again. */
+const env = (name: string, fallback = ""): string => {
+  const raw = process.env[name] ?? fallback;
+  return raw
+    .trim()
+    .replace(/^["']|["']$/g, "")
+    // a LITERAL backslash-n, not a newline — this is how the value actually
+    // arrived, and trim() cannot see it
+    .replace(/(\\[rn])+$/g, "")
+    .trim();
+};
+
+const SUPABASE_URL = env("NEXT_PUBLIC_SUPABASE_URL").replace(/\/+$/, "");
+const SERVICE_KEY = env("SUPABASE_SERVICE_ROLE_KEY");
+const RESEND_KEY = env("RESEND_API_KEY");
+const NOTIFY_TO = env("LEAD_NOTIFY_TO", "hello@bilabs.ai");
 // bilabs.ai is not a verified Resend sender (it belongs to another team), so
 // notifications go out from a domain we do have verified. Internal only — the
 // visitor never sees this address.
-const FROM = (process.env.LEAD_FROM || "BiLabs <no-reply@yourbotchat.com>").trim();
+const FROM = env("LEAD_FROM", "BiLabs <no-reply@yourbotchat.com>");
 
 const WINDOW_MS = 10 * 60 * 1000;
 const MAX_PER_WINDOW = 5;
