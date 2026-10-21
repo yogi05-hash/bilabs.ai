@@ -7,10 +7,38 @@ import FadeIn from "@/components/FadeIn";
 export default function ContactPage() {
   const [formType, setFormType] = useState<"contact" | "demo">("contact");
   const [submitted, setSubmitted] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // The old version of this just set `submitted` and sent nothing. It now has
+  // to hear back from the server before it thanks anyone, and says so plainly
+  // when it does not.
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setSubmitted(true);
+    if (sending) return;
+
+    const data = Object.fromEntries(new FormData(e.currentTarget).entries());
+    setSending(true);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/lead", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...data, source: formType === "demo" ? "demo-request" : "contact" }),
+      });
+      const payload = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        setError(payload?.error ?? "We could not send that. Please email hello@bilabs.ai.");
+        return;
+      }
+      setSubmitted(true);
+    } catch {
+      setError("We could not reach the server. Please email hello@bilabs.ai.");
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -98,29 +126,29 @@ export default function ContactPage() {
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
                       <div className="form-group">
                         <label className="form-label">First name</label>
-                        <input type="text" className="form-input" placeholder="Jane" required />
+                        <input type="text" className="form-input" placeholder="Jane" name="firstName" required />
                       </div>
                       <div className="form-group">
                         <label className="form-label">Last name</label>
-                        <input type="text" className="form-input" placeholder="Doe" required />
+                        <input type="text" className="form-input" placeholder="Doe" name="lastName" required />
                       </div>
                     </div>
 
                     <div className="form-group">
                       <label className="form-label">Work email</label>
-                      <input type="email" className="form-input" placeholder="jane@company.com" required />
+                      <input type="email" className="form-input" placeholder="jane@company.com" name="email" required />
                     </div>
 
                     <div className="form-group">
                       <label className="form-label">Company</label>
-                      <input type="text" className="form-input" placeholder="Company name" />
+                      <input type="text" className="form-input" placeholder="Company name" name="company" />
                     </div>
 
                     {formType === "demo" && (
                       <>
                         <div className="form-group">
                           <label className="form-label">What are you interested in?</label>
-                          <select className="form-select">
+                          <select className="form-select" name="service">
                             <option value="">Select a service</option>
                             <option>AI Strategy & Consulting</option>
                             <option>Custom Model Development</option>
@@ -132,7 +160,7 @@ export default function ContactPage() {
                         </div>
                         <div className="form-group">
                           <label className="form-label">Team size</label>
-                          <select className="form-select">
+                          <select className="form-select" name="teamSize">
                             <option value="">Select range</option>
                             <option>1-10</option>
                             <option>11-50</option>
@@ -149,6 +177,7 @@ export default function ContactPage() {
                       </label>
                       <textarea
                         className="form-textarea"
+                        name="message"
                         placeholder={
                           formType === "demo"
                             ? "What challenge are you trying to solve? Any relevant context helps..."
@@ -158,8 +187,34 @@ export default function ContactPage() {
                       />
                     </div>
 
-                    <button type="submit" className="btn-primary" style={{ width: "100%", padding: "12px 0", fontSize: 14, marginTop: 4 }}>
-                      {formType === "demo" ? "Request a Demo" : "Send Message"}
+                    {error && (
+                      <div
+                        role="alert"
+                        style={{
+                          background: "rgba(220,38,38,0.08)",
+                          border: "1px solid rgba(220,38,38,0.35)",
+                          color: "#fca5a5",
+                          borderRadius: 10,
+                          padding: "12px 14px",
+                          fontSize: 14,
+                          lineHeight: 1.5,
+                        }}
+                      >
+                        {error}
+                      </div>
+                    )}
+
+                    <button
+                      type="submit"
+                      className="btn-primary"
+                      disabled={sending}
+                      style={{ width: "100%", padding: "12px 0", fontSize: 14, marginTop: 4, opacity: sending ? 0.6 : 1 }}
+                    >
+                      {sending
+                        ? "Sending…"
+                        : formType === "demo"
+                          ? "Request a Demo"
+                          : "Send Message"}
                     </button>
                   </form>
                 </>

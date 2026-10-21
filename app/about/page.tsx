@@ -54,7 +54,7 @@ export default function AboutPage() {
           </FadeIn>
           <FadeIn delay={0.2}>
             <div className="glass-card">
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: 32 }}>
                 {[
                   { num: "2022", label: "Founded" },
                   { num: "24", label: "Team members" },
@@ -82,7 +82,7 @@ export default function AboutPage() {
           </p>
         </FadeIn>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 20 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 20 }}>
           {values.map((v, i) => (
             <FadeIn key={i} delay={i * 0.1}>
               <div className="glass-card">

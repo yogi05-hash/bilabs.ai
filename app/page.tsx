@@ -169,7 +169,7 @@ function Stats() {
   return (
     <section style={{ borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)" }}>
       <div className="section" style={{ padding: "60px 40px" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 40, textAlign: "center" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 32, textAlign: "center" }}>
           {stats.map((s, i) => (
             <FadeIn key={i} delay={i * 0.1}>
               <div>
