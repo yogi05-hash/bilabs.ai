@@ -1,50 +1,30 @@
 import Link from "next/link";
-import Image from "next/image";
 
+/* Dark footer, as the mockup has it. */
 export default function Footer() {
   return (
-    <footer className="footer">
-      <div className="footer-grid">
-        <div>
-          <div style={{ marginBottom: 16 }}>
-            <Image
-              src="/logo.png"
-              alt="BiLabs"
-              width={180}
-              height={56}
-              style={{ height: 44, width: "auto", objectFit: "contain" }}
-            />
+    <footer className="foot">
+      <div className="wrap" style={{ paddingTop: 34, paddingBottom: 34 }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 20, alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
+            <span style={{ fontFamily: "var(--font-heading)", fontSize: 21, letterSpacing: "-0.03em", color: "#fff" }}>
+              Bi<span style={{ color: "var(--brand)" }}>Labs</span>
+            </span>
+            <span style={{ fontSize: 13.5 }}>bilabs.ai</span>
           </div>
-          <p style={{ fontSize: 14, color: "var(--text-2)", lineHeight: 1.6, maxWidth: 280 }}>
-            AI-first agency building intelligent products and automation systems.
-            From chatbots to video AI — we ship products that work.
-          </p>
+
+          <nav style={{ display: "flex", flexWrap: "wrap", gap: "8px 26px", fontSize: 13.5 }}>
+            <Link href="/#services">Services</Link>
+            <Link href="/#packages">Packages</Link>
+            <Link href="/work">Our work</Link>
+            <Link href="/contact">Contact</Link>
+            <Link href="/privacy">Privacy</Link>
+          </nav>
         </div>
-        <div>
-          <div className="footer-heading">Company</div>
-          <Link href="/about" className="footer-link">About</Link>
-          <Link href="/work" className="footer-link">Our work</Link>
-          <Link href="/#packages" className="footer-link">Packages</Link>
-          <Link href="/#check" className="footer-link">Free AI check</Link>
-          <Link href="/contact" className="footer-link">Contact</Link>
-        </div>
-        <div>
-          <div className="footer-heading">Products</div>
-          <a href="https://yourbotchat.com" target="_blank" rel="noopener noreferrer" className="footer-link">YourBotChat ↗</a>
-          <a href="https://reelmakerbot.com" target="_blank" rel="noopener noreferrer" className="footer-link">ReelMakerBot ↗</a>
-          <a href="https://showbizy.ai" target="_blank" rel="noopener noreferrer" className="footer-link">Showbizy ↗</a>
-        </div>
-        <div>
-          <div className="footer-heading">Connect</div>
-          <a href="mailto:hello@bilabs.ai" className="footer-link">hello@bilabs.ai</a>
-          <span className="footer-link">Twitter / X</span>
-          <span className="footer-link">LinkedIn</span>
-          <span className="footer-link">Instagram</span>
-        </div>
-      </div>
-      <div className="footer-bottom" style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
-        <span>&copy; {new Date().getFullYear()} bilabs.ai. All rights reserved.</span>
-        <span>Built with AI, shipped by humans.</span>
+
+        <p style={{ margin: "22px 0 0", fontSize: 13, color: "rgba(255,255,255,.42)" }}>
+          AI visibility and AI receptionists for local businesses.
+        </p>
       </div>
     </footer>
   );

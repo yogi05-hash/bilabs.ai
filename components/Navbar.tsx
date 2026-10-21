@@ -9,12 +9,11 @@ import { Menu, X } from "lucide-react";
 // the previous set pointed at #industries, #video-demo and #products, none of
 // which survived the rebuild.
 const links = [
-  { href: "/#check", label: "Free check" },
-  { href: "/#problem", label: "Why it matters" },
+  { href: "/#services", label: "Services" },
   { href: "/#process", label: "How it works" },
   { href: "/#packages", label: "Packages" },
   { href: "/contact", label: "Contact" },
-];
+]
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -32,9 +31,9 @@ export default function Navbar() {
       className="nav"
       style={{
         // light theme: these inline values were overriding the stylesheet
-        background: scrolled ? "rgba(255, 255, 255, 0.88)" : "rgba(255, 255, 255, 0.55)",
+        background: scrolled ? "rgba(250, 248, 243, 0.92)" : "transparent",
         backdropFilter: "blur(12px)",
-        borderBottom: scrolled ? "1px solid rgba(0,0,0,0.1)" : "1px solid rgba(0,0,0,0.05)",
+        borderBottom: scrolled ? "1px solid rgba(17,17,18,0.1)" : "none",
       }}
     >
       <Link href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
@@ -46,7 +45,7 @@ export default function Navbar() {
             color: "#000",
           }}
         >
-          BiLabs
+          Bi<span style={{ color: "var(--brand)" }}>Labs</span>
         </span>
         <span aria-hidden style={{ fontSize: 26, color: "#000", userSelect: "none", letterSpacing: "-0.02em" }}>
           &#10035;&#xFE0E;

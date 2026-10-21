@@ -675,3 +675,83 @@ html, body {
 .profile-row { display: flex; align-items: center; gap: 12px; padding: 13px 0; border-bottom: 1px solid rgba(0,0,0,.08); }
 .profile-row:last-child { border-bottom: none; }
 .profile-bar { height: 9px; border-radius: 999px; background: rgba(0,0,0,.09); }
+
+/* ================= warm mockup theme ================= */
+:root {
+  --warm-hero: #E7E3DC;
+  --warm-page: #FAF8F3;
+  --warm-alt:  #F2EFE8;
+  --ink: #111112;
+  --ink-2: rgba(17,17,18,.62);
+  --ink-3: rgba(17,17,18,.42);
+  --line: rgba(17,17,18,.10);
+}
+html, body { background: var(--warm-page); color: var(--ink); }
+
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+@media (min-width: 768px) { .wrap { padding: 0 32px; } }
+
+.sec { padding: 72px 0; }
+@media (min-width: 768px) { .sec { padding: 88px 0; } }
+
+.h2 { font-size: clamp(1.75rem, 4vw, 2.6rem); line-height: 1.08; letter-spacing: -0.035em; font-weight: 700; margin: 0; color: var(--ink); }
+.h3 { font-size: 17px; font-weight: 700; margin: 0; color: var(--ink); letter-spacing: -0.01em; }
+.body { font-size: 15.5px; line-height: 1.65; color: var(--ink-2); margin: 8px 0 0; }
+
+.card {
+  background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 22px;
+  display: flex; flex-direction: column; text-align: left; width: 100%;
+  transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+}
+.card.clickable { cursor: pointer; }
+.card.clickable:hover { border-color: rgba(17,17,18,.3); box-shadow: 0 14px 34px rgba(17,17,18,.07); transform: translateY(-2px); }
+
+.grid { display: grid; gap: 14px; }
+.grid-3 { grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); }
+
+.icon-sq { width: 26px; height: 26px; color: var(--ink); margin-bottom: 14px; }
+
+/* skeleton illustrations in the capability cards */
+.skel { background: var(--warm-alt); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 7px; min-height: 96px; justify-content: center; }
+.skel span { height: 7px; border-radius: 999px; background: rgba(17,17,18,.12); display: block; }
+.skel .amber { background: var(--brand); }
+
+.btn-amber {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  background: var(--brand); color: #1a1205; border: none; border-radius: 10px;
+  font-weight: 600; font-size: 14.5px; padding: 13px 20px; cursor: pointer;
+  transition: filter .2s ease;
+}
+.btn-amber:hover { filter: brightness(.94); }
+.btn-ink {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  background: var(--ink); color: #fff; border: 1px solid var(--ink); border-radius: 999px;
+  font-weight: 600; font-size: 14.5px; padding: 13px 24px; cursor: pointer; transition: all .2s ease;
+}
+.btn-ink:hover { background: #fff; color: var(--ink); }
+.btn-line {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  background: #fff; color: var(--ink); border: 1px solid var(--line); border-radius: 10px;
+  font-weight: 600; font-size: 14.5px; padding: 12px 20px; cursor: pointer; transition: all .2s ease;
+}
+.btn-line:hover { border-color: var(--ink); }
+
+.hero-warm { background: var(--warm-hero); position: relative; overflow: hidden; }
+.hero-grid { display: grid; grid-template-columns: 1fr; gap: 24px; align-items: end; }
+@media (min-width: 900px) { .hero-grid { grid-template-columns: 1.08fr .92fr; align-items: stretch; gap: 20px; } }
+/* The figure runs the full height of the hero on the right, as the mockup
+   has it, rather than sitting in a short box at the bottom. */
+.hero-media { position: relative; height: 290px; align-self: end; margin-top: 24px; }
+@media (min-width: 900px) { .hero-media { height: auto; min-height: 470px; margin-top: -104px; align-self: stretch; } }
+.hero-media video { width: 100%; height: 100%; object-fit: cover; object-position: 62% 18%; display: block; }
+
+.strip { background: var(--warm-page); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.strip-row { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 34px; padding: 18px 0; }
+
+.faq-item { border: 1px solid var(--line); border-radius: 12px; background: #fff; margin-bottom: 10px; overflow: hidden; }
+.faq-q { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 16px 20px; background: none; border: none; cursor: pointer; text-align: left; font-size: 15px; font-weight: 600; color: var(--ink); }
+.faq-a { padding: 0 20px 18px; font-size: 14.5px; line-height: 1.7; color: var(--ink-2); margin: 0; }
+
+.foot { background: #0A0A0A; color: rgba(255,255,255,.62); }
+.foot a { color: rgba(255,255,255,.62); text-decoration: none; transition: color .2s ease; }
+.foot a:hover { color: #fff; }

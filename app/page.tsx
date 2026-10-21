@@ -1,55 +1,23 @@
 "use client";
 
-import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import FadeIn from "@/components/FadeIn";
 import ScrubVideo from "@/components/ScrubVideo";
-import { useTypewriter } from "@/components/useTypewriter";
+import HeroCheck from "@/components/HeroCheck";
 import { GuideProvider, useGuide } from "@/components/AIGuide";
-import VisibilityReport from "@/components/VisibilityReport";
 import { PACKAGES } from "@/lib/packages";
 
 /* ------------------------------------------------------------------ *
- *  BiLabs — done-for-you AI visibility.
+ *  BiLabs homepage, built to the supplied mockup.
  *
- *  The spine of the page is Audit → Fix → Answer, and every section can
- *  open the guide with its own context. One promise is deliberately absent
- *  throughout: that we can make an assistant recommend anyone. We make a
- *  business readable; the FAQ says so in as many words.
+ *  Two things are deliberately ours rather than the mockup's: the
+ *  packages carry real prices and a working checkout instead of
+ *  "Discuss your needs", and nowhere on this page promises that an AI
+ *  will recommend anyone. The dark band and the FAQ both say the
+ *  opposite, in as many words.
  * ------------------------------------------------------------------ */
 
-const CALENDLY = process.env.NEXT_PUBLIC_CALENDLY_URL || "";
-const bookHref = CALENDLY || "/contact?package=call";
-const bookProps = CALENDLY ? { target: "_blank", rel: "noopener noreferrer" } : {};
-
-const STEPS = [
-  { n: "01", t: "Audit", d: "We ask the assistants your customers ask, and write down exactly what they say about you — and who they name instead." },
-  { n: "02", t: "Fix", d: "We publish your real services, hours, prices and location in a structured form AI systems can fetch, and keep it current." },
-  { n: "03", t: "Answer", d: "An AI receptionist picks up every enquiry that arrives, 24/7, answers from your facts and emails you the lead." },
-];
-
-const FAQS = [
-  {
-    q: "Can you guarantee ChatGPT will recommend me?",
-    a: "No. We improve access and clarity; each platform decides what it indexes and recommends. What we control is whether your business is readable — accurate, structured, current, and published where these systems look. That is what we sell, and what the audit measures. Anyone promising you a guaranteed AI ranking is guessing.",
-  },
-  {
-    q: "What exactly do I get for £149?",
-    a: "A written report: the questions we asked, what the assistants answered, which businesses they named instead of you, and a prioritised list of what to fix. It is yours to keep and act on, whether or not you ever work with us again.",
-  },
-  {
-    q: "How is this different from SEO?",
-    a: "SEO is about ranking a page in a list of links. This is about whether an assistant answering a spoken question has accurate facts about you to draw on. They overlap — both reward clear, structured, honest information — but the output is an answer, not a results page.",
-  },
-  {
-    q: "How long does it take?",
-    a: "The audit is back within a few working days. Get Found by AI is usually live within two weeks, depending on how quickly we can agree your services and prices. The AI Front Desk adds a few days on top for the assistant to be set up and tested.",
-  },
-  {
-    q: "Does the assistant make things up?",
-    a: "It answers only from facts you have given it. If it has not been told a price, it says it will check rather than inventing one, and it never confirms a booking itself — it shares your booking link or takes details for you to confirm.",
-  },
-];
+const BOOK = "/contact";
 
 export default function Home() {
   return (
@@ -57,11 +25,11 @@ export default function Home() {
       <Hero />
       <TrustStrip />
       <Problem />
+      <Capabilities />
       <ClearerInfo />
-      <Check />
-      <HowItWorks />
+      <Conversation />
+      <Steps />
       <Packages />
-      <CaseStudy />
       <Faq />
       <Closing />
     </GuideProvider>
@@ -70,106 +38,70 @@ export default function Home() {
 
 /* ------------------------------- hero ------------------------------ */
 
-const TYPED = "Customers now ask ChatGPT, Claude and Google AI who to call.";
-
-const HERO_PILLS = [
-  { label: "Run the free check", href: "#check" },
-  { label: "See the packages", href: "#packages" },
-  { label: "Our work", href: "/work" },
-];
-
 function Hero() {
-  const guide = useGuide();
-  const [site, setSite] = useState("");
-  const { displayed, done } = useTypewriter(TYPED);
-  const [pillsIn, setPillsIn] = useState(false);
-
-  // Pills arrive on their own clock, not the typewriter's.
-  useEffect(() => {
-    const t = setTimeout(() => setPillsIn(true), 400);
-    return () => clearTimeout(t);
-  }, []);
-
-  const go = (e: React.FormEvent) => {
-    e.preventDefault();
-    document.getElementById("check")?.scrollIntoView({ behavior: "smooth", block: "start" });
-    const field = document.querySelector<HTMLInputElement>('input[aria-label="Your website"]');
-    if (field && site.trim()) {
-      field.value = site.trim();
-      field.dispatchEvent(new Event("input", { bubbles: true }));
-    }
-    setTimeout(() => document.querySelector<HTMLInputElement>('input[aria-label="Type of business"]')?.focus(), 500);
-  };
-
   return (
-    <section className="hero">
-      {/* The live-systems terminal that used to sit here is gone: its figures
-          — 50+ automations, 1,204 videos, 31 hours saved — were invented. */}
-      <ScrubVideo src="/hero.mp4" />
+    <section className="hero-warm">
+      <div className="wrap">
+        <div className="hero-grid" style={{ paddingTop: 104 }}>
+          <FadeIn>
+            <div style={{ paddingBottom: 48 }}>
+              <h1
+                style={{
+                  fontSize: "clamp(2.4rem, 6vw, 3.9rem)",
+                  lineHeight: 1.03,
+                  letterSpacing: "-0.04em",
+                  fontWeight: 700,
+                  margin: 0,
+                  color: "var(--ink)",
+                  maxWidth: 460,
+                }}
+              >
+                Get your business recommended by <span style={{ color: "var(--brand)" }}>AI</span>.
+              </h1>
+              <p style={{ fontSize: 16, lineHeight: 1.6, color: "var(--ink-2)", margin: "18px 0 26px", maxWidth: 420 }}>
+                AI visibility, website assistants and business automation. Built around your business.
+              </p>
+              <HeroCheck />
+            </div>
+          </FadeIn>
 
-      <div className="hero-copy">
-        <p
-          aria-hidden
-          className="select-none"
-          style={{ pointerEvents: "none", fontSize: "clamp(18px, 4vw, 26px)", lineHeight: 1.3, color: "#000", filter: "blur(4px)", marginBottom: 20 }}
-        >
-          Hey there, this is BiLabs,
-          <br />
-          we make businesses legible to AI.
-        </p>
-
-        <h1
-          style={{ fontSize: "clamp(2.2rem, 6vw, 4rem)", lineHeight: 1.03, letterSpacing: "-0.035em", fontWeight: 400, color: "#000", margin: 0 }}
-        >
-          Get your business recommended by <span className="accent">AI</span>.
-        </h1>
-
-        <p style={{ fontSize: "clamp(18px, 4vw, 26px)", lineHeight: 1.35, color: "#000", marginTop: 20, minHeight: 54 }}>
-          {displayed}
-          {!done && (
-            <span className="hero-cursor" />
-          )}
-        </p>
-
-        <p style={{ fontSize: 16, lineHeight: 1.6, color: "rgba(0,0,0,.62)", marginTop: 14, maxWidth: 540 }}>
-          We publish your business so they can read it — and answer every enquiry that follows, 24/7.
-        </p>
-
-        <form onSubmit={go} style={{ display: "flex", flexWrap: "wrap", gap: 10, marginTop: 28, maxWidth: 540 }}>
-          <input
-            value={site}
-            onChange={(e) => setSite(e.target.value)}
-            placeholder="yourbusiness.co.uk"
-            aria-label="Your website address"
-            className="form-input"
-            style={{ flex: "1 1 220px", minWidth: 0, padding: "14px 18px" }}
-          />
-          <button type="submit" className="btn-primary" style={{ padding: "14px 26px", fontSize: 15 }}>
-            Free AI Visibility Report
-          </button>
-        </form>
-
-        <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            marginTop: 24,
-            opacity: pillsIn ? 1 : 0,
-            transform: pillsIn ? "translateY(0)" : "translateY(8px)",
-            transition: "opacity .4s ease, transform .4s ease",
-          }}
-        >
-          {HERO_PILLS.map((p) => (
-            <a key={p.href} href={p.href} className="pill">{p.label}</a>
-          ))}
-          <button type="button" onClick={() => guide.open("hero")} className="pill pill-outline">
-            What is this?
-          </button>
+          <div className="hero-media">
+            {/* Same clip as before, framed to the right as the mockup does —
+                it still scrubs with the mouse rather than being a still. */}
+            <ScrubVideo src="/hero.mp4" />
+          </div>
         </div>
+      </div>
+    </section>
+  );
+}
 
-        <p style={{ fontSize: 13, color: "rgba(0,0,0,.45)", marginTop: 14 }}>
-          Free · no card · about 15 seconds
-        </p>
+/* --------------------------- trust strip --------------------------- */
+
+function TrustStrip() {
+  const items = [
+    { label: "Be understood", d: "M11 19a8 8 0 1 1 5.66-2.34L21 21" },
+    { label: "Answer enquiries", d: "M21 11.5a8.4 8.4 0 0 1-9 8.3 9.9 9.9 0 0 1-2.6-.34L4 21l1.2-3.3A8.2 8.2 0 0 1 3 11.5 8.4 8.4 0 0 1 12 3.2a8.4 8.4 0 0 1 9 8.3Z" },
+    { label: "Save time", d: "M12 7v5l3.5 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" },
+  ];
+  return (
+    <section className="strip">
+      <div className="wrap">
+        <div className="strip-row">
+          <p style={{ margin: 0, fontWeight: 700, fontSize: 15.5, color: "var(--ink)" }}>
+            Built for the way customers discover, ask and buy.
+          </p>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "10px 28px" }}>
+            {items.map((i) => (
+              <span key={i.label} style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 14, color: "var(--ink-2)" }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden>
+                  <path d={i.d} />
+                </svg>
+                {i.label}
+              </span>
+            ))}
+          </div>
+        </div>
       </div>
     </section>
   );
@@ -184,26 +116,23 @@ function Problem() {
     { t: "You are not in the answer", d: "Assistants answer from what they can read. If your hours, services and prices only exist as pictures on a website, you are invisible to them." },
     { t: "The enquiry still has to be answered", d: "Being named is worth nothing if the call goes to voicemail at 7pm. Most enquiries now arrive outside the hours anyone is at a desk." },
   ];
-
   return (
-    <section id="problem" style={{ borderTop: "1px solid var(--border-strong)", scrollMarginTop: 80 }}>
-      <div className="section" style={{ paddingTop: 90, paddingBottom: 90 }}>
+    <section id="problem" className="sec" style={{ scrollMarginTop: 80 }}>
+      <div className="wrap">
         <FadeIn>
-          <div className="section-tag">The shift</div>
-          <h2 className="section-title">Your customers stopped scrolling.</h2>
-          <p style={{ fontSize: 17, lineHeight: 1.75, color: "var(--text-2)", maxWidth: 640, marginTop: 14 }}>
+          <h2 className="h2">Your customers stopped scrolling.</h2>
+          <p className="body" style={{ maxWidth: 620, marginTop: 12 }}>
             They ask, and they act on the answer. Which makes one question worth knowing the answer to: what do these
             systems currently say about you?
           </p>
         </FadeIn>
-
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 18, marginTop: 44 }}>
+        <div className="grid grid-3" style={{ marginTop: 32 }}>
           {cards.map((c, i) => (
-            <FadeIn key={c.t} delay={i * 0.08}>
-              <button type="button" onClick={() => guide.open("problem")} className="glass-card ask-card" style={{ padding: 26, height: "100%" }}>
-                <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: "var(--text-1)" }}>{c.t}</h3>
-                <p style={{ fontSize: 15, lineHeight: 1.7, color: "var(--text-2)", margin: "10px 0 0" }}>{c.d}</p>
-                <p className="ask-hint">Ask about this →</p>
+            <FadeIn key={c.t} delay={i * 0.07}>
+              <button type="button" onClick={() => guide.open("problem")} className="card clickable" style={{ height: "100%" }}>
+                <h3 className="h3">{c.t}</h3>
+                <p className="body">{c.d}</p>
+                <span className="ask-hint">Ask about this →</span>
               </button>
             </FadeIn>
           ))}
@@ -213,46 +142,265 @@ function Problem() {
   );
 }
 
-/* ------------------------------ check ------------------------------ */
+/* --------------------------- capabilities -------------------------- */
 
-function Check() {
+function Skel({ kind }: { kind: string }) {
+  if (kind === "chart")
+    return (
+      <div className="skel" style={{ flexDirection: "row", alignItems: "flex-end", gap: 6, minHeight: 96 }}>
+        {[34, 52, 70, 44].map((h, i) => (
+          <span key={i} className={i > 1 ? "amber" : ""} style={{ width: 14, height: h, borderRadius: 4 }} />
+        ))}
+      </div>
+    );
+  if (kind === "doc")
+    return (
+      <div className="skel">
+        <span style={{ width: "86%" }} /><span style={{ width: "62%" }} /><span style={{ width: "74%" }} />
+        <span style={{ width: "48%", height: 26, borderRadius: 6, background: "rgba(17,17,18,.18)" }} />
+      </div>
+    );
+  if (kind === "chat")
+    return (
+      <div className="skel" style={{ alignItems: "flex-end" }}>
+        <span style={{ width: "70%", height: 22, borderRadius: 8, alignSelf: "flex-start" }} />
+        <span className="amber" style={{ width: "56%", height: 22, borderRadius: 8 }} />
+        <span style={{ width: "44%", height: 10, borderRadius: 6, alignSelf: "flex-start" }} />
+      </div>
+    );
+  if (kind === "form")
+    return (
+      <div className="skel">
+        <span style={{ width: "100%", height: 14, borderRadius: 5 }} />
+        <span style={{ width: "100%", height: 14, borderRadius: 5 }} />
+        <span className="amber" style={{ width: "46%", height: 16, borderRadius: 6, alignSelf: "center" }} />
+      </div>
+    );
+  if (kind === "nodes")
+    return (
+      <div className="skel" style={{ alignItems: "center", gap: 10 }}>
+        <span style={{ width: 30, height: 20, borderRadius: 5, background: "rgba(17,17,18,.18)" }} />
+        <div style={{ display: "flex", gap: 8 }}>
+          {[0, 1, 2].map((i) => <span key={i} className={i === 1 ? "amber" : ""} style={{ width: 20, height: 20, borderRadius: 5 }} />)}
+        </div>
+      </div>
+    );
   return (
-    <section style={{ borderTop: "1px solid var(--border-strong)" }}>
-      <div className="section" style={{ paddingTop: 90, paddingBottom: 90 }}>
-        <FadeIn>
-          <div className="section-tag">Free check</div>
-          <h2 className="section-title">Ask an AI for your trade. See if you come up.</h2>
-          <p style={{ fontSize: 17, lineHeight: 1.75, color: "var(--text-2)", maxWidth: 640, margin: "14px 0 36px" }}>
-            We put a real question to an AI assistant with web search — “recommend a {"{trade}"} in {"{your area}"}” —
-            and show you the answer it gives, names and all.
-          </p>
-        </FadeIn>
-        <FadeIn delay={0.1}><VisibilityReport /></FadeIn>
+    <div className="skel" style={{ justifyContent: "flex-end" }}>
+      <svg viewBox="0 0 120 50" style={{ width: "100%", height: 48 }} aria-hidden>
+        <polyline points="4,44 28,34 52,38 76,20 104,8" fill="none" stroke="var(--brand)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+      <span style={{ width: "70%" }} />
+    </div>
+  );
+}
+
+const CAPS = [
+  { t: "AI visibility audit", d: "Find gaps in how your business is presented online.", k: "chart", ctx: "audit" },
+  { t: "AI-ready business information", d: "Make your products, services and FAQs clear and accessible.", k: "doc", ctx: "get-found" },
+  { t: "Website AI receptionist", d: "Answer common questions using your business information.", k: "chat", ctx: "front-desk" },
+  { t: "Enquiry capture", d: "Collect customer details and route enquiries to your team.", k: "form", ctx: "front-desk" },
+  { t: "Connected workflows", d: "Connect forms, email and business tools.", k: "nodes", ctx: "front-desk" },
+  { t: "Ongoing improvements", d: "Keep information current and refine what works.", k: "line", ctx: "get-found" },
+];
+
+function Capabilities() {
+  const guide = useGuide();
+  return (
+    <section id="services" className="sec" style={{ background: "var(--warm-alt)", scrollMarginTop: 80 }}>
+      <div className="wrap">
+        <FadeIn><h2 className="h2">Practical AI. Real business purpose.</h2></FadeIn>
+        <div className="grid grid-3" style={{ marginTop: 32 }}>
+          {CAPS.map((c, i) => (
+            <FadeIn key={c.t} delay={i * 0.05}>
+              <button type="button" onClick={() => guide.open(c.ctx)} className="card clickable" style={{ height: "100%" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, alignItems: "center", width: "100%" }}>
+                  <div>
+                    <h3 className="h3" style={{ fontSize: 15.5 }}>{c.t}</h3>
+                    <p className="body" style={{ fontSize: 13.5, marginTop: 6 }}>{c.d}</p>
+                  </div>
+                  <Skel kind={c.k} />
+                </div>
+              </button>
+            </FadeIn>
+          ))}
+        </div>
       </div>
     </section>
   );
 }
 
-/* --------------------------- how it works -------------------------- */
+/* ----------------------- clearer information ----------------------- */
 
-function HowItWorks() {
+function ClearerInfo() {
   const guide = useGuide();
+  const rows = [
+    { label: "Services", w: ["78%", "54%"] },
+    { label: "Location", w: ["62%", "40%"] },
+    { label: "Opening hours", w: ["70%", "48%"] },
+    { label: "FAQs", w: ["84%", "58%"] },
+  ];
   return (
-    <section id="process" style={{ borderTop: "1px solid var(--border-strong)", scrollMarginTop: 80 }}>
-      <div className="section" style={{ paddingTop: 90, paddingBottom: 90 }}>
+    <section style={{ background: "#0A0A0A" }}>
+      <div className="wrap sec">
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(290px, 1fr))", gap: 44, alignItems: "center" }}>
+          <FadeIn>
+            <h2 className="h2" style={{ color: "#fff" }}>
+              Give AI clearer <span style={{ color: "var(--brand)" }}>information.</span>
+            </h2>
+            <p style={{ fontSize: 15.5, lineHeight: 1.7, color: "rgba(255,255,255,.64)", marginTop: 14, maxWidth: 400 }}>
+              We help organise and publish your business information so supported AI systems can access it.
+            </p>
+            <ul style={{ listStyle: "none", padding: 0, margin: "24px 0 0", display: "flex", flexDirection: "column", gap: 13 }}>
+              {["Clear service and product pages", "Structured business information", "Crawler access checks"].map((t) => (
+                <li key={t} style={{ display: "flex", gap: 11, alignItems: "center", fontSize: 14.5, color: "rgba(255,255,255,.9)" }}>
+                  <span className="tick">✓</span>{t}
+                </li>
+              ))}
+            </ul>
+            <button type="button" onClick={() => guide.open("get-found")} className="btn-line" style={{ marginTop: 24 }}>
+              How this works →
+            </button>
+          </FadeIn>
+
+          <FadeIn delay={0.1}>
+            <div>
+              <div style={{ background: "#FAF8F3", borderRadius: 14, padding: "18px 20px" }}>
+                <p style={{ margin: "0 0 8px", fontSize: 13.5, fontWeight: 700, color: "var(--ink)" }}>Your business profile</p>
+                {rows.map((r) => (
+                  <div key={r.label} className="profile-row">
+                    <span style={{ fontSize: 12.5, fontWeight: 600, color: "var(--ink)", width: 100, flexShrink: 0 }}>{r.label}</span>
+                    <span style={{ flex: 1, display: "flex", flexDirection: "column", gap: 5 }}>
+                      {r.w.map((w, i) => <span key={i} className="profile-bar" style={{ width: w }} />)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <p style={{ margin: "12px 0 0", fontSize: 12, textAlign: "center", color: "rgba(255,255,255,.42)" }}>
+                Access does not guarantee indexing or recommendations.
+              </p>
+            </div>
+          </FadeIn>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* --------------------------- conversation -------------------------- */
+
+function Conversation() {
+  const guide = useGuide();
+  const points = [
+    { t: "Answers from your business information", d: "Accurate, helpful answers using your products, services and FAQs." },
+    { t: "Captures enquiries", d: "Collects customer details when needed and qualifies conversations." },
+    { t: "Hands details to your team", d: "Sends enquiries to your team and your existing tools." },
+  ];
+  return (
+    <section className="sec">
+      <div className="wrap">
         <FadeIn>
-          <div className="section-tag">How it works</div>
-          <h2 className="section-title">Audit → Fix → Answer.</h2>
+          <h2 className="h2" style={{ maxWidth: 520 }}>
+            An assistant that keeps the <span style={{ color: "var(--brand)" }}>conversation going</span>.
+          </h2>
         </FadeIn>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 18, marginTop: 44 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(290px, 1fr))", gap: 36, marginTop: 32, alignItems: "center" }}>
+          <FadeIn>
+            <div className="card" style={{ background: "var(--warm-alt)", padding: 20 }}>
+              <p style={{ margin: 0, fontSize: 12.5, color: "var(--ink-3)" }}>Example conversation</p>
+
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 9, marginTop: 14 }}>
+                <span style={{ width: 26, height: 26, borderRadius: 999, background: "rgba(17,17,18,.12)", flexShrink: 0 }} />
+                <p style={{ margin: 0, background: "#fff", border: "1px solid var(--line)", borderRadius: 12, padding: "9px 13px", fontSize: 13.5, color: "var(--ink)" }}>
+                  Do you offer consultations?
+                </p>
+              </div>
+
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 9, marginTop: 10 }}>
+                <span style={{ width: 26, height: 26, borderRadius: 999, background: "var(--ink)", flexShrink: 0 }} />
+                <p style={{ margin: 0, background: "#fff", border: "1px solid var(--line)", borderRadius: 12, padding: "9px 13px", fontSize: 13.5, color: "var(--ink)" }}>
+                  Yes. What would you like help with?
+                </p>
+              </div>
+
+              <div style={{ display: "flex", gap: 4, marginTop: 10, marginLeft: 35 }}>
+                {[0, 1, 2].map((i) => <span key={i} style={{ width: 6, height: 6, borderRadius: 999, background: "rgba(17,17,18,.25)" }} />)}
+              </div>
+
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 11, marginTop: 18, background: "#fff", border: "1px solid var(--line)", borderRadius: 12, padding: 13 }}>
+                <span style={{ width: 30, height: 30, borderRadius: 8, background: "var(--brand)", display: "grid", placeItems: "center", flexShrink: 0 }}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1a1205" strokeWidth="1.8" aria-hidden>
+                    <rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 7 9 6 9-6" />
+                  </svg>
+                </span>
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
+                    <p style={{ margin: 0, fontSize: 13.5, fontWeight: 700, color: "var(--ink)" }}>New enquiry received</p>
+                    <span style={{ fontSize: 11.5, color: "var(--ink-3)", whiteSpace: "nowrap" }}>2 min ago</span>
+                  </div>
+                  <p style={{ margin: "3px 0 0", fontSize: 12.5, lineHeight: 1.5, color: "var(--ink-2)" }}>
+                    Name: Alex Morgan<br />Enquiry: I&apos;d like to book a consultation…
+                  </p>
+                </div>
+              </div>
+            </div>
+          </FadeIn>
+
+          <FadeIn delay={0.1}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
+              {points.map((p) => (
+                <button key={p.t} type="button" onClick={() => guide.open("front-desk")} style={{ display: "flex", gap: 14, background: "none", border: "none", padding: 0, textAlign: "left", cursor: "pointer" }}>
+                  <span style={{ width: 38, height: 38, borderRadius: 999, background: "var(--warm-alt)", display: "grid", placeItems: "center", flexShrink: 0 }}>
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth="1.7" aria-hidden>
+                      <path d="M21 11.5a8.4 8.4 0 0 1-9 8.3 9.9 9.9 0 0 1-2.6-.34L4 21l1.2-3.3A8.2 8.2 0 0 1 3 11.5 8.4 8.4 0 0 1 12 3.2a8.4 8.4 0 0 1 9 8.3Z" />
+                    </svg>
+                  </span>
+                  <span>
+                    <span style={{ display: "block", fontSize: 15.5, fontWeight: 700, color: "var(--ink)" }}>{p.t}</span>
+                    <span style={{ display: "block", fontSize: 14, lineHeight: 1.6, color: "var(--ink-2)", marginTop: 4 }}>{p.d}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </FadeIn>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------ steps ------------------------------ */
+
+const STEPS = [
+  { n: "01", t: "Audit", d: "We ask the assistants your customers ask, and write down what they say about you." },
+  { n: "02", t: "Fix", d: "We publish your services, hours and prices where AI systems can fetch them." },
+  { n: "03", t: "Answer", d: "An assistant picks up every enquiry that arrives, and emails you the lead." },
+];
+
+function Steps() {
+  const guide = useGuide();
+  return (
+    <section id="process" className="sec" style={{ background: "var(--warm-alt)", scrollMarginTop: 80 }}>
+      <div className="wrap">
+        <FadeIn><h2 className="h2">From your website to a working system.</h2></FadeIn>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 0, marginTop: 30 }}>
           {STEPS.map((s, i) => (
-            <FadeIn key={s.n} delay={i * 0.08}>
-              <button type="button" onClick={() => guide.open("how-it-works")} className="glass-card ask-card" style={{ padding: 26, height: "100%" }}>
+            <FadeIn key={s.n} delay={i * 0.07}>
+              <button
+                type="button"
+                onClick={() => guide.open("how-it-works")}
+                style={{
+                  display: "flex", gap: 16, alignItems: "flex-start", background: "none", border: "none",
+                  borderLeft: i === 0 ? "none" : "1px solid var(--line)",
+                  padding: i === 0 ? "10px 24px 10px 0" : "10px 24px", textAlign: "left", cursor: "pointer", width: "100%",
+                }}
+              >
                 <span className="step-num">{s.n}</span>
-                <h3 style={{ fontSize: 20, fontWeight: 700, margin: "12px 0 0", color: "var(--text-1)" }}>{s.t}</h3>
-                <p style={{ fontSize: 15, lineHeight: 1.7, color: "var(--text-2)", margin: "10px 0 0" }}>{s.d}</p>
-                <p className="ask-hint">Ask about this →</p>
+                <span>
+                  <span style={{ display: "block", fontSize: 15.5, fontWeight: 700, color: "var(--ink)" }}>{s.t}</span>
+                  <span style={{ display: "block", fontSize: 14, lineHeight: 1.6, color: "var(--ink-2)", marginTop: 4 }}>{s.d}</span>
+                </span>
               </button>
             </FadeIn>
           ))}
@@ -285,88 +433,82 @@ function Packages() {
   };
 
   return (
-    <section id="packages" style={{ borderTop: "1px solid var(--border-strong)", scrollMarginTop: 80 }}>
-      <div className="section" style={{ paddingTop: 90, paddingBottom: 90 }}>
-        {/* Founding offer. Worded as a refund promise rather than an outcome
-            promise — we carry the risk, we do not claim to control what an
-            assistant says — and judged by the same free check on this page so
-            "mentions you" cannot become an argument later. */}
+    <section id="packages" className="sec" style={{ scrollMarginTop: 80 }}>
+      <div className="wrap">
+        {/* Worded as a refund promise, not an outcome promise, and judged by
+            the same free check at day one and day 60. */}
         <FadeIn>
           <div style={{
-            display: "flex", flexWrap: "wrap", alignItems: "center", gap: 18,
-            padding: "20px 24px", borderRadius: 16, marginBottom: 40,
-            background: "linear-gradient(135deg, rgba(245,183,49,.14), rgba(232,123,53,.07))",
-            border: "1px solid rgba(245,183,49,.4)",
+            display: "flex", flexWrap: "wrap", alignItems: "center", gap: 16,
+            padding: "18px 22px", borderRadius: 14, marginBottom: 30,
+            background: "rgba(245,183,49,.16)", border: "1px solid rgba(245,183,49,.5)",
           }}>
-            <span style={{
-              fontSize: 11.5, fontWeight: 700, letterSpacing: ".14em", textTransform: "uppercase",
-              color: "#0a0a0f", background: "var(--accent)", borderRadius: 999, padding: "6px 12px", flexShrink: 0,
-            }}>
+            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: ".13em", textTransform: "uppercase", color: "#1a1205", background: "var(--brand)", borderRadius: 999, padding: "5px 11px", flexShrink: 0 }}>
               Founding client offer
             </span>
-            <div style={{ flex: "1 1 300px", minWidth: 0 }}>
-              <p style={{ margin: 0, fontSize: 16.5, fontWeight: 600, color: "var(--text-1)" }}>
+            <div style={{ flex: "1 1 280px", minWidth: 0 }}>
+              <p style={{ margin: 0, fontSize: 15.5, fontWeight: 700, color: "var(--ink)" }}>
                 First 5 businesses: £99 setup, then £49/month.
               </p>
-              <p style={{ margin: "6px 0 0", fontSize: 14, lineHeight: 1.65, color: "var(--text-2)" }}>
-                If no AI assistant mentions you within 60 days, we refund you — judged by the same free check
-                above, run on the day you start and again at day 60.
+              <p style={{ margin: "4px 0 0", fontSize: 13.5, lineHeight: 1.6, color: "var(--ink-2)" }}>
+                If no AI assistant mentions you within 60 days, we refund you — judged by the same free check above,
+                run on the day you start and again at day 60.
               </p>
             </div>
-            <a href={bookHref} {...bookProps} className="btn-primary" style={{ padding: "12px 22px", fontSize: 14, flexShrink: 0 }}>
-              Claim a founding place
-            </a>
+            <a href={BOOK} className="btn-amber" style={{ flexShrink: 0 }}>Claim a founding place</a>
           </div>
         </FadeIn>
 
-        <FadeIn>
-          <div className="section-tag">Packages</div>
-          <h2 className="section-title">Start where it hurts.</h2>
-          <p style={{ fontSize: 17, lineHeight: 1.75, color: "var(--text-2)", maxWidth: 620, margin: "14px 0 0" }}>
-            Three ways in. Most people start with the audit, because it tells you whether the rest is worth doing.
-          </p>
-        </FadeIn>
+        <FadeIn><h2 className="h2">Start where you need us.</h2></FadeIn>
+        {err && <p style={{ marginTop: 14, color: "#9a2a2a", fontSize: 14 }}>{err}</p>}
 
-        {err && <p style={{ marginTop: 20, color: "#fca5a5", fontSize: 14 }}>{err}</p>}
-
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(290px, 1fr))", gap: 18, marginTop: 44, alignItems: "stretch" }}>
-          {PACKAGES.map((p, i) => (
-            <FadeIn key={p.id} delay={i * 0.08}>
-              <div className="glass-card" style={{ padding: 28, height: "100%", display: "flex", flexDirection: "column", position: "relative", overflow: "hidden", borderColor: p.id === "get-found" ? "rgba(245,183,49,.45)" : undefined }}>
-                {p.id === "get-found" && <span aria-hidden style={{ position: "absolute", insetInline: 0, top: 0, height: 3, background: "var(--accent-gradient)" }} />}
-
-                <button type="button" onClick={() => guide.open(p.id)} className="ask-card" style={{ background: "none", border: "none", padding: 0, flex: 1, display: "flex", flexDirection: "column" }}>
-                  <h3 style={{ fontSize: 20, fontWeight: 700, margin: 0, color: "var(--text-1)" }}>{p.name}</h3>
-                  <p style={{ margin: "14px 0 0" }}>
-                    <span style={{ fontSize: 34, fontWeight: 700, letterSpacing: "-0.02em", color: "var(--text-1)" }}>{p.price}</span>
-                    {p.sub && <span style={{ fontSize: 14, color: "var(--text-3)" }}> {p.sub}</span>}
-                  </p>
-                  <p style={{ fontSize: 15, lineHeight: 1.7, color: "var(--text-2)", margin: "14px 0 0" }}>{p.blurb}</p>
-                  <ul style={{ listStyle: "none", padding: 0, margin: "18px 0 0", display: "flex", flexDirection: "column", gap: 10, flex: 1 }}>
-                    {p.points.map((pt) => (
-                      <li key={pt} style={{ display: "flex", gap: 10, fontSize: 14.5, lineHeight: 1.6, color: "var(--text-2)" }}>
-                        <span style={{ color: "var(--accent)" }}>✓</span><span>{pt}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <p className="ask-hint">Is this the right one? →</p>
-                </button>
-
-                {p.cta === "checkout" ? (
-                  <button type="button" onClick={buy} disabled={busy} className="btn-primary" style={{ marginTop: 22, padding: "13px 0", fontSize: 14.5, width: "100%", opacity: busy ? 0.6 : 1 }}>
-                    {busy ? "Opening checkout…" : p.ctaLabel}
+        <div className="grid grid-3" style={{ marginTop: 28, alignItems: "stretch" }}>
+          {PACKAGES.map((p, i) => {
+            const featured = p.id === "get-found";
+            return (
+              <FadeIn key={p.id} delay={i * 0.07}>
+                <div
+                  className="card"
+                  style={{
+                    height: "100%",
+                    background: featured ? "rgba(245,183,49,.1)" : "#fff",
+                    borderColor: featured ? "rgba(245,183,49,.55)" : "var(--line)",
+                  }}
+                >
+                  <button type="button" onClick={() => guide.open(p.id)} className="ask-card" style={{ background: "none", border: "none", padding: 0, flex: 1, display: "flex", flexDirection: "column", cursor: "pointer" }}>
+                    <h3 className="h3">{p.name}</h3>
+                    <p style={{ margin: "3px 0 0", fontSize: 13, color: "var(--ink-2)" }}>{p.blurb}</p>
+                    <p style={{ margin: "14px 0 0" }}>
+                      <span style={{ fontSize: 30, fontWeight: 700, letterSpacing: "-0.03em", color: "var(--ink)" }}>{p.price}</span>
+                      {p.sub && <span style={{ fontSize: 13.5, color: "var(--ink-3)" }}> {p.sub}</span>}
+                    </p>
+                    <ul style={{ listStyle: "none", padding: 0, margin: "16px 0 0", display: "flex", flexDirection: "column", gap: 9, flex: 1 }}>
+                      {p.points.map((pt) => (
+                        <li key={pt} style={{ display: "flex", gap: 9, fontSize: 13.5, lineHeight: 1.55, color: "var(--ink-2)" }}>
+                          <span className="tick" style={{ width: 17, height: 17, fontSize: 10 }}>✓</span>
+                          <span>{pt}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <span className="ask-hint" style={{ fontSize: 12.5 }}>Is this the right one? →</span>
                   </button>
-                ) : (
-                  <a href={bookHref} {...bookProps} className="btn-secondary" style={{ marginTop: 22, padding: "13px 0", fontSize: 14.5, width: "100%", textAlign: "center" }}>
-                    {p.ctaLabel}
-                  </a>
-                )}
-              </div>
-            </FadeIn>
-          ))}
+
+                  {p.cta === "checkout" ? (
+                    <button type="button" onClick={buy} disabled={busy} className="btn-line" style={{ marginTop: 16, width: "100%", opacity: busy ? 0.6 : 1 }}>
+                      {busy ? "Opening checkout…" : p.ctaLabel}
+                    </button>
+                  ) : (
+                    <a href={BOOK} className={featured ? "btn-amber" : "btn-line"} style={{ marginTop: 16, width: "100%" }}>
+                      {p.ctaLabel}
+                    </a>
+                  )}
+                </div>
+              </FadeIn>
+            );
+          })}
         </div>
 
-        <p style={{ marginTop: 22, fontSize: 13, color: "var(--text-3)", maxWidth: 680, lineHeight: 1.7 }}>
+        <p style={{ marginTop: 18, fontSize: 12.5, color: "var(--ink-3)", maxWidth: 680, lineHeight: 1.65 }}>
           Prices in GBP, excluding VAT. We make your business readable to AI systems — no one can guarantee that an
           assistant will recommend you, and we do not.
         </p>
@@ -375,63 +517,37 @@ function Packages() {
   );
 }
 
-/* --------------------------- case study ---------------------------- */
-
-function CaseStudy() {
-  return (
-    <section style={{ borderTop: "1px solid var(--border-strong)" }}>
-      <div className="section" style={{ paddingTop: 90, paddingBottom: 90 }}>
-        <FadeIn>
-          <div className="section-tag">Results</div>
-          <h2 className="section-title">Case studies, once we have them.</h2>
-          <div className="glass-card" style={{ padding: 32, marginTop: 28, maxWidth: 700 }}>
-            <p style={{ fontSize: 16, lineHeight: 1.8, color: "var(--text-2)", margin: 0 }}>
-              We would rather leave this space empty than fill it with invented numbers. Client results go here as
-              soon as we have run long enough to report them honestly — the question we asked, what the assistants
-              said before, and what they said after.
-            </p>
-            <p style={{ fontSize: 15, lineHeight: 1.8, color: "var(--text-3)", margin: "16px 0 0" }}>
-              In the meantime, the free check above shows you the “before” for your own business, in about fifteen
-              seconds.
-            </p>
-          </div>
-        </FadeIn>
-      </div>
-    </section>
-  );
-}
-
 /* ------------------------------- faq ------------------------------- */
+
+const FAQS = [
+  { q: "Will this guarantee AI recommendations?", a: "No. We improve access and clarity; each platform decides what it indexes and recommends. What we control is whether your business is readable — accurate, structured, current, and published where these systems look. Anyone promising you a guaranteed AI ranking is guessing." },
+  { q: "What exactly do I get for £149?", a: "A written report: the questions we asked, what the assistants answered, which businesses they named instead of you, and a prioritised list of what to fix. It is yours to keep and act on, whether or not you ever work with us again." },
+  { q: "Can you work with my existing website?", a: "Yes. Nothing here requires a rebuild. We work with the site you have — reading it, structuring what it already says, and adding the assistant to it. If your site is thin, we will tell you which gaps matter." },
+  { q: "How is this different from SEO?", a: "SEO is about ranking a page in a list of links. This is about whether an assistant answering a spoken question has accurate facts about you to draw on. They overlap — both reward clear, structured, honest information — but the output is an answer, not a results page." },
+  { q: "What happens after my free check?", a: "Nothing automatic. The result is yours to read, and you decide whether to act on it. If you want to, the audit goes deeper, and the other two packages fix and then answer. No one will chase you." },
+  { q: "How long does it take?", a: "The audit is back within a few working days. Get Found by AI is usually live within two weeks, depending on how quickly we can agree your services and prices. The AI Front Desk adds a few days for the assistant to be set up and tested." },
+  { q: "Does the assistant make things up?", a: "It answers only from facts you have given it. If it has not been told a price, it says it will check rather than inventing one, and it never confirms a booking itself — it shares your booking link or takes details for you to confirm." },
+];
 
 function Faq() {
   const guide = useGuide();
   const [open, setOpen] = useState<number | null>(0);
-
   return (
-    <section style={{ borderTop: "1px solid var(--border-strong)" }}>
-      <div className="section" style={{ paddingTop: 90, paddingBottom: 90, maxWidth: 820 }}>
-        <FadeIn>
-          <div className="section-tag">Questions</div>
-          <h2 className="section-title">The ones worth asking.</h2>
-        </FadeIn>
-
-        <div style={{ marginTop: 34, borderTop: "1px solid var(--border-strong)" }}>
+    <section className="sec" style={{ background: "var(--warm-alt)" }}>
+      <div className="wrap" style={{ maxWidth: 840 }}>
+        <FadeIn><h2 className="h2">A few good questions.</h2></FadeIn>
+        <div style={{ marginTop: 26 }}>
           {FAQS.map((f, i) => (
-            <div key={f.q} style={{ borderBottom: "1px solid var(--border-strong)" }}>
-              <button
-                onClick={() => setOpen(open === i ? null : i)}
-                aria-expanded={open === i}
-                style={{ width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 18, padding: "20px 0", background: "none", border: "none", cursor: "pointer", textAlign: "left" }}
-              >
-                <span style={{ fontSize: 16.5, fontWeight: 600, color: "var(--text-1)" }}>{f.q}</span>
-                <span style={{ color: "var(--accent)", fontSize: 20, transform: open === i ? "rotate(45deg)" : "none", transition: "transform .2s ease" }}>+</span>
+            <div key={f.q} className="faq-item">
+              <button className="faq-q" onClick={() => setOpen(open === i ? null : i)} aria-expanded={open === i}>
+                <span>{f.q}</span>
+                <span style={{ color: "var(--ink-3)", fontSize: 18, transform: open === i ? "rotate(180deg)" : "none", transition: "transform .2s ease" }}>⌄</span>
               </button>
-              {open === i && <p style={{ margin: "-4px 0 22px", fontSize: 15.5, lineHeight: 1.8, color: "var(--text-2)", maxWidth: 680 }}>{f.a}</p>}
+              {open === i && <p className="faq-a">{f.a}</p>}
             </div>
           ))}
         </div>
-
-        <button type="button" onClick={() => guide.open("faq")} className="btn-secondary" style={{ marginTop: 30, padding: "13px 26px", fontSize: 14.5 }}>
+        <button type="button" onClick={() => guide.open("faq")} className="btn-line" style={{ marginTop: 20 }}>
           Ask your own question
         </button>
       </div>
@@ -443,118 +559,15 @@ function Faq() {
 
 function Closing() {
   return (
-    <section className="band-amber">
-      <div className="section" style={{ paddingTop: 70, paddingBottom: 70 }}>
-        <FadeIn>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 28, alignItems: "center", justifyContent: "space-between" }}>
-            <h2 style={{ fontSize: "clamp(1.8rem, 4vw, 2.6rem)", lineHeight: 1.1, letterSpacing: "-0.03em", fontWeight: 700, margin: 0, color: "#1a1205", maxWidth: 520 }}>
-              Let&apos;s make AI useful for your business.
-            </h2>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
-              <a href="#check" style={{
-                display: "inline-flex", alignItems: "center", gap: 8, padding: "15px 30px",
-                borderRadius: 999, background: "#0a0a0c", color: "#fff", fontWeight: 600, fontSize: 15,
-              }}>
-                Start with a free check ↗
-              </a>
-              <a href={bookHref} {...bookProps} style={{
-                display: "inline-flex", alignItems: "center", padding: "15px 30px",
-                borderRadius: 999, background: "transparent", color: "#1a1205",
-                border: "1px solid rgba(26,18,5,.35)", fontWeight: 600, fontSize: 15,
-              }}>
-                Book a 15-min call
-              </a>
-            </div>
-          </div>
-          <p style={{ marginTop: 20, fontSize: 13.5, color: "rgba(26,18,5,.7)" }}>
-            Or email hello@bilabs.ai
-          </p>
-        </FadeIn>
-      </div>
-    </section>
-  );
-}
-
-/* --------------------------- trust strip --------------------------- */
-
-function TrustStrip() {
-  const items = ["Be understood", "Answer enquiries", "Save time"];
-  return (
-    <section style={{ borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)", background: "rgba(0,0,0,.015)" }}>
-      <div className="section" style={{ paddingTop: 22, paddingBottom: 22 }}>
-        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "14px 36px" }}>
-          <p style={{ margin: 0, fontWeight: 600, fontSize: 15.5, color: "var(--text-1)" }}>
-            Built for the way customers discover, ask and buy.
-          </p>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "10px 28px" }}>
-            {items.map((i) => (
-              <span key={i} style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 14.5, color: "var(--text-2)" }}>
-                <span style={{ width: 6, height: 6, borderRadius: 999, background: "var(--brand)" }} />
-                {i}
-              </span>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ----------------------- clearer information ----------------------- */
-
-/* Shows what "readable to AI" actually means, as a thing you can look at
- * rather than a claim. The caption is the honest limit, kept in the same
- * eyeline as the promise. */
-function ClearerInfo() {
-  const guide = useGuide();
-  const rows = [
-    { label: "Services", w: ["78%", "54%"] },
-    { label: "Location", w: ["62%", "40%"] },
-    { label: "Opening hours", w: ["70%", "48%"] },
-    { label: "FAQs", w: ["84%", "58%"] },
-  ];
-
-  return (
-    <section className="band-dark">
-      <div className="section" style={{ paddingTop: 80, paddingBottom: 80 }}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 48, alignItems: "center" }}>
-          <FadeIn>
-            <h2 style={{ fontSize: "clamp(1.9rem, 4.4vw, 2.8rem)", lineHeight: 1.08, letterSpacing: "-0.03em", fontWeight: 700, margin: 0, color: "#fff" }}>
-              Give AI clearer <span className="accent" style={{ color: "var(--brand)" }}>information.</span>
-            </h2>
-            <p style={{ fontSize: 16.5, lineHeight: 1.75, color: "rgba(255,255,255,.66)", marginTop: 16, maxWidth: 440 }}>
-              We organise and publish your business information so AI systems that support it can access it.
-            </p>
-            <ul style={{ listStyle: "none", padding: 0, margin: "26px 0 0", display: "flex", flexDirection: "column", gap: 14 }}>
-              {["Clear service and product pages", "Structured business information", "Crawler access checks"].map((t) => (
-                <li key={t} style={{ display: "flex", gap: 12, alignItems: "center", fontSize: 15.5, color: "rgba(255,255,255,.88)" }}>
-                  <span className="tick">✓</span>{t}
-                </li>
-              ))}
-            </ul>
-            <button type="button" onClick={() => guide.open("get-found")} className="btn-secondary" style={{ marginTop: 28, padding: "12px 24px", fontSize: 14.5 }}>
-              How this works →
-            </button>
-          </FadeIn>
-
-          <FadeIn delay={0.1}>
-            <div>
-              <div style={{ background: "#fff", borderRadius: 16, padding: "20px 22px", boxShadow: "0 24px 60px rgba(0,0,0,.4)" }}>
-                <p style={{ margin: "0 0 10px", fontSize: 14.5, fontWeight: 700, color: "#0a0a0c" }}>Your business profile</p>
-                {rows.map((r) => (
-                  <div key={r.label} className="profile-row">
-                    <span style={{ fontSize: 13.5, fontWeight: 600, color: "#0a0a0c", width: 104, flexShrink: 0 }}>{r.label}</span>
-                    <span style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
-                      {r.w.map((w, i) => <span key={i} className="profile-bar" style={{ width: w }} />)}
-                    </span>
-                  </div>
-                ))}
-              </div>
-              <p style={{ margin: "14px 0 0", fontSize: 12.5, textAlign: "center", color: "rgba(255,255,255,.45)" }}>
-                Access does not guarantee indexing or recommendations.
-              </p>
-            </div>
-          </FadeIn>
+    <section style={{ background: "var(--brand)" }}>
+      <div className="wrap" style={{ paddingTop: 54, paddingBottom: 54 }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 24, alignItems: "center", justifyContent: "space-between" }}>
+          <h2 style={{ fontSize: "clamp(1.6rem, 3.6vw, 2.3rem)", lineHeight: 1.12, letterSpacing: "-0.03em", fontWeight: 700, margin: 0, color: "#1a1205", maxWidth: 420 }}>
+            Let&apos;s make AI useful for your business.
+          </h2>
+          <a href="#check" className="btn-ink" style={{ background: "#fff", color: "var(--ink)", borderColor: "#fff", padding: "15px 28px" }}>
+            Start with a free check ↗
+          </a>
         </div>
       </div>
     </section>
