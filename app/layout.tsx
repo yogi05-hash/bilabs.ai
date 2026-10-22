@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Script from "next/script";
+import { organisationJsonLd } from "@/lib/site";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -63,6 +64,12 @@ export default function RootLayout({
         />
       </head>
       <body>
+        {/* Sitewide Organization + ProfessionalService graph. Beforeinteractive
+            so it is in the HTML a crawler receives, not injected later. */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organisationJsonLd()) }}
+        />
         <Navbar />
         <main>{children}</main>
         <Footer />

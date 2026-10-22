@@ -6,6 +6,7 @@ import ScrubVideo from "@/components/ScrubVideo";
 import HeroCheck from "@/components/HeroCheck";
 import { GuideProvider, useGuide } from "@/components/AIGuide";
 import { PACKAGES } from "@/lib/packages";
+import { faqJsonLd } from "@/lib/site";
 
 /* ------------------------------------------------------------------ *
  *  BiLabs homepage, built to the supplied mockup.
@@ -22,6 +23,10 @@ const BOOK = "/contact";
 export default function Home() {
   return (
     <GuideProvider>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd(FAQS)) }}
+      />
       <Hero />
       <TrustStrip />
       <Problem />
