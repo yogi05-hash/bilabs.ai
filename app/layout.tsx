@@ -66,10 +66,13 @@ export default function RootLayout({
       <body>
         {/* Sitewide Organization + ProfessionalService graph. Beforeinteractive
             so it is in the HTML a crawler receives, not injected later. */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(organisationJsonLd()) }}
-        />
+        {organisationJsonLd().map((node, i) => (
+          <script
+            key={i}
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(node) }}
+          />
+        ))}
         <Navbar />
         <main>{children}</main>
         <Footer />

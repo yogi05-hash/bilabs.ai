@@ -68,6 +68,13 @@ function prune<T>(obj: T): T {
   return obj;
 }
 
+/* Emitted as two standalone top-level objects rather than one @graph with an
+ * @id cross-reference. The graph form validated cleanly, but schema.org's
+ * validator would not expand `publisher: {"@id": ...}` — it recorded the
+ * predicate and stopped. Anything that does not resolve references would
+ * therefore miss the organisation entirely, which is a poor outcome on a
+ * site whose whole pitch is being machine-readable. Standalone objects are
+ * the most universally parsed form. */
 export function organisationJsonLd() {
   const orgId = `${SITE.url}/#organization`;
 
@@ -86,64 +93,64 @@ export function organisationJsonLd() {
     itemOffered: { "@type": "Service", name: s.name, description: s.description },
   }));
 
-  return prune({
+  const org = prune({
     "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": ["Organization", "ProfessionalService"],
-        "@id": orgId,
-        name: SITE.name,
-        legalName: SITE.legalName,
-        url: SITE.url,
-        email: SITE.email,
-        description: SITE.description,
-        logo: { "@type": "ImageObject", url: `${SITE.url}/logo.png` },
-        image: `${SITE.url}/og.jpg`,
-        founder: prune({
-          "@type": "Person",
-          name: SITE.founder.name,
-          jobTitle: SITE.founder.jobTitle,
-          url: SITE.founder.url,
-        }),
-        address: {
-          "@type": "PostalAddress",
-          addressLocality: SITE.address.locality,
-          addressRegion: SITE.address.region,
-          addressCountry: SITE.address.country,
-        },
-        areaServed: SITE.areaServed.map((a) => ({ "@type": "Place", name: a })),
-        sameAs: SITE.sameAs,
-        knowsAbout: [
-          "AI visibility",
-          "generative engine optimisation",
-          "schema.org structured data",
-          "AI receptionists",
-          "lead capture for small businesses",
-        ],
-        makesOffer: offers,
-        hasOfferCatalog: {
-          "@type": "OfferCatalog",
-          name: "BiLabs services",
-          itemListElement: offers,
-        },
-        contactPoint: {
-          "@type": "ContactPoint",
-          contactType: "sales",
-          email: SITE.email,
-          areaServed: "GB",
-          availableLanguage: "en",
-        },
-      },
-      {
-        "@type": "WebSite",
-        "@id": `${SITE.url}/#website`,
-        url: SITE.url,
-        name: SITE.name,
-        publisher: { "@id": orgId },
-        inLanguage: "en-GB",
-      },
+    "@type": "ProfessionalService",
+    "@id": orgId,
+    name: SITE.name,
+    legalName: SITE.legalName,
+    url: SITE.url,
+    email: SITE.email,
+    description: SITE.description,
+    logo: { "@type": "ImageObject", url: `${SITE.url}/logo.png` },
+    image: `${SITE.url}/og.jpg`,
+    founder: prune({
+      "@type": "Person",
+      name: SITE.founder.name,
+      jobTitle: SITE.founder.jobTitle,
+      url: SITE.founder.url,
+    }),
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: SITE.address.locality,
+      addressRegion: SITE.address.region,
+      addressCountry: SITE.address.country,
+    },
+    areaServed: SITE.areaServed.map((a) => ({ "@type": "Place", name: a })),
+    sameAs: SITE.sameAs,
+    knowsAbout: [
+      "AI visibility",
+      "generative engine optimisation",
+      "schema.org structured data",
+      "AI receptionists",
+      "lead capture for small businesses",
     ],
+    makesOffer: offers,
+    hasOfferCatalog: {
+      "@type": "OfferCatalog",
+      name: "BiLabs services",
+      itemListElement: offers,
+    },
+    contactPoint: {
+      "@type": "ContactPoint",
+      contactType: "sales",
+      email: SITE.email,
+      areaServed: "GB",
+      availableLanguage: "en",
+    },
   });
+
+  const website = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": `${SITE.url}/#website`,
+    url: SITE.url,
+    name: SITE.name,
+    publisher: { "@id": orgId },
+    inLanguage: "en-GB",
+  };
+
+  return [org, website];
 }
 
 export function faqJsonLd(faqs: { q: string; a: string }[]) {
