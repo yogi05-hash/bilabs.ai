@@ -416,103 +416,112 @@ function Steps() {
 
 function Packages() {
   const guide = useGuide();
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
-  const buy = async () => {
+  const start = async (plan: string) => {
     if (busy) return;
-    setBusy(true); setErr(null);
+    setBusy(plan); setErr(null);
     try {
-      const res = await fetch("/api/checkout", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan }),
+      });
       const data = await res.json();
       if (!res.ok || !data.url) { setErr(data.error ?? "Could not start checkout."); return; }
       window.location.href = data.url;
     } catch {
       setErr("Could not start checkout. Please email hello@bilabs.ai.");
     } finally {
-      setBusy(false);
+      setBusy(null);
     }
   };
 
   return (
     <section id="packages" className="sec" style={{ scrollMarginTop: 80 }}>
       <div className="wrap">
-        {/* Worded as a refund promise, not an outcome promise, and judged by
-            the same free check at day one and day 60. */}
-        <FadeIn>
-          <div style={{
-            display: "flex", flexWrap: "wrap", alignItems: "center", gap: 16,
-            padding: "18px 22px", borderRadius: 14, marginBottom: 30,
-            background: "rgba(245,183,49,.16)", border: "1px solid rgba(245,183,49,.5)",
-          }}>
-            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: ".13em", textTransform: "uppercase", color: "#1a1205", background: "var(--brand)", borderRadius: 999, padding: "5px 11px", flexShrink: 0 }}>
-              Founding client offer
-            </span>
-            <div style={{ flex: "1 1 280px", minWidth: 0 }}>
-              <p style={{ margin: 0, fontSize: 15.5, fontWeight: 700, color: "var(--ink)" }}>
-                First 5 businesses: £99 setup, then £49/month.
-              </p>
-              <p style={{ margin: "4px 0 0", fontSize: 13.5, lineHeight: 1.6, color: "var(--ink-2)" }}>
-                If no AI assistant mentions you within 60 days, we refund you — judged by the same free check above,
-                run on the day you start and again at day 60.
-              </p>
-            </div>
-            <a href={BOOK} className="btn-amber" style={{ flexShrink: 0 }}>Claim a founding place</a>
-          </div>
-        </FadeIn>
-
         <FadeIn><h2 className="h2">Start where you need us.</h2></FadeIn>
         {err && <p style={{ marginTop: 14, color: "#9a2a2a", fontSize: 14 }}>{err}</p>}
 
         <div className="grid grid-3" style={{ marginTop: 28, alignItems: "stretch" }}>
-          {PACKAGES.map((p, i) => {
-            const featured = p.id === "get-found";
-            return (
-              <FadeIn key={p.id} delay={i * 0.07}>
-                <div
-                  className="card"
-                  style={{
-                    height: "100%",
-                    background: featured ? "rgba(245,183,49,.1)" : "#fff",
-                    borderColor: featured ? "rgba(245,183,49,.55)" : "var(--line)",
-                  }}
-                >
-                  <button type="button" onClick={() => guide.open(p.id)} className="ask-card" style={{ background: "none", border: "none", padding: 0, flex: 1, display: "flex", flexDirection: "column", cursor: "pointer" }}>
-                    <h3 className="h3">{p.name}</h3>
-                    <p style={{ margin: "3px 0 0", fontSize: 13, color: "var(--ink-2)" }}>{p.blurb}</p>
-                    <p style={{ margin: "14px 0 0" }}>
-                      <span style={{ fontSize: 30, fontWeight: 700, letterSpacing: "-0.03em", color: "var(--ink)" }}>{p.price}</span>
-                      {p.sub && <span style={{ fontSize: 13.5, color: "var(--ink-3)" }}> {p.sub}</span>}
-                    </p>
-                    <ul style={{ listStyle: "none", padding: 0, margin: "16px 0 0", display: "flex", flexDirection: "column", gap: 9, flex: 1 }}>
-                      {p.points.map((pt) => (
-                        <li key={pt} style={{ display: "flex", gap: 9, fontSize: 13.5, lineHeight: 1.55, color: "var(--ink-2)" }}>
-                          <span className="tick" style={{ width: 17, height: 17, fontSize: 10 }}>✓</span>
-                          <span>{pt}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    <span className="ask-hint" style={{ fontSize: 12.5 }}>Is this the right one? →</span>
-                  </button>
+          {PACKAGES.map((p, i) => (
+            <FadeIn key={p.id} delay={i * 0.07}>
+              <div
+                className="card"
+                style={{
+                  height: "100%",
+                  position: "relative",
+                  background: p.featured ? "rgba(245,183,49,.1)" : "#fff",
+                  borderColor: p.featured ? "rgba(245,183,49,.55)" : "var(--line)",
+                }}
+              >
+                {p.featured && (
+                  <span style={{
+                    position: "absolute", top: -11, left: 22, fontSize: 10.5, fontWeight: 700,
+                    letterSpacing: ".12em", textTransform: "uppercase", color: "#1a1205",
+                    background: "var(--brand)", borderRadius: 999, padding: "4px 11px",
+                  }}>
+                    Most popular
+                  </span>
+                )}
 
-                  {p.cta === "checkout" ? (
-                    <button type="button" onClick={buy} disabled={busy} className="btn-line" style={{ marginTop: 16, width: "100%", opacity: busy ? 0.6 : 1 }}>
-                      {busy ? "Opening checkout…" : p.ctaLabel}
-                    </button>
-                  ) : (
-                    <a href={BOOK} className={featured ? "btn-amber" : "btn-line"} style={{ marginTop: 16, width: "100%" }}>
-                      {p.ctaLabel}
-                    </a>
+                <button type="button" onClick={() => guide.open(p.id === "free" ? "report" : p.id)} className="ask-card" style={{ background: "none", border: "none", padding: 0, flex: 1, display: "flex", flexDirection: "column", cursor: "pointer" }}>
+                  <h3 className="h3">{p.name}</h3>
+                  <p style={{ margin: "3px 0 0", fontSize: 13, color: "var(--ink-2)" }}>{p.blurb}</p>
+                  <p style={{ margin: "14px 0 0" }}>
+                    <span style={{ fontSize: 30, fontWeight: 700, letterSpacing: "-0.03em", color: "var(--ink)" }}>{p.price}</span>
+                    {p.sub && <span style={{ fontSize: 13.5, color: "var(--ink-3)" }}>{p.sub}</span>}
+                  </p>
+
+                  {p.offer && (
+                    <span style={{
+                      display: "inline-block", marginTop: 10, alignSelf: "flex-start",
+                      fontSize: 11.5, fontWeight: 600, color: "#7a5a0d",
+                      background: "rgba(245,183,49,.24)", border: "1px solid rgba(245,183,49,.5)",
+                      borderRadius: 999, padding: "4px 10px",
+                    }}>
+                      First month £1 — first 10 businesses
+                    </span>
                   )}
-                </div>
-              </FadeIn>
-            );
-          })}
+
+                  <ul style={{ listStyle: "none", padding: 0, margin: "16px 0 0", display: "flex", flexDirection: "column", gap: 9, flex: 1 }}>
+                    {p.points.map((pt) => (
+                      <li key={pt} style={{ display: "flex", gap: 9, fontSize: 13.5, lineHeight: 1.55, color: "var(--ink-2)" }}>
+                        <span className="tick" style={{ width: 17, height: 17, fontSize: 10 }}>✓</span>
+                        <span>{pt}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <span className="ask-hint" style={{ fontSize: 12.5 }}>Is this the right one? →</span>
+                </button>
+
+                {p.cta === "checkout" ? (
+                  <button type="button" onClick={() => start(p.id)} disabled={busy !== null} className={p.featured ? "btn-amber" : "btn-line"} style={{ marginTop: 16, width: "100%", opacity: busy ? 0.6 : 1 }}>
+                    {busy === p.id ? "Opening checkout…" : p.ctaLabel}
+                  </button>
+                ) : (
+                  <a href={p.href} className="btn-line" style={{ marginTop: 16, width: "100%" }}>{p.ctaLabel}</a>
+                )}
+              </div>
+            </FadeIn>
+          ))}
         </div>
 
-        <p style={{ marginTop: 18, fontSize: 12.5, color: "var(--ink-3)", maxWidth: 680, lineHeight: 1.65 }}>
-          Prices in GBP, excluding VAT. We make your business readable to AI systems — no one can guarantee that an
-          assistant will recommend you, and we do not.
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 18, alignItems: "center", marginTop: 22 }}>
+          <a href={BOOK} className="btn-line" style={{ padding: "11px 20px", fontSize: 14 }}>Questions? Talk to us</a>
+          <a
+            href="https://yourbotchat.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ fontSize: 13.5, color: "var(--ink-2)", textDecoration: "underline", textUnderlineOffset: 3 }}
+          >
+            Prefer to do it yourself? Try YourBotChat from £29/month →
+          </a>
+        </div>
+
+        <p style={{ marginTop: 16, fontSize: 12.5, color: "var(--ink-3)", maxWidth: 680, lineHeight: 1.65 }}>
+          Prices in GBP. Cancel anytime. We make your business readable to AI — no one can guarantee recommendations.
         </p>
       </div>
     </section>
@@ -523,7 +532,8 @@ function Packages() {
 
 const FAQS = [
   { q: "Will this guarantee AI recommendations?", a: "No. We improve access and clarity; each platform decides what it indexes and recommends. What we control is whether your business is readable — accurate, structured, current, and published where these systems look. Anyone promising you a guaranteed AI ranking is guessing." },
-  { q: "What exactly do I get for £149?", a: "A written report: the questions we asked, what the assistants answered, which businesses they named instead of you, and a prioritised list of what to fix. It is yours to keep and act on, whether or not you ever work with us again." },
+  { q: "What do I actually get each month?", a: "On Get Found by AI (£49/month): your profile and schema built from your real services, hours and prices, published where AI systems can read it, kept current as things change, and a monthly report on what the assistants are saying. AI Front Desk (£99/month) adds the receptionist that answers enquiries on your site, a link and a QR code, and emails each one to you." },
+  { q: "What is the £1 first month?", a: "The first ten businesses to sign up pay £1 for their first month instead of £49 or £99, then the normal price from month two. It is applied automatically at checkout while places remain — you do not need a code. Cancel before the second month and £1 is all you ever pay." },
   { q: "Can you work with my existing website?", a: "Yes. Nothing here requires a rebuild. We work with the site you have — reading it, structuring what it already says, and adding the assistant to it. If your site is thin, we will tell you which gaps matter." },
   { q: "How is this different from SEO?", a: "SEO is about ranking a page in a list of links. This is about whether an assistant answering a spoken question has accurate facts about you to draw on. They overlap — both reward clear, structured, honest information — but the output is an answer, not a results page." },
   { q: "What happens after my free check?", a: "Nothing automatic. The result is yours to read, and you decide whether to act on it. If you want to, the audit goes deeper, and the other two packages fix and then answer. No one will chase you." },

@@ -10,30 +10,30 @@ import { env } from "@/lib/env";
 export const FACTS = `
 WHAT BILABS DOES
 We make a business legible to AI assistants, and answer the enquiries that
-follow. Three packages, no others:
+follow. Three plans, no others. All monthly subscriptions, no setup fee,
+cancel anytime:
 
-1. AI Visibility Audit — £149 one-off. We ask AI assistants the questions your
-   customers ask ("recommend a {trade} in {area}"), record what they say and
-   who they name, and write up a prioritised fix list. Yours to keep.
+1. Free AI Check — £0. We ask an AI assistant the question your customers ask
+   ("recommend a {trade} in {area}"), and show you the answer and who it named
+   instead. About 15 seconds. No card, no account. It runs on the homepage.
 
-2. Get Found by AI — £499 to set up, then £99/month. We publish your real
-   services, hours, prices and location as a structured profile with schema
-   markup that AI crawlers can fetch, keep it current, and check monthly what
-   the assistants are saying.
+2. Get Found by AI — £49/month. Your profile and schema built from your real
+   services, hours and prices, published where AI systems can read it, kept
+   current as your business changes, plus a monthly AI visibility report.
 
-3. AI Front Desk — £999 to set up, then £199/month. Everything in Get Found by
-   AI, plus an AI receptionist on your website, a shareable link and a QR code.
-   It answers 24/7 from the facts you gave it, captures enquiries and emails
-   them to you.
+3. AI Front Desk — £99/month. Everything in Get Found by AI, plus a 24/7 AI
+   receptionist on your website, a shareable link and a QR code. It answers
+   from the facts you gave it, and emails you each enquiry the moment it
+   arrives.
 
-FOUNDING CLIENT OFFER — currently open
-The first 5 businesses pay £99 to set up and £49/month, instead of the Get
-Found by AI prices above. If no AI assistant mentions them within 60 days we
-refund it, judged by running the same free visibility check on day one and
-again at day 60. This is a refund promise, not a promise that an assistant
-will mention them — be precise about that difference if asked. Only 5 places;
-if someone asks whether places remain, say you cannot see the count and they
-should book a call to check.
+LAUNCH OFFER — currently open
+The first 10 businesses pay £1 for their first month on either paid plan,
+then the normal £49 or £99 from month two. Applied automatically at checkout
+while places remain; no code needed. Cancel before month two and £1 is all
+they pay. If asked how many places are left, say you cannot see the count.
+
+THERE IS NO £149 AUDIT, £499 OR £999 PACKAGE, AND NO SETUP FEE. If someone
+mentions those, tell them the pricing changed and give the three plans above.
 
 HOW IT WORKS
 Audit → Fix → Answer. We find out what AI says about you, we make your
@@ -48,7 +48,7 @@ HARD LIMITS — NEVER BREAK THESE
   details; the business confirms.
 - It answers only from facts the business supplied, and will not invent a
   price or a detail it was not told.
-- Beyond the founding offer above, no other packages, discounts, trials or guarantees exist. If asked about
+- Beyond the launch offer above, no other plans, discounts, trials or guarantees exist. If asked about
   something not listed above, say it is not something we offer.
 `.trim();
 
@@ -67,17 +67,21 @@ export const CONTEXTS: Record<string, Ctx> = {
     label: "How it works",
     focus: "Walk through Audit → Fix → Answer in plain terms for their trade.",
   },
+  free: {
+    label: "Free AI Check",
+    focus: "They want to understand the free check. Explain what it shows and that it needs no card.",
+  },
   audit: {
-    label: "AI Visibility Audit — £149",
-    focus: "They are considering the £149 audit. Explain what they actually receive and that it is theirs to keep.",
+    label: "Free AI Check",
+    focus: "They want to understand the free check. Explain what it shows and that it needs no card.",
   },
   "get-found": {
-    label: "Get Found by AI — £499 + £99/mo",
-    focus: "They are considering the publishing package. Be clear it makes them readable, not ranked.",
+    label: "Get Found by AI — £49/month",
+    focus: "They are considering Get Found by AI at £49/month. Be clear it makes them readable, not ranked, and mention the £1 first month while places remain.",
   },
   "front-desk": {
-    label: "AI Front Desk — £999 + £199/mo",
-    focus: "They want the receptionist too. Cover answering 24/7 and lead capture, and that it never confirms bookings itself.",
+    label: "AI Front Desk — £99/month",
+    focus: "They want the receptionist too, at £99/month. Cover answering 24/7 and lead capture, that it never confirms bookings itself, and the £1 first month.",
   },
   report: {
     label: "Your visibility result",
@@ -111,8 +115,8 @@ EVERY REPLY MUST CALL THE reply TOOL with:
 - next_step: null early on. Once you know enough, exactly ONE button:
     * "#check" to run the free visibility check
     * "#packages" to compare the three
-    * "/contact?package=audit" / "?package=get-found" / "?package=front-desk"
-  with a plain label such as "Start with the £149 audit".
+    * "#packages" to compare the plans, or "/contact" to talk to someone
+  with a plain label such as "Start for £1".
 - lead: what they actually told you (business_type, area, monthly_enquiries, recommended_package). Omit anything unsaid. Never guess.`;
 }
 
