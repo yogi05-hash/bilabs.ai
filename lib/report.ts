@@ -8,8 +8,8 @@ export type Payload = {
   business: string;
   mentionCount: number;
   queriesRun: number;
-  queries: { label: string; question: string; available: boolean; found: boolean }[];
-  competitors: string[];
+  queries?: { label: string; question: string; available: boolean; found: boolean }[];
+  competitors?: string[];
   scan: { url: string | null; reachable: boolean; checks: Check[]; score: number | null; maxScore: number } | null;
 };
 
@@ -20,11 +20,18 @@ export async function sendReport(to: string, p: Payload, ctx: { type: string; ar
   const FROM = env("LEAD_FROM", "BiLabs <no-reply@yourbotchat.com>");
   if (!RESEND) return false;
 
-  const rows = p.queries
+  /* The unlock route takes this payload from the client, so the shape cannot
+   * be assumed. A stale cached page or a trimmed body used to throw here and
+   * take the whole capture down with it. Missing arrays degrade to an empty
+   * section rather than a 500. */
+  const queries = Array.isArray(p.queries) ? p.queries : [];
+  const competitors = Array.isArray(p.competitors) ? p.competitors : [];
+
+  const rows = queries
     .map((q) => `<tr><td style="padding:7px 14px 7px 0;color:#666">${esc(q.label)}</td><td style="font-weight:600">${q.available ? (q.found ? "Mentioned" : "Not mentioned") : "Could not run"}</td></tr>`)
     .join("");
 
-  const checkRows = (p.scan?.checks ?? [])
+  const checkRows = (Array.isArray(p.scan?.checks) ? p.scan.checks : [])
     .map((c) => `<tr><td style="padding:7px 14px 7px 0">${c.pass ? "✅" : "❌"}</td><td style="padding:7px 0"><strong>${esc(c.label)}</strong><br><span style="color:#666;font-size:13px">${esc(c.detail)}</span></td><td style="color:#999;white-space:nowrap">${c.weight} pts</td></tr>`)
     .join("");
 
@@ -35,7 +42,7 @@ export async function sendReport(to: string, p: Payload, ctx: { type: string; ar
     <h3 style="margin:22px 0 6px">Mentioned in ${p.mentionCount} of ${p.queriesRun} questions</h3>
     <table style="font-size:14px;border-collapse:collapse">${rows}</table>
 
-    ${p.competitors.length ? `<h3 style="margin:22px 0 6px">Named instead</h3><p style="font-size:14px;color:#444;margin:0">${p.competitors.map(esc).join(" · ")}</p>` : ""}
+    ${competitors.length ? `<h3 style="margin:22px 0 6px">Named instead</h3><p style="font-size:14px;color:#444;margin:0">${competitors.map(esc).join(" · ")}</p>` : ""}
 
     ${p.scan?.reachable
       ? `<h3 style="margin:24px 0 6px">AI readiness: ${p.scan.score}/${p.scan.maxScore}</h3>

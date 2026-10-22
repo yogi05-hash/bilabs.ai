@@ -39,6 +39,21 @@ export type Lead = {
   stripe_customer_id: string | null;
   unsubscribe_token: string;
   message: string | null;
+  /* Added by the dashboard migration. `pipeline_status` is the sales stage
+   * and is a separate axis from `status`, which the nurture cron owns —
+   * "unsubscribed" is a marketing preference, not a stage of a conversation. */
+  pipeline_status: "new" | "contacted" | "interested" | "customer" | "closed";
+  owner: string | null;
+  next_follow_up_at: string | null;
+  first_source: string | null;
+  last_source: string | null;
+  first_utm: Record<string, string> | null;
+  last_utm: Record<string, string> | null;
+  first_seen_at: string | null;
+  visitor_id: string | null;
+  /** set on the losing row of a merge; it is hidden, not deleted */
+  merged_into: string | null;
+  is_test: boolean;
 };
 
 const URL_BASE = () => env("NEXT_PUBLIC_SUPABASE_URL").replace(/\/+$/, "");
@@ -49,6 +64,15 @@ function headers(extra: Record<string, string> = {}) {
   return { apikey: k, Authorization: `Bearer ${k}`, "Content-Type": "application/json", ...extra };
 }
 
+/* Every database call gets a deadline.
+ *
+ * Without one a stalled socket hangs the caller until the OS gives up: a
+ * dropped connection held a request open for over half an hour in testing and
+ * wedged the server's fetch pool with it. Fifteen seconds is far beyond a
+ * healthy PostgREST response, and a timeout returns null — which every caller
+ * already treats as "unknown" rather than "empty". */
+const DB_TIMEOUT_MS = 15_000;
+
 export async function sb<T = unknown>(path: string, init?: RequestInit): Promise<T | null> {
   const base = URL_BASE();
   if (!base || !KEY()) return null;
@@ -57,6 +81,7 @@ export async function sb<T = unknown>(path: string, init?: RequestInit): Promise
       ...init,
       headers: { ...headers(), ...(init?.headers as Record<string, string>) },
       cache: "no-store",
+      signal: AbortSignal.timeout(DB_TIMEOUT_MS),
     });
     if (!res.ok) {
       console.error("[leads]", path, res.status, (await res.text()).slice(0, 200));

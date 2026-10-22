@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { readUtm, track } from "@/components/Track";
 import FadeIn from "@/components/FadeIn";
 import ScrubVideo from "@/components/ScrubVideo";
 import HeroCheck from "@/components/HeroCheck";
@@ -431,10 +432,13 @@ function Packages() {
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan }),
+        // carry the campaign out to Stripe and back on the webhook, so a
+        // paying customer still attributes to the channel that found them
+        body: JSON.stringify({ plan, utm: readUtm() }),
       });
       const data = await res.json();
       if (!res.ok || !data.url) { setErr(data.error ?? "Could not start checkout."); return; }
+      track("checkout_started", { plan });
       window.location.href = data.url;
     } catch {
       setErr("Could not start checkout. Please email hello@bilabs.ai.");

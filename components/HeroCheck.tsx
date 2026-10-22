@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { track } from "@/components/Track";
 
 /* The free AI check, run from the hero.
  *
@@ -19,6 +20,8 @@ type Check = { id: string; label: string; weight: number; pass: boolean; detail:
 type Query = { id: string; label: string; question: string; available: boolean; found: boolean };
 type Scan = { url: string | null; reachable: boolean; checks: Check[]; score: number | null; maxScore: number; loadMs: number | null };
 type Result = {
+  /** set by the server so later events attach to this specific run */
+  evaluationId?: string | null;
   business: string;
   mentionCount: number;
   queriesRun: number;
@@ -65,6 +68,9 @@ export default function HeroCheck() {
       const data = await res.json();
       if (!res.ok) { setErr(data.error ?? "The check could not run just now."); return; }
       setResult(data);
+      // the full result is now on screen — count the report view against
+      // this specific run rather than as a bare page event
+      track("report_viewed", { evaluationId: data.evaluationId ?? null });
     } catch {
       setErr("The check could not run just now.");
     } finally {
@@ -80,7 +86,10 @@ export default function HeroCheck() {
       const res = await fetch("/api/report", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, report: result, businessType, area, marketingConsent: consent }),
+        body: JSON.stringify({
+          email, report: result, businessType, area, marketingConsent: consent,
+          evaluationId: result.evaluationId ?? null,
+        }),
       });
       const data = await res.json();
       if (!res.ok) { setMailErr(data.error ?? "Could not send that just now."); return; }

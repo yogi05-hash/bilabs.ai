@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { env } from "@/lib/env";
+import { contextFrom, recordEvent, touchVisitor } from "@/lib/analytics";
+import { getSettings } from "@/lib/admin";
 
 /* Stripe Checkout for the two monthly plans.
  *
@@ -72,6 +74,27 @@ export async function POST(request: NextRequest) {
     const email = typeof body?.email === "string" ? body.email.trim().slice(0, 160) : "";
     if (email) form.set("customer_email", email);
 
+    /* Carry the campaign and the visitor out to Stripe and back on the
+     * webhook. Without this every paying customer would attribute to
+     * "direct", because the trip to Checkout and back loses the referrer
+     * and the UTM tags. */
+    const settings = await getSettings();
+    const ctx = contextFrom(request, settings.internalIpHashes);
+    const { visitor } = await touchVisitor({ ctx, countPageView: false });
+    const utm = (typeof body?.utm === "object" && body.utm ? body.utm : {}) as Record<string, string>;
+    const meta: Record<string, string> = {};
+    if (visitor?.id) meta.visitor_id = visitor.id;
+    if (typeof body?.evaluationId === "string" && body.evaluationId) {
+      meta.evaluation_id = body.evaluationId.slice(0, 40);
+    }
+    for (const k of ["utm_source", "utm_medium", "utm_campaign"]) {
+      if (typeof utm[k] === "string" && utm[k]) meta[k] = utm[k].slice(0, 120);
+    }
+    for (const [k, v] of Object.entries(meta)) {
+      form.set(`metadata[${k}]`, v);
+      form.set(`subscription_data[metadata][${k}]`, v);
+    }
+
     const coupon = env(plan.coupon);
     if (coupon && (await offerPlacesLeft(secret))) {
       form.set("discounts[0][coupon]", coupon);
@@ -88,6 +111,19 @@ export async function POST(request: NextRequest) {
       console.error("[checkout] stripe", res.status, JSON.stringify(session).slice(0, 300));
       return NextResponse.json({ error: "Could not start checkout. Please email hello@bilabs.ai." }, { status: 502 });
     }
+
+    /* "Started", not "paid". This records only that Stripe handed us a
+     * session URL; whether any money moved is decided by a signed webhook. */
+    await recordEvent({
+      name: "checkout_started",
+      origin: "server",
+      visitorId: visitor?.id ?? null,
+      contactId: visitor?.contact_id ?? null,
+      dedupeKey: `checkout_started:${session.id}`,
+      props: { plan: planId, session_id: session.id, discounted: form.has("discounts[0][coupon]") },
+      isInternal: ctx.isInternal,
+      isTest: ctx.isTest,
+    });
 
     return NextResponse.json({ url: session.url });
   } catch (e) {

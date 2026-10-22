@@ -1,6 +1,7 @@
 import { createHmac, timingSafeEqual, randomUUID } from "node:crypto";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { env } from "@/lib/env";
+import { sb } from "@/lib/leads";
 
 /* Admin access, by magic link we deliver ourselves.
  *
@@ -72,7 +73,22 @@ export const readLinkToken = (token: string) => unpack("link", token);
 
 export const makeSession = (email: string) => pack("session", email.toLowerCase(), Date.now() + SESSION_TTL_MS);
 
-export type Admin = { email: string };
+export type Role = "owner" | "admin" | "readonly";
+export type Admin = { email: string; role: Role };
+
+const ROLES: Role[] = ["owner", "admin", "readonly"];
+
+/* Roles live in bilabs_admins. ADMIN_EMAILS stays the gate — an address must
+ * be on it to get in at all — and anyone on it without a row is treated as
+ * owner, so adding the table could not lock the existing admins out of their
+ * own dashboard. */
+async function roleFor(email: string): Promise<Role> {
+  const rows = await sb<{ role: string }[]>(
+    `bilabs_admins?email=eq.${encodeURIComponent(email)}&select=role&limit=1`,
+  );
+  const r = rows?.[0]?.role as Role | undefined;
+  return r && ROLES.includes(r) ? r : "owner";
+}
 
 /** The only way in. Reads the signed cookie and re-checks the allowlist. */
 export async function requireAdmin(req: NextRequest): Promise<Admin | null> {
@@ -80,5 +96,60 @@ export async function requireAdmin(req: NextRequest): Promise<Admin | null> {
   const email = unpack("session", raw);
   if (!email) return null;
   if (!isAdminEmail(email)) return null;
-  return { email };
+  return { email, role: await roleFor(email) };
+}
+
+/** Write access. A read-only admin can see everything and change nothing. */
+export function canWrite(admin: Admin): boolean {
+  return admin.role === "owner" || admin.role === "admin";
+}
+
+/** Owner-only: roles, retention, deletion, integration settings. */
+export function canAdminister(admin: Admin): boolean {
+  return admin.role === "owner";
+}
+
+/** Guard for a mutating route. Returns an error response, or null to proceed. */
+export async function requireWriter(req: NextRequest): Promise<{ admin: Admin } | { error: NextResponse }> {
+  const admin = await requireAdmin(req);
+  if (!admin) return { error: NextResponse.json({ error: "Unauthorised" }, { status: 401 }) };
+  if (!canWrite(admin)) {
+    return { error: NextResponse.json({ error: "Read-only access — changes are not permitted." }, { status: 403 }) };
+  }
+  return { admin };
+}
+
+export async function requireOwner(req: NextRequest): Promise<{ admin: Admin } | { error: NextResponse }> {
+  const admin = await requireAdmin(req);
+  if (!admin) return { error: NextResponse.json({ error: "Unauthorised" }, { status: 401 }) };
+  if (!canAdminister(admin)) {
+    return { error: NextResponse.json({ error: "Owner access required." }, { status: 403 }) };
+  }
+  return { admin };
+}
+
+/* Stamp the login. Deliberately not an upsert with a role in the payload:
+ * PostgREST's merge-duplicates updates every column it is given, so sending a
+ * role here would reset a deliberately-set `readonly` back to owner on that
+ * person's next sign-in. The row is created once, then only touched. */
+export async function noteLogin(email: string): Promise<void> {
+  const now = new Date().toISOString();
+  const existing = await sb<{ email: string }[]>(
+    `bilabs_admins?email=eq.${encodeURIComponent(email)}&select=email&limit=1`,
+  );
+  if (existing?.[0]) {
+    await sb(`bilabs_admins?email=eq.${encodeURIComponent(email)}`, {
+      method: "PATCH",
+      headers: { Prefer: "return=minimal" },
+      body: JSON.stringify({ last_login_at: now }),
+    });
+    return;
+  }
+  // First sign-in for an allowlisted address: seed as owner, matching the
+  // fallback in roleFor so behaviour does not change the moment a row exists.
+  await sb("bilabs_admins", {
+    method: "POST",
+    headers: { Prefer: "return=minimal,resolution=ignore-duplicates" },
+    body: JSON.stringify({ email, role: "owner", last_login_at: now }),
+  });
 }

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { alertNewLead, upsertLead } from "@/lib/leads";
 import { sendReport, type Payload } from "@/lib/report";
+import { contextFrom, identifyVisitor, recordEvent, touchVisitor } from "@/lib/analytics";
+import { getSettings } from "@/lib/admin";
+import { attachContact, markReportEmailed } from "@/lib/evaluations";
 
 /* Unlocks the full checklist by emailing the report.
  *
@@ -41,8 +44,10 @@ export async function POST(request: NextRequest) {
     const type = typeof body?.businessType === "string" ? body.businessType.slice(0, 80) : "";
     const area = typeof body?.area === "string" ? body.area.slice(0, 80) : "";
 
-    const sent = await sendReport(email, report, { type, area });
-
+    /* Order matters, and it was the wrong way round. The email was sent
+     * first, so anything that threw while building or sending it returned a
+     * 500 and the person's address was never recorded at all — the exact
+     * failure the contact form was fixed for. Record first, mail second. */
     const lead = await upsertLead({
       email,
       company: report.business || null,
@@ -56,7 +61,42 @@ export async function POST(request: NextRequest) {
       marketing_consent: body?.marketingConsent === true,
       report,
     });
-    if (lead) await alertNewLead(lead, "report unlock");
+    if (!lead) {
+      return NextResponse.json(
+        { error: "We could not record that just now. Please email hello@bilabs.ai." },
+        { status: 502 },
+      );
+    }
+
+    const sent = await sendReport(email, report, { type, area });
+    await alertNewLead(lead, "report unlock");
+
+    /* This is the "email after the evaluation" half of capture. The funnel
+     * has to accept both orders — someone who typed an address up front and
+     * someone who ran the check first and unlocked afterwards are the same
+     * journey, and the evaluation id is what joins them. */
+    const settings = await getSettings();
+    const ctx = contextFrom(request, settings.internalIpHashes);
+    const { visitor } = await touchVisitor({ ctx, countPageView: false });
+    const evaluationId = typeof body?.evaluationId === "string" ? body.evaluationId : null;
+
+    if (lead) {
+      if (evaluationId) {
+        await attachContact(evaluationId, lead.id);
+        if (sent) await markReportEmailed(evaluationId);
+      }
+      if (visitor) await identifyVisitor(visitor.id, lead.id);
+      await recordEvent({
+        name: "email_captured",
+        origin: "server",
+        visitorId: visitor?.id ?? null,
+        contactId: lead.id,
+        evaluationId,
+        dedupeKey: `email_captured:${lead.id}:${evaluationId ?? "none"}`,
+        props: { at: "report_unlock", marketing_consent: body?.marketingConsent === true },
+        isTest: ctx.isTest,
+      });
+    }
 
     return NextResponse.json({ ok: true, emailed: sent });
   } catch (e) {

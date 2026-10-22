@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import Script from "next/script";
+import Track from "@/components/Track";
+import SiteChrome from "@/components/SiteChrome";
 import { organisationJsonLd } from "@/lib/site";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
@@ -73,9 +76,15 @@ export default function RootLayout({
             dangerouslySetInnerHTML={{ __html: JSON.stringify(node) }}
           />
         ))}
-        <Navbar />
+        {/* the marketing chrome is for the public site only — the dashboard
+            supplies its own, and had this pinned over its header */}
+        <SiteChrome><Navbar /></SiteChrome>
+        {/* first-party page-view beacon; useSearchParams needs a boundary */}
+        <Suspense fallback={null}>
+          <SiteChrome><Track /></SiteChrome>
+        </Suspense>
         <main>{children}</main>
-        <Footer />
+        <SiteChrome><Footer /></SiteChrome>
 
         {/* GA4. afterInteractive so it never blocks first paint — the hero
             video is already the heaviest thing on the page. */}

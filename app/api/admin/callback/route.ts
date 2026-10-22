@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { env } from "@/lib/env";
-import { COOKIE, SESSION_TTL_MS, isAdminEmail, makeSession, readLinkToken } from "@/lib/adminAuth";
+import { COOKIE, SESSION_TTL_MS, isAdminEmail, makeSession, noteLogin, readLinkToken } from "@/lib/adminAuth";
 
 /* Turns a valid link token into an httpOnly session cookie. */
 export async function GET(req: NextRequest) {
@@ -11,6 +11,8 @@ export async function GET(req: NextRequest) {
   if (!email || !isAdminEmail(email)) {
     return NextResponse.redirect(`${site}/admin?err=link`);
   }
+
+  await noteLogin(email);
 
   const res = NextResponse.redirect(`${site}/admin`);
   res.cookies.set(COOKIE, makeSession(email), {

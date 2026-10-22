@@ -3,6 +3,16 @@ import { env } from "@/lib/env";
 import { alertNewLead, upsertLead } from "@/lib/leads";
 import { scanSite, type Check } from "@/lib/scan";
 import { sendReport, type Payload } from "@/lib/report";
+import { contextFrom, identifyVisitor, recordEvent, touchVisitor } from "@/lib/analytics";
+import { getSettings } from "@/lib/admin";
+import {
+  attachContact,
+  completeEvaluation,
+  failEvaluation,
+  findRunningDuplicate,
+  markReportEmailed,
+  startEvaluation,
+} from "@/lib/evaluations";
 
 export const maxDuration = 60;
 
@@ -120,16 +130,19 @@ async function askOne(key: string, model: string, v: Variation, name: string, we
     });
     if (!res.ok) {
       console.error("[visibility]", v.id, res.status, (await res.text()).slice(0, 200));
-      return { ...v, available: false, found: false, competitors: [] as string[], answer: "" };
+      return { ...v, available: false, found: false, competitors: [] as string[], answer: "", searches: 0 };
     }
     const data = await res.json();
     const answer = (data.content ?? []).filter((c: { type: string }) => c.type === "text")
       .map((c: { text: string }) => c.text).join("\n").trim();
     const found = (!!name && mentions(answer, name)) || (!!website && mentions(answer, website));
-    return { ...v, available: true, found, competitors: namesFrom(answer).slice(0, 6), answer: answer.slice(0, 1400) };
+    // Billed searches as reported by the API, so the cost shown in the admin
+    // is measured rather than assumed from max_uses.
+    const searches = Number(data?.usage?.server_tool_use?.web_search_requests ?? 0) || 0;
+    return { ...v, available: true, found, competitors: namesFrom(answer).slice(0, 6), answer: answer.slice(0, 1400), searches };
   } catch (e) {
     console.error("[visibility]", v.id, "threw:", e);
-    return { ...v, available: false, found: false, competitors: [] as string[], answer: "" };
+    return { ...v, available: false, found: false, competitors: [] as string[], answer: "", searches: 0 };
   }
 }
 
@@ -157,14 +170,55 @@ export async function POST(request: NextRequest) {
     if (!key) return NextResponse.json({ error: "The check is unavailable just now." }, { status: 503 });
     const model = env("ANTHROPIC_MODEL", "claude-haiku-4-5-20251001");
 
-    const vs = variations(type, area, postcode, website);
-    const [queries, scan] = await Promise.all([
-      Promise.all(vs.map((v) => askOne(key, model, v, businessName, website))),
-      website ? scanSite(website) : Promise.resolve(null),
-    ]);
+    /* Open a row before any work happens. A check that crashed, timed out or
+     * lost its tab used to vanish without trace; now it always ends as
+     * completed, failed with a reason, or swept to `abandoned`. */
+    const settings = await getSettings();
+    const ctx = contextFrom(request, settings.internalIpHashes);
+    const { visitor } = await touchVisitor({ ctx, path: "/", countPageView: false });
+
+    // A double-submit must not buy a second round of paid web searches.
+    const dup = await findRunningDuplicate(visitor?.id ?? null, website || null);
+    if (dup) {
+      return NextResponse.json(
+        { error: "That check is already running — give it a few seconds." },
+        { status: 409 },
+      );
+    }
+
+    const evaluation = await startEvaluation({
+      visitorId: visitor?.id ?? null,
+      website: website || null,
+      businessName: businessName || null,
+      businessType: type,
+      area,
+      postcode: postcode || null,
+      isTest: ctx.isTest,
+    });
+    const startedAtMs = Date.now();
+
+    let queries: Awaited<ReturnType<typeof askOne>>[];
+    let scan: Awaited<ReturnType<typeof scanSite>> | null;
+    try {
+      const vs = variations(type, area, postcode, website);
+      [queries, scan] = await Promise.all([
+        Promise.all(vs.map((v) => askOne(key, model, v, businessName, website))),
+        website ? scanSite(website) : Promise.resolve(null),
+      ]);
+    } catch (e) {
+      if (evaluation) await failEvaluation(evaluation.id, e instanceof Error ? e.message : String(e), startedAtMs);
+      throw e;
+    }
 
     const ran = queries.filter((q) => q.available);
     const mentionCount = ran.filter((q) => q.found).length;
+
+    // Every query failing is a failed job, not a business with no mentions.
+    // Recording it as "0 of 5" would publish a result we never actually got.
+    if (evaluation && ran.length === 0) {
+      await failEvaluation(evaluation.id, "No query returned a usable answer from the model.", startedAtMs);
+      return NextResponse.json({ error: "The check could not run just now." }, { status: 502 });
+    }
 
     const competitors = Array.from(new Set(ran.flatMap((q) => q.competitors)))
       .filter((c) => !businessName || !mentions(c, businessName))
@@ -172,6 +226,22 @@ export async function POST(request: NextRequest) {
 
     const checks: Check[] = scan?.reachable ? scan.checks : [];
     const score = scan?.reachable ? scan.score : null;
+
+    if (evaluation) {
+      await completeEvaluation(evaluation.id, {
+        readinessScore: score,
+        readinessMax: scan?.maxScore ?? null,
+        siteReachable: scan ? scan.reachable : null,
+        checks: scan?.reachable ? checks : null,
+        mentions: mentionCount,
+        mentionsTotal: ran.length,
+        competitors,
+        queries: queries.map((q) => ({ id: q.id, label: q.label, available: q.available, found: q.found })),
+        model,
+        webSearches: queries.reduce((n, q) => n + (q.searches ?? 0), 0),
+        startedAtMs,
+      });
+    }
 
     if (email) {
       const lead = await upsertLead({
@@ -188,10 +258,27 @@ export async function POST(request: NextRequest) {
         marketing_consent: consent,
         report: { queries, competitors, scan },
       });
-      if (lead) await alertNewLead(lead, "AI check");
+      if (lead) {
+        await alertNewLead(lead, "AI check");
+        if (evaluation) await attachContact(evaluation.id, lead.id);
+        // Joins this person's earlier anonymous activity to them — our own
+        // first-party records, linked only once they volunteered the address.
+        if (visitor) await identifyVisitor(visitor.id, lead.id);
+        await recordEvent({
+          name: "email_captured",
+          origin: "server",
+          visitorId: visitor?.id ?? null,
+          contactId: lead.id,
+          evaluationId: evaluation?.id ?? null,
+          dedupeKey: `email_captured:${lead.id}:${evaluation?.id ?? "none"}`,
+          props: { at: "evaluation", marketing_consent: consent },
+          isTest: ctx.isTest,
+        });
+      }
     }
 
     const payload = {
+      evaluationId: evaluation?.id ?? null,
       business: businessName || website || "your business",
       mentionCount,
       queriesRun: ran.length,
@@ -205,6 +292,7 @@ export async function POST(request: NextRequest) {
 
     if (email) {
       payload.emailed = await sendReport(email, payload as Payload, { type, area });
+      if (payload.emailed && evaluation) await markReportEmailed(evaluation.id);
     }
 
     return NextResponse.json(payload);
