@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 /* Dark footer, as the mockup has it. */
@@ -7,9 +8,7 @@ export default function Footer() {
       <div className="wrap" style={{ paddingTop: 34, paddingBottom: 34 }}>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 20, alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
-            <span style={{ fontFamily: "var(--font-heading)", fontSize: 21, letterSpacing: "-0.03em", color: "#fff" }}>
-              Bi<span style={{ color: "var(--brand)" }}>Labs</span>
-            </span>
+            <Image src="/logo.png" alt="BiLabs" width={674} height={180} style={{ height: 24, width: "auto" }} />
             <span style={{ fontSize: 13.5 }}>bilabs.ai</span>
           </div>
 

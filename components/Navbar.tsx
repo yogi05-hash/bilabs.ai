@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
@@ -36,20 +37,15 @@ export default function Navbar() {
         borderBottom: scrolled ? "1px solid rgba(17,17,18,0.1)" : "none",
       }}
     >
-      <Link href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
-        <span
-          style={{
-            fontFamily: "var(--font-heading)",
-            fontSize: 24,
-            letterSpacing: "-0.03em",
-            color: "#000",
-          }}
-        >
-          Bi<span style={{ color: "var(--brand)" }}>Labs</span>
-        </span>
-        <span aria-hidden style={{ fontSize: 26, color: "#000", userSelect: "none", letterSpacing: "-0.02em" }}>
-          &#10035;&#xFE0E;
-        </span>
+      <Link href="/" style={{ display: "flex", alignItems: "center" }} aria-label="BiLabs — home">
+        <Image
+          src="/logo-light.png"
+          alt="BiLabs"
+          width={674}
+          height={180}
+          priority
+          style={{ height: 26, width: "auto" }}
+        />
       </Link>
 
       {/* Desktop */}
