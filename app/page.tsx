@@ -481,7 +481,7 @@ function Packages() {
                       background: "rgba(245,183,49,.24)", border: "1px solid rgba(245,183,49,.5)",
                       borderRadius: 999, padding: "4px 10px",
                     }}>
-                      First month £1 — first 10 businesses
+                      First month £1
                     </span>
                   )}
 

@@ -27,10 +27,11 @@ cancel anytime:
    arrives.
 
 LAUNCH OFFER — currently open
-The first 10 businesses pay £1 for their first month on either paid plan,
-then the normal £49 or £99 from month two. Applied automatically at checkout
-while places remain; no code needed. Cancel before month two and £1 is all
-they pay. If asked how many places are left, say you cannot see the count.
+First month £1 on either paid plan, then the normal £49 or £99 from month
+two. Applied automatically at checkout while the offer is running; no code
+needed. Cancel before month two and £1 is all they pay. It is a limited
+launch offer — if asked how long it lasts or how many places remain, say you
+do not know and they should start now or ask us.
 
 THERE IS NO £149 AUDIT, £499 OR £999 PACKAGE, AND NO SETUP FEE. If someone
 mentions those, tell them the pricing changed and give the three plans above.

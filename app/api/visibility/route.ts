@@ -1,20 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
 import { env } from "@/lib/env";
 import { saveLead } from "@/lib/guide";
+import { scanSite, type Check } from "@/lib/scan";
+import { sendReport, type Payload } from "@/lib/report";
 
-/* The free AI Visibility Report.
+export const maxDuration = 60;
+
+/* The free AI check.
  *
- * Honestly: ONE live, web-searched answer from ONE assistant, right now. Not a
- * ranking, not a measurement of ChatGPT, and not stable — ask again tomorrow
- * and the list can differ. The page says exactly that, and we return the names
- * the assistant actually gave so a visitor judges evidence rather than a score
- * we invented.
+ * Two halves, both real:
+ *   1. Five differently-phrased questions put to an assistant with live web
+ *      search, recording for each whether the business came back and who did.
+ *   2. A fetch-based scan of the visitor's own site.
  *
- * Each run costs a real web search plus ~11k input tokens and it is free and
- * unauthenticated, so the per-IP limit is deliberately tight. */
+ * Results are never adjusted. If a query fails we mark it unavailable instead
+ * of counting it as a miss, and a site we cannot reach reports as unreachable
+ * rather than scoring zero as though it had failed every check. The honest
+ * limit is stated on the page and in the email: five samples from one
+ * assistant at one moment are not a ranking.
+ *
+ * Each run costs five live web searches, so the per-IP window stays tight. */
 
 const WINDOW_MS = 60 * 60 * 1000;
-const MAX_PER_WINDOW = 4;
+const MAX_PER_WINDOW = 3;
 const hits = new Map<string, { count: number; resetAt: number }>();
 function allow(ip: string) {
   const now = Date.now();
@@ -39,6 +47,55 @@ function mentions(hay: string, needle: string): boolean {
   return words.length > 0 && words.every((w) => h.includes(w));
 }
 
+const ACCOLADE = /\b(award|winner|rated|reviews?|crowned|best .* in|voted)\b/i;
+function namesFrom(answer: string): string[] {
+  const listed = Array.from(answer.matchAll(/^\s*(?:\d+[.)]|[-*])\s*\*\*(.+?)\*\*/gm) as Iterable<RegExpMatchArray>)
+    .map((m: RegExpMatchArray) => m[1].trim());
+  return Array.from(new Set(listed))
+    .map((n) => n.replace(/\s*[-–—:]\s*$/, "").trim())
+    .filter((n) => n.length > 2 && n.length < 70 && /^[A-Z0-9]/.test(n) && !ACCOLADE.test(n));
+}
+
+type Variation = { id: string; label: string; question: string };
+
+function variations(type: string, area: string, postcode: string): Variation[] {
+  const where = postcode || area;
+  return [
+    { id: "direct", label: "Straight recommendation", question: `Recommend a ${type} in ${area}. Name up to 6 specific businesses with a one-line reason for each.` },
+    { id: "near-me", label: "“Near me” phrasing", question: `I'm in ${area} and looking for a good ${type} near me. Which specific ones would you suggest? List up to 6 by name.` },
+    { id: "urgent", label: "Urgent need", question: `I need an emergency ${type} in ${area} today. Which specific businesses should I call? List up to 6 by name.` },
+    { id: "value", label: "Best / affordable", question: `Who is the best value ${type} in ${area}? Name up to 6 specific businesses and say briefly why.` },
+    { id: "postcode", label: postcode ? `Postcode (${postcode})` : "Local area phrasing", question: `Which ${type} businesses serve ${where}? List up to 6 by name.` },
+  ];
+}
+
+async function askOne(key: string, model: string, v: Variation, name: string, website: string) {
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
+      body: JSON.stringify({
+        model,
+        max_tokens: 700,
+        tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 2 }],
+        messages: [{ role: "user", content: v.question }],
+      }),
+    });
+    if (!res.ok) {
+      console.error("[visibility]", v.id, res.status, (await res.text()).slice(0, 200));
+      return { ...v, available: false, found: false, competitors: [] as string[], answer: "" };
+    }
+    const data = await res.json();
+    const answer = (data.content ?? []).filter((c: { type: string }) => c.type === "text")
+      .map((c: { text: string }) => c.text).join("\n").trim();
+    const found = (!!name && mentions(answer, name)) || (!!website && mentions(answer, website));
+    return { ...v, available: true, found, competitors: namesFrom(answer).slice(0, 6), answer: answer.slice(0, 1400) };
+  } catch (e) {
+    console.error("[visibility]", v.id, "threw:", e);
+    return { ...v, available: false, found: false, competitors: [] as string[], answer: "" };
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
@@ -48,62 +105,68 @@ export async function POST(request: NextRequest) {
     const website = clean(body?.website, 160);
     const type = clean(body?.businessType, 80);
     const area = clean(body?.area, 80);
+    const postcode = clean(body?.postcode, 12);
+    const email = clean(body?.email, 160);
 
-    if (!type || !area) return NextResponse.json({ error: "Tell us what the business does and where it is." }, { status: 400 });
-    if (!allow(ip)) return NextResponse.json({ error: "You've run a few checks already — try again in an hour." }, { status: 429 });
+    if (!type || !area) {
+      return NextResponse.json({ error: "Tell us what the business does and where it is." }, { status: 400 });
+    }
+    if (!allow(ip)) {
+      return NextResponse.json({ error: "You've run a few checks already — try again in an hour." }, { status: 429 });
+    }
 
     const key = env("ANTHROPIC_API_KEY");
     if (!key) return NextResponse.json({ error: "The check is unavailable just now." }, { status: 503 });
+    const model = env("ANTHROPIC_MODEL", "claude-haiku-4-5-20251001");
 
-    const question = `Recommend a ${type} in ${area}. Name up to 6 specific businesses with a one-line reason for each.`;
+    const vs = variations(type, area, postcode);
+    const [queries, scan] = await Promise.all([
+      Promise.all(vs.map((v) => askOne(key, model, v, businessName, website))),
+      website ? scanSite(website) : Promise.resolve(null),
+    ]);
 
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
-      body: JSON.stringify({
-        // Sonnet handles search-and-summarise more reliably than Haiku, and
-        // this runs once per visitor rather than once per chat message.
-        model: "claude-sonnet-5",
-        max_tokens: 900,
-        tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 3 }],
-        messages: [{ role: "user", content: question }],
-      }),
-    });
+    const ran = queries.filter((q) => q.available);
+    const mentionCount = ran.filter((q) => q.found).length;
 
-    if (!res.ok) {
-      console.error("[visibility] anthropic", res.status, (await res.text()).slice(0, 300));
-      return NextResponse.json({ error: "The check could not run just now." }, { status: 502 });
-    }
+    const competitors = Array.from(new Set(ran.flatMap((q) => q.competitors)))
+      .filter((c) => !businessName || !mentions(c, businessName))
+      .slice(0, 8);
 
-    const data = await res.json();
-    const answer = (data.content ?? []).filter((c: { type: string }) => c.type === "text").map((c: { text: string }) => c.text).join("\n").trim();
-    const searched = (data.usage?.server_tool_use?.web_search_requests ?? 0) > 0;
-    const found = (!!businessName && mentions(answer, businessName)) || (!!website && mentions(answer, website));
+    const checks: Check[] = scan?.reachable ? scan.checks : [];
+    const score = scan?.reachable ? scan.score : null;
 
-    // Only bold text that OPENS a list item counts as a business name —
-    // taking every bold span swept up award blurbs and rating phrases.
-    const ACCOLADE = /\b(award|winner|rated|reviews?|crowned|best .* in|voted)\b/i;
-    const names = Array.from(answer.matchAll(/^\s*(?:\d+[.)]|[-*])\s*\*\*(.+?)\*\*/gm) as Iterable<RegExpMatchArray>).map((m: RegExpMatchArray) => m[1].trim());
-    const competitors = Array.from(new Set(names))
-      .map((n) => n.replace(/\s*[-–—:]\s*$/, "").trim())
-      .filter((n) => n.length > 2 && n.length < 70 && /^[A-Z0-9]/.test(n) && !ACCOLADE.test(n))
-      .slice(0, 6);
-
-    if (businessName || website) {
+    if (website || businessName || email) {
       await saveLead({
-        source: "visibility-report",
+        source: "ai-check",
         business_type: type,
-        area,
+        area: postcode ? `${area} (${postcode})` : area,
         website: website || null,
         company: businessName || null,
-        message: `appeared: ${found ? "yes" : "no"}`,
-        email: null,
+        email: email || null,
+        message: `mentioned in ${mentionCount}/${ran.length} queries${score !== null ? ` · readiness ${score}/100` : ""}`,
       });
     }
 
-    return NextResponse.json({ question, found, searched, competitors, answer: answer.slice(0, 1800) });
+    const payload = {
+      business: businessName || website || "your business",
+      mentionCount,
+      queriesRun: ran.length,
+      queries: queries.map((q) => ({ id: q.id, label: q.label, question: q.question, available: q.available, found: q.found, competitors: q.competitors })),
+      competitors,
+      scan: scan
+        ? { url: scan.url, reachable: scan.reachable, checks, score, maxScore: scan.maxScore, loadMs: scan.loadMs }
+        : null,
+      emailed: false as boolean,
+    };
+
+    if (email) {
+      payload.emailed = await sendReport(email, payload as Payload, { type, area });
+    }
+
+    return NextResponse.json(payload);
   } catch (e) {
     console.error("[visibility] threw:", e);
     return NextResponse.json({ error: "The check could not run just now." }, { status: 500 });
   }
 }
+
