@@ -62,6 +62,23 @@ after(async () => {
     await db(`bilabs_visitors?id=eq.${id}`, { method: "DELETE" });
   }
   await db(`bilabs_webhook_events?stripe_event_id=like.evt_test_*`, { method: "DELETE" });
+
+  /* Belt and braces. Tracking ids by hand misses anything created by a call
+   * whose response was not captured, and five test contacts survived a run
+   * into the production table that way. Every address these tests use is on a
+   * reserved test domain, so sweeping by domain catches the stragglers. */
+  const { body: strays } = await db(
+    "bilabs_leads?select=id,email&or=(email.like.*@example.com,email.like.*@shared-test.com)",
+  );
+  for (const l of strays ?? []) {
+    for (const t of ["bilabs_events", "bilabs_evaluations", "bilabs_followups", "bilabs_email_log"]) {
+      await db(`${t}?contact_id=eq.${l.id}`, { method: "DELETE" });
+    }
+    await db(`bilabs_lead_events?lead_id=eq.${l.id}`, { method: "DELETE" });
+    await db(`bilabs_visitors?contact_id=eq.${l.id}`, { method: "DELETE" });
+    await db(`bilabs_leads?id=eq.${l.id}`, { method: "DELETE" });
+  }
+  if (strays?.length) console.log(`[teardown] swept ${strays.length} stray test contact(s)`);
 });
 
 /* ------------------------------------------------- admin authorisation */
