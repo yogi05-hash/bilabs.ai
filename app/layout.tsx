@@ -7,9 +7,37 @@ import { cn } from "@/lib/utils";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
+const SITE = "https://bilabs.ai";
+const TITLE = "BiLabs — get your business recommended by AI";
+const DESC =
+  "Customers now ask ChatGPT, Claude and Google AI who to call. We publish your business so they can read it — and answer every enquiry that follows, 24/7. Free AI visibility report.";
+
 export const metadata: Metadata = {
-  title: "BiLabs — get your business recommended by AI",
-  description: "Customers now ask ChatGPT, Claude and Google AI who to call. We publish your business so they can read it — and answer every enquiry that follows. Free AI visibility report.",
+  // metadataBase makes the relative OG path absolute. Without it the tag
+  // ships as "/og.jpg", which WhatsApp and every other scraper ignores.
+  metadataBase: new URL(SITE),
+  title: TITLE,
+  description: DESC,
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    url: SITE,
+    siteName: "BiLabs",
+    title: TITLE,
+    description: DESC,
+    locale: "en_GB",
+    images: [{ url: "/og.jpg", width: 1200, height: 630, alt: "BiLabs — get your business recommended by AI", type: "image/jpeg" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESC,
+    images: ["/og.jpg"],
+  },
+  icons: {
+    icon: [{ url: "/icon.png", type: "image/png" }],
+    apple: [{ url: "/apple-icon.png" }],
+  },
 };
 
 export default function RootLayout({
