@@ -24,6 +24,12 @@ export default function Footer() {
         <p style={{ margin: "22px 0 0", fontSize: 13, color: "rgba(255,255,255,.42)" }}>
           AI visibility and AI receptionists for local businesses.
         </p>
+        {/* Contact details as plain text, on every page. Our own readiness
+            check scored bilabs.ai 90/100 and failed exactly this. */}
+        <p style={{ margin: "8px 0 0", fontSize: 13, color: "rgba(255,255,255,.52)" }}>
+          BiLabs · Greenwich, London, United Kingdom ·{" "}
+          <a href="mailto:hello@bilabs.ai">hello@bilabs.ai</a>
+        </p>
       </div>
     </footer>
   );
