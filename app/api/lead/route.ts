@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { alertNewLead, upsertLead } from "@/lib/leads";
 
 /* Enquiry capture.
  *
@@ -98,6 +99,7 @@ export async function POST(request: NextRequest) {
       source: clean(body?.source, 60) ?? "contact",
     };
 
+    const lead_email = lead.email ?? "";
     if (!lead.email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(lead.email)) {
       return NextResponse.json({ error: "Please enter a valid email address." }, { status: 400 });
     }
@@ -110,21 +112,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 1. Record it. This is the part that must not fail silently.
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/bilabs_leads`, {
-      method: "POST",
-      headers: {
-        apikey: SERVICE_KEY,
-        Authorization: `Bearer ${SERVICE_KEY}`,
-        "Content-Type": "application/json",
-        Prefer: "return=minimal",
-      },
-      body: JSON.stringify(lead),
-      cache: "no-store",
+    // 1. Record it, as one row per email address. This replaced a raw INSERT
+    //    that collided with the unique email index the moment the same person
+    //    enquired twice — upsertLead creates or merges, so it cannot.
+    const row = await upsertLead({
+      email: lead_email,
+      name: [clean(body?.firstName, 80), clean(body?.lastName, 80)].filter(Boolean).join(" ") || null,
+      company: clean(body?.company, 120) || null,
+      website: clean(body?.website, 200) || null,
+      business_type: clean(body?.businessType, 120) || null,
+      area: clean(body?.area, 120) || null,
+      source: "contact",
+      marketing_consent: body?.marketingConsent === true,
+      message: clean(body?.message, 2000) || null,
     });
-
-    if (!res.ok) {
-      console.error("[lead] insert failed", res.status, (await res.text()).slice(0, 300));
+    if (!row) {
+      console.error("[lead] upsert failed");
       return NextResponse.json(
         { error: "We could not record that just now. Please email hello@bilabs.ai." },
         { status: 502 },
@@ -132,53 +135,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 2. Tell someone. Best effort — a mail failure must not lose the lead.
-    if (RESEND_KEY) {
-      const name = [lead.first_name, lead.last_name].filter(Boolean).join(" ") || "Someone";
-      const rows = Object.entries({
-        Name: name,
-        Email: lead.email,
-        Phone: lead.phone,
-        Company: lead.company,
-        "Business type": lead.business_type,
-        Area: lead.area,
-        Website: lead.website,
-        Package: lead.package,
-        Source: lead.source,
-        Message: lead.message,
-      })
-        .filter(([, v]) => v)
-        .map(
-          ([k, v]) =>
-            `<tr><td style="padding:6px 16px 6px 0;color:#888;vertical-align:top">${k}</td><td style="font-weight:600">${esc(String(v))}</td></tr>`,
-        )
-        .join("");
-
-      try {
-        const mail = await fetch("https://api.resend.com/emails", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${RESEND_KEY}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            from: FROM,
-            to: [NOTIFY_TO],
-            reply_to: lead.email,
-            subject: `New BiLabs enquiry — ${name}${lead.company ? ` (${lead.company})` : ""}`,
-            html: `<div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;max-width:560px">
-              <h2 style="margin:0 0 4px">New enquiry from bilabs.ai</h2>
-              <p style="margin:0 0 16px;color:#666;font-size:14px">Reply directly to this email to reach them.</p>
-              <table style="font-size:15px;border-collapse:collapse">${rows}</table>
-            </div>`,
-          }),
-        });
-        if (!mail.ok) {
-          console.warn("[lead] resend failed", mail.status, (await mail.text()).slice(0, 200));
-        }
-      } catch (e) {
-        console.warn("[lead] resend threw:", e);
-      }
-    }
+    await alertNewLead(row, "contact form");
 
     return NextResponse.json({ ok: true });
   } catch (e) {

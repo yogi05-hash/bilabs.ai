@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { saveLead } from "@/lib/guide";
+import { alertNewLead, upsertLead } from "@/lib/leads";
 import { sendReport, type Payload } from "@/lib/report";
 
 /* Unlocks the full checklist by emailing the report.
@@ -43,15 +43,20 @@ export async function POST(request: NextRequest) {
 
     const sent = await sendReport(email, report, { type, area });
 
-    await saveLead({
-      source: "ai-check-unlock",
+    const lead = await upsertLead({
       email,
-      business_type: type || null,
-      area: area || null,
       company: report.business || null,
       website: report.scan?.url ?? null,
-      message: `unlocked report · mentioned ${report.mentionCount}/${report.queriesRun}${report.scan?.score != null ? ` · readiness ${report.scan.score}/100` : ""}`,
+      business_type: type || null,
+      area: area || null,
+      source: "check",
+      mentions: report.mentionCount ?? null,
+      mentions_total: report.queriesRun ?? null,
+      readiness_score: report.scan?.score ?? null,
+      marketing_consent: body?.marketingConsent === true,
+      report,
     });
+    if (lead) await alertNewLead(lead, "report unlock");
 
     return NextResponse.json({ ok: true, emailed: sent });
   } catch (e) {

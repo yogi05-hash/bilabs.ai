@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { env } from "@/lib/env";
-import { saveLead } from "@/lib/guide";
+import { alertNewLead, upsertLead } from "@/lib/leads";
 import { scanSite, type Check } from "@/lib/scan";
 import { sendReport, type Payload } from "@/lib/report";
 
@@ -144,6 +144,7 @@ export async function POST(request: NextRequest) {
     const area = clean(body?.area, 80);
     const postcode = clean(body?.postcode, 12);
     const email = clean(body?.email, 160);
+    const consent = body?.marketingConsent === true;
 
     if (!type || !area) {
       return NextResponse.json({ error: "Tell us what the business does and where it is." }, { status: 400 });
@@ -172,16 +173,22 @@ export async function POST(request: NextRequest) {
     const checks: Check[] = scan?.reachable ? scan.checks : [];
     const score = scan?.reachable ? scan.score : null;
 
-    if (website || businessName || email) {
-      await saveLead({
-        source: "ai-check",
+    if (email) {
+      const lead = await upsertLead({
+        email,
+        name: clean(body?.name, 120) || null,
+        company: businessName || null,
+        website: website || null,
         business_type: type,
         area: postcode ? `${area} (${postcode})` : area,
-        website: website || null,
-        company: businessName || null,
-        email: email || null,
-        message: `mentioned in ${mentionCount}/${ran.length} queries${score !== null ? ` · readiness ${score}/100` : ""}`,
+        source: "check",
+        mentions: mentionCount,
+        mentions_total: ran.length,
+        readiness_score: score,
+        marketing_consent: consent,
+        report: { queries, competitors, scan },
       });
+      if (lead) await alertNewLead(lead, "AI check");
     }
 
     const payload = {

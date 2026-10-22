@@ -4,7 +4,7 @@ import { SITE } from "@/lib/site";
 /* AI crawlers are explicitly welcomed — the whole product is about being
  * readable to them, so blocking them here would be self-defeating. */
 export default function robots(): MetadataRoute.Robots {
-  const disallow = ["/api/"];
+  const disallow = ["/api/", "/admin", "/unsubscribed"];
   const agents = ["GPTBot", "OAI-SearchBot", "ChatGPT-User", "ClaudeBot", "Claude-User", "anthropic-ai", "PerplexityBot", "Perplexity-User", "Google-Extended", "Bingbot", "CCBot", "Applebot-Extended"];
   return {
     rules: [

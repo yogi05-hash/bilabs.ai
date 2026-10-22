@@ -43,6 +43,8 @@ export default function HeroCheck() {
   const [result, setResult] = useState<Result | null>(null);
 
   const [email, setEmail] = useState("");
+  // unticked by default, deliberately: consent has to be given, not withdrawn
+  const [consent, setConsent] = useState(false);
   const [unlocked, setUnlocked] = useState(false);
   const [sending, setSending] = useState(false);
   const [mailErr, setMailErr] = useState<string | null>(null);
@@ -78,7 +80,7 @@ export default function HeroCheck() {
       const res = await fetch("/api/report", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, report: result, businessType, area }),
+        body: JSON.stringify({ email, report: result, businessType, area, marketingConsent: consent }),
       });
       const data = await res.json();
       if (!res.ok) { setMailErr(data.error ?? "Could not send that just now."); return; }
@@ -241,6 +243,18 @@ export default function HeroCheck() {
                       {sending ? "Sending…" : "Unlock full report"}
                     </button>
                   </div>
+                  <label style={{ display: "flex", gap: 9, alignItems: "flex-start", marginTop: 10, cursor: "pointer" }}>
+                    <input
+                      type="checkbox"
+                      checked={consent}
+                      onChange={(e) => setConsent(e.target.checked)}
+                      aria-label="Email me tips and offers from BiLabs"
+                      style={{ marginTop: 2, width: 15, height: 15, accentColor: "var(--brand)" }}
+                    />
+                    <span style={{ fontSize: 12.5, lineHeight: 1.5, color: "var(--ink-2)" }}>
+                      Email me tips and offers from BiLabs. Unsubscribe any time — your report is sent either way.
+                    </span>
+                  </label>
                   {mailErr && <p style={{ margin: "8px 0 0", fontSize: 12.5, color: "#9a2a2a" }}>{mailErr}</p>}
                 </form>
               )}
