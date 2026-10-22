@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -6,6 +7,8 @@ import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+
+const GA_ID = "G-F4CSM7VKR8";
 
 const SITE = "https://bilabs.ai";
 const TITLE = "BiLabs — get your business recommended by AI";
@@ -63,6 +66,16 @@ export default function RootLayout({
         <Navbar />
         <main>{children}</main>
         <Footer />
+
+        {/* GA4. afterInteractive so it never blocks first paint — the hero
+            video is already the heaviest thing on the page. */}
+        <Script src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} strategy="afterInteractive" />
+        <Script id="ga4-init" strategy="afterInteractive">
+          {`window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', '${GA_ID}');`}
+        </Script>
       </body>
     </html>
   );

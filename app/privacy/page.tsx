@@ -43,9 +43,11 @@ const SECTIONS: { h: string; p: string[] }[] = [
     ],
   },
   {
-    h: "Cookies",
+    h: "Analytics and cookies",
     p: [
-      "This site sets no advertising or tracking cookies. Nothing here follows you to another website.",
+      "We use Google Analytics 4 to count visits and see which pages are read. It sets cookies in your browser and sends Google your IP address, the pages you view and rough location. We use it only to understand how the site is used.",
+      "We set no advertising cookies and run no ad retargeting — nothing here follows you around other websites to sell to you.",
+      "If you would rather not be counted, Google publishes an opt-out add-on at tools.google.com/dlpage/gaoptout, and most browsers can block these cookies for you.",
     ],
   },
 ];
