@@ -1,19 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { createClient, type Session } from "@supabase/supabase-js";
 
 /* Admin dashboard.
  *
- * The browser only ever holds a Supabase session; every figure on this page
- * comes from a server route that re-verifies that token and checks the email
- * against the allowlist. Nothing here trusts the client, so a stray session
- * from another product on the shared Supabase project gets 401s, not data. */
-
-const supabase = createClient(
-  (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").trim(),
-  (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "").trim(),
-);
+ * Auth is a magic link we send through Resend — Supabase's own auth emails
+ * never arrived. The browser holds nothing but an httpOnly cookie it cannot
+ * read; every figure on this page comes from a server route that verifies
+ * that cookie's signature and re-checks the email against the allowlist. */
 
 type Lead = {
   id: string; name: string | null; email: string | null; website: string | null;
@@ -30,7 +24,7 @@ const STATUSES = ["new", "nurturing", "paid", "unsubscribed", "lost"];
 const SOURCES = ["check", "contact", "checkout", "guide", "ai-check-unlock"];
 
 export default function AdminPage() {
-  const [session, setSession] = useState<Session | null>(null);
+  const [me, setMe] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
@@ -50,25 +44,25 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => { setSession(data.session); setReady(true); });
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
-    return () => sub.subscription.unsubscribe();
+    fetch("/api/admin/me")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => setMe(d?.email ?? null))
+      .finally(() => setReady(true));
   }, []);
 
+  // the session cookie travels automatically; nothing is held in JS
   const call = useCallback(async (path: string, init?: RequestInit) => {
-    const token = session?.access_token;
-    if (!token) return null;
     const res = await fetch(path, {
       ...init,
-      headers: { ...(init?.headers ?? {}), Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      headers: { ...(init?.headers ?? {}), "Content-Type": "application/json" },
     });
     if (res.status === 401) { setDenied(true); return null; }
     setDenied(false);
     return res.json();
-  }, [session]);
+  }, []);
 
   const load = useCallback(async () => {
-    if (!session) return;
+    if (!me) return;
     setLoading(true);
     const params = new URLSearchParams();
     if (q) params.set("q", q);
@@ -79,7 +73,7 @@ export default function AdminPage() {
     if (l?.leads) setLeads(l.leads);
     if (s && !s.error) setStats(s);
     setLoading(false);
-  }, [session, q, status, source, sort, dir, call]);
+  }, [me, q, status, source, sort, dir, call]);
 
   useEffect(() => { void load(); }, [load]);
 
@@ -115,16 +109,27 @@ export default function AdminPage() {
 
   const signIn = async (e: React.FormEvent) => {
     e.preventDefault(); setAuthErr(null);
-    const { error } = await supabase.auth.signInWithOtp({
-      email: email.trim(),
-      options: { emailRedirectTo: typeof window !== "undefined" ? `${window.location.origin}/admin` : undefined },
-    });
-    if (error) setAuthErr(error.message); else setSent(true);
+    try {
+      const res = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+      if (!res.ok) throw new Error();
+      setSent(true);
+    } catch {
+      setAuthErr("Could not send the link. Try again shortly.");
+    }
+  };
+
+  const signOut = async () => {
+    await fetch("/api/admin/logout", { method: "POST" });
+    setMe(null);
   };
 
   if (!ready) return <Shell><p className="body">Loading…</p></Shell>;
 
-  if (!session) {
+  if (!me) {
     return (
       <Shell>
         <h1 className="h2">Admin</h1>
@@ -149,9 +154,9 @@ export default function AdminPage() {
       <Shell>
         <h1 className="h2">Not an admin</h1>
         <p className="body" style={{ marginTop: 12 }}>
-          {session.user.email} is signed in but is not on the admin list.
+{me} is signed in but is not on the admin list.
         </p>
-        <button className="btn-line" style={{ marginTop: 18 }} onClick={() => supabase.auth.signOut()}>Sign out</button>
+        <button className="btn-line" style={{ marginTop: 18 }} onClick={signOut}>Sign out</button>
       </Shell>
     );
   }
@@ -161,9 +166,9 @@ export default function AdminPage() {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
         <h1 className="h2" style={{ fontSize: "1.9rem" }}>Leads</h1>
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-          <span style={{ fontSize: 13, color: "var(--ink-3)" }}>{session.user.email}</span>
+          <span style={{ fontSize: 13, color: "var(--ink-3)" }}>{me}</span>
           <button className="btn-line" style={{ padding: "8px 14px", fontSize: 13 }} onClick={download}>Export CSV</button>
-          <button className="btn-line" style={{ padding: "8px 14px", fontSize: 13 }} onClick={() => supabase.auth.signOut()}>Sign out</button>
+          <button className="btn-line" style={{ padding: "8px 14px", fontSize: 13 }} onClick={signOut}>Sign out</button>
         </div>
       </div>
 
