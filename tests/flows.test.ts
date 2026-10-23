@@ -385,6 +385,97 @@ test("events without a dedupe key are each recorded", async () => {
   await db(`bilabs_events?path=eq.${encodeURIComponent(path)}`, { method: "DELETE" });
 });
 
+test("a phone given at unlock lands on the contact and the check", async () => {
+  const { body: erows } = await db("bilabs_evaluations", {
+    method: "POST", headers: { Prefer: "return=representation" },
+    body: JSON.stringify({ website: "https://phone-test.co.uk", business_type: "florist", area: "Bath", status: "completed", is_test: true }),
+  });
+  const ev = erows[0];
+  made.evals.push(ev.id);
+
+  const email = `phonetest+${Date.now()}@example.com`;
+  const res = await fetch(`${BASE}/api/report`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-forwarded-for": freshIp() },
+    body: JSON.stringify({
+      email, phone: "07700 900456", businessType: "florist", area: "Bath", marketingConsent: false,
+      evaluationId: ev.id,
+      report: { business: "Phone Test", mentionCount: 0, queriesRun: 5, competitors: [], scan: { url: "https://phone-test.co.uk", score: 40 } },
+    }),
+  });
+  assert.equal(res.status, 200);
+
+  const { body: leads } = await db(`bilabs_leads?email=eq.${encodeURIComponent(email)}&select=id,phone`);
+  made.leads.push(leads[0].id);
+  assert.equal(leads[0].phone, "07700 900456", "the phone must be stored on the contact");
+
+  const { body: after } = await db(`bilabs_evaluations?id=eq.${ev.id}&select=phone`);
+  assert.equal(after[0].phone, "07700 900456", "and stamped on the check row");
+});
+
+test("call status and notes persist via PATCH, and garbage is refused", async () => {
+  const { body: erows } = await db("bilabs_evaluations", {
+    method: "POST", headers: { Prefer: "return=representation" },
+    body: JSON.stringify({ website: "https://status-test.co.uk", status: "completed", is_test: true }),
+  });
+  const ev = erows[0];
+  made.evals.push(ev.id);
+
+  const patch = await fetch(`${BASE}/api/admin/evaluations`, {
+    method: "PATCH", headers: { "Content-Type": "application/json", cookie },
+    body: JSON.stringify({ id: ev.id, leadStatus: "called", notes: "Spoke to the owner, ring back Friday." }),
+  });
+  assert.equal(patch.status, 200);
+  const { body: after } = await db(`bilabs_evaluations?id=eq.${ev.id}&select=lead_status,lead_notes`);
+  assert.equal(after[0].lead_status, "called");
+  assert.match(after[0].lead_notes, /ring back Friday/);
+
+  const bad = await fetch(`${BASE}/api/admin/evaluations`, {
+    method: "PATCH", headers: { "Content-Type": "application/json", cookie },
+    body: JSON.stringify({ id: ev.id, leadStatus: "definitely_buying" }),
+  });
+  assert.equal(bad.status, 400, "an unknown status must be refused");
+
+  const anon = await fetch(`${BASE}/api/admin/evaluations`, {
+    method: "PATCH", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id: ev.id, leadStatus: "paid" }),
+  });
+  assert.equal(anon.status, 401, "no cookie, no status change");
+
+  // and the audit trail recorded who did it
+  const { body: audits } = await db(
+    `bilabs_audit_log?action=eq.evaluation.status&target_id=eq.${ev.id}&select=actor&limit=1`,
+  );
+  assert.equal(audits[0]?.actor, ADMIN);
+  await db(`bilabs_audit_log?target_id=eq.${ev.id}`, { method: "DELETE" });
+});
+
+test("a check run with the admin cookie is flagged internal and hidden from the list", async () => {
+  // insert directly with the flag the route would set from the ctx
+  const { body: erows } = await db("bilabs_evaluations", {
+    method: "POST", headers: { Prefer: "return=representation" },
+    body: JSON.stringify({ website: "https://internal-test.co.uk", status: "completed", is_internal: true, is_test: false }),
+  });
+  const ev = erows[0];
+  made.evals.push(ev.id);
+
+  const list = await fetch(`${BASE}/api/admin/evaluations?range=30d&q=internal-test`, { headers: { cookie } });
+  const d = await list.json();
+  assert.equal(
+    (d.evaluations ?? []).some((e: { id: string }) => e.id === ev.id),
+    false,
+    "an internal run must not appear in the default list",
+  );
+
+  const withTests = await fetch(`${BASE}/api/admin/evaluations?range=30d&q=internal-test&tests=1`, { headers: { cookie } });
+  const d2 = await withTests.json();
+  assert.equal(
+    (d2.evaluations ?? []).some((e: { id: string }) => e.id === ev.id),
+    true,
+    "but it stays inspectable when excluded traffic is shown",
+  );
+});
+
 /* ------------------------------------------------------------ webhooks */
 
 const sign = (payload: string) => {

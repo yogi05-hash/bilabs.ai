@@ -19,6 +19,7 @@ export type Lead = {
   id: string;
   name: string | null;
   email: string | null;
+  phone: string | null;
   website: string | null;
   business_type: string | null;
   area: string | null;
@@ -114,6 +115,7 @@ export async function logEvent(leadId: string, kind: string, detail?: string) {
 export type LeadInput = {
   email: string;
   name?: string | null;
+  phone?: string | null;
   website?: string | null;
   business_type?: string | null;
   area?: string | null;
@@ -145,6 +147,7 @@ export async function upsertLead(input: LeadInput): Promise<Lead | null> {
   const body: Record<string, unknown> = {
     email,
     name: keep(input.name, existing?.name),
+    phone: keep(input.phone, existing?.phone),
     website: keep(input.website, existing?.website),
     business_type: keep(input.business_type, existing?.business_type),
     area: keep(input.area, existing?.area),

@@ -1,5 +1,5 @@
 import { sb } from "@/lib/leads";
-import { CLEAN, channelOf } from "@/lib/analytics";
+import { CLEAN, CLEAN_EVAL, channelOf } from "@/lib/analytics";
 import { bilabsSubscriptions, mrrFrom, type MrrBreakdown } from "@/lib/billing";
 import { londonDayKey, dayKeys, delta, type Period } from "@/lib/period";
 
@@ -70,7 +70,7 @@ async function visitorMetrics(p: Period) {
 
 async function evaluationMetrics(p: Period) {
   const base = (r: { from: Date; to: Date }, extra = "") =>
-    `bilabs_evaluations?is_test=is.false&${between("started_at", r)}${extra}`;
+    `bilabs_evaluations?${CLEAN_EVAL}&${between("started_at", r)}${extra}`;
   const [started, pStarted, completed, pCompleted, failed, pFailed, abandoned, pAbandoned, running] =
     await Promise.all([
       count(base(p)), count(base(p.prev)),
@@ -80,8 +80,8 @@ async function evaluationMetrics(p: Period) {
       count(base(p, "&status=eq.running")),
     ]);
   const [viewed, pViewed] = await Promise.all([
-    count(`bilabs_evaluations?is_test=is.false&report_views=gt.0&${between("started_at", p)}`),
-    count(`bilabs_evaluations?is_test=is.false&report_views=gt.0&${between("started_at", p.prev)}`),
+    count(`bilabs_evaluations?${CLEAN_EVAL}&report_views=gt.0&${between("started_at", p)}`),
+    count(`bilabs_evaluations?${CLEAN_EVAL}&report_views=gt.0&${between("started_at", p.prev)}`),
   ]);
   return {
     started: metric(started, pStarted),
@@ -167,7 +167,7 @@ async function funnel(p: Period, windowDays: number): Promise<FunnelStage[]> {
 
   const evals =
     (await sb<{ visitor_id: string | null; status: string; contact_id: string | null }[]>(
-      `bilabs_evaluations?is_test=is.false&started_at=lt.${upTo}&select=visitor_id,status,contact_id&limit=5000`,
+      `bilabs_evaluations?${CLEAN_EVAL}&started_at=lt.${upTo}&select=visitor_id,status,contact_id&limit=5000`,
     )) ?? [];
   const mine = evals.filter((e) => e.visitor_id && ids.has(e.visitor_id));
   const startedBy = new Set(mine.map((e) => e.visitor_id!));
@@ -228,7 +228,7 @@ async function series(p: Period) {
 
   const [visits, evals, caps, pays] = await Promise.all([
     sb<{ first_seen_at: string }[]>(`bilabs_visitors?${CLEAN}&${between("first_seen_at", p)}&select=first_seen_at&limit=5000`),
-    sb<{ started_at: string; status: string }[]>(`bilabs_evaluations?is_test=is.false&${between("started_at", p)}&select=started_at,status&limit=5000`),
+    sb<{ started_at: string; status: string }[]>(`bilabs_evaluations?${CLEAN_EVAL}&${between("started_at", p)}&select=started_at,status&limit=5000`),
     sb<{ occurred_at: string }[]>(`bilabs_events?name=eq.email_captured&${between("occurred_at", p)}&select=occurred_at&limit=5000`),
     sb<{ occurred_at: string; amount_pence: number }[]>(`bilabs_payments?livemode=is.true&kind=eq.payment&${between("occurred_at", p)}&select=occurred_at,amount_pence&limit=5000`),
   ]);
@@ -274,7 +274,7 @@ async function sources(p: Period): Promise<SourceRow[]> {
   const ids = new Set(visitors.map((v) => v.id));
   const evals =
     (await sb<{ visitor_id: string | null }[]>(
-      `bilabs_evaluations?is_test=is.false&status=eq.completed&select=visitor_id&limit=5000`,
+      `bilabs_evaluations?${CLEAN_EVAL}&status=eq.completed&select=visitor_id&limit=5000`,
     )) ?? [];
   for (const e of evals) {
     if (!e.visitor_id || !ids.has(e.visitor_id)) continue;

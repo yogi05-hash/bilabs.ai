@@ -934,3 +934,5 @@ table.ad-table { width: 100%; border-collapse: collapse; font-size: 13px; min-wi
   .ad-kv dt { margin-top: 7px; }
   .ad-drawer { width: 100%; padding: 18px 16px 56px; }
 }
+.ad-badge.called { background: rgba(245,183,49,.22); color: #6B4A05; }
+.ad-badge.not.interested, .ad-badge.not_interested { background: rgba(164,42,28,.11); color: var(--ad-bad); }

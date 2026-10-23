@@ -17,17 +17,25 @@ type Ev = {
   model: string | null; web_searches: number | null; est_cost_pence: string | number | null;
   report_emailed_at: string | null; report_viewed_at: string | null; report_views: number;
   failure_reason: string | null; attempt: number; retry_of: string | null; requested_by: string | null;
-  is_test: boolean; checks: unknown; competitors: unknown;
-  contact: { id: string; email: string | null; company: string | null } | null;
+  is_test: boolean; is_internal: boolean; checks: unknown; competitors: unknown;
+  site_title: string | null; phone: string | null;
+  lead_status: string; lead_notes: string | null; entry_source: string | null;
+  enrichment: { phones: string[]; emails: string[]; address: string | null; socials: string[]; title: string | null } | null;
+  contact: { id: string; email: string | null; phone: string | null; company: string | null } | null;
 };
+
+const LEAD_STATUSES = [
+  ["new", "New"], ["called", "Called"], ["interested", "Interested"],
+  ["paid", "Paid"], ["not_interested", "Not interested"],
+] as const;
 
 const STATUSES = ["", "completed", "failed", "abandoned", "running", "queued"];
 
 export default function Evaluations({
-  call, range, canWrite,
+  call, range, canWrite, initialQuery = "",
 }: {
   call: (p: string, i?: RequestInit) => Promise<Response | null>;
-  range: string; canWrite: boolean;
+  range: string; canWrite: boolean; initialQuery?: string;
 }) {
   const [rows, setRows] = useState<Ev[]>([]);
   const [method, setMethod] = useState<Record<string, string> | null>(null);
@@ -37,7 +45,8 @@ export default function Evaluations({
   const [sort, setSort] = useState("started");
   const [dir, setDir] = useState<"asc" | "desc">("desc");
   const [status, setStatus] = useState("");
-  const [q, setQ] = useState("");
+  const [leadStatus, setLeadStatus] = useState("");
+  const [q, setQ] = useState(initialQuery);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
   const [open, setOpen] = useState<Ev | null>(null);
@@ -47,15 +56,26 @@ export default function Evaluations({
     setLoading(true); setErr(null);
     const p = new URLSearchParams({ range, page: String(page), size: String(size), sort, dir });
     if (status) p.set("status", status);
+    if (leadStatus) p.set("lead_status", leadStatus);
     if (q) p.set("q", q);
     const res = await call(`/api/admin/evaluations?${p}`);
     if (!res) { setLoading(false); return; }
     if (!res.ok) { setErr("Could not load evaluations."); setLoading(false); return; }
     const d = await res.json();
     setRows(d.evaluations ?? []); setTotal(d.total ?? 0); setMethod(d.method ?? null); setLoading(false);
-  }, [call, range, page, sort, dir, status, q]);
+  }, [call, range, page, sort, dir, status, leadStatus, q]);
 
   useEffect(() => { void load(); }, [load]);
+
+  const saveCall = async (id: string, body: Record<string, unknown>) => {
+    const res = await call("/api/admin/evaluations", { method: "PATCH", body: JSON.stringify({ id, ...body }) });
+    if (res?.ok) {
+      await load();
+      setOpen((o) => (o && o.id === id ? { ...o, ...(body.leadStatus ? { lead_status: String(body.leadStatus) } : {}), ...(body.notes !== undefined ? { lead_notes: String(body.notes) } : {}) } : o));
+    } else if (res) {
+      setMsg((await res.json().catch(() => ({})))?.error ?? "That change was refused.");
+    }
+  };
 
   const retry = async (id: string) => {
     setMsg(null);
@@ -79,6 +99,10 @@ export default function Evaluations({
         <select className="ad-select" value={status} onChange={(e) => { setStatus(e.target.value); setPage(0); }} aria-label="Filter by status">
           {STATUSES.map((s) => <option key={s} value={s}>{s ? s[0].toUpperCase() + s.slice(1) : "All statuses"}</option>)}
         </select>
+        <select className="ad-select" value={leadStatus} onChange={(e) => { setLeadStatus(e.target.value); setPage(0); }} aria-label="Filter by call status">
+          <option value="">Any call status</option>
+          {LEAD_STATUSES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+        </select>
       </div>
 
       {loading ? <Loading rows={6} /> : rows.length === 0 ? (
@@ -94,6 +118,7 @@ export default function Evaluations({
                 <Th>Website / business</Th>
                 <Th>Contact</Th>
                 <Th>Status</Th>
+                <Th>Call</Th>
                 <Th col="score" sort={sort} dir={dir} onSort={onSort} numeric>Readable</Th>
                 <Th col="mentions" sort={sort} dir={dir} onSort={onSort} numeric>Mentioned</Th>
                 <Th numeric>Report</Th>
@@ -108,13 +133,29 @@ export default function Evaluations({
                   <td className="ad-num ad-muted" style={{ whiteSpace: "nowrap" }}>{fmtDate(e.started_at, true)}</td>
                   <td>
                     <div style={{ fontWeight: 600 }}>{e.website ?? e.business_name ?? "—"}</div>
-                    <div className="ad-muted" style={{ fontSize: 12 }}>{[e.business_type, e.area].filter(Boolean).join(" · ")}</div>
+                    <div className="ad-muted" style={{ fontSize: 12 }}>
+                      {[e.site_title ?? e.enrichment?.title, e.business_type, e.area].filter(Boolean).join(" · ")}
+                      {e.entry_source ? <span className="ad-badge" style={{ marginLeft: 6 }}>{e.entry_source}</span> : null}
+                    </div>
                   </td>
-                  <td className="ad-muted" style={{ fontSize: 12 }}>{e.contact?.email ?? <span className="ad-muted">anonymous</span>}</td>
+                  <td style={{ fontSize: 12 }}>
+                    {/* the person's own details first; a published one second, labelled */}
+                    {e.contact?.email ? <div>{e.contact.email}</div> : null}
+                    {(e.phone ?? e.contact?.phone) ? <div className="ad-num">{e.phone ?? e.contact?.phone}</div> : null}
+                    {!e.contact?.email && !e.phone && !e.contact?.phone ? (
+                      e.enrichment && (e.enrichment.phones.length || e.enrichment.emails.length) ? (
+                        <div className="ad-muted">
+                          {e.enrichment.phones[0] ?? e.enrichment.emails[0]}
+                          <span className="ad-badge" style={{ marginLeft: 5 }}>public</span>
+                        </div>
+                      ) : <span className="ad-muted">anonymous</span>
+                    ) : null}
+                  </td>
                   <td>
                     <Badge value={e.status} />
                     {e.attempt > 1 ? <div className="ad-muted" style={{ fontSize: 11 }}>attempt {e.attempt}</div> : null}
                   </td>
+                  <td><Badge value={e.lead_status} /></td>
                   <td className="ad-num" style={{ textAlign: "right" }}>
                     {e.readiness_score === null
                       ? <span className="ad-muted" title={e.site_reachable === false ? "Site could not be reached" : "No site scan"}>—</span>
@@ -164,9 +205,69 @@ export default function Evaluations({
 
             <div style={{ display: "flex", gap: 7, flexWrap: "wrap", margin: "13px 0" }}>
               <Badge value={open.status} />
+              <Badge value={open.lead_status} />
               {open.is_test ? <span className="ad-badge">test fixture — excluded from reporting</span> : null}
+              {open.is_internal ? <span className="ad-badge">internal run — excluded from reporting</span> : null}
               {open.retry_of ? <span className="ad-badge">retry of an earlier run</span> : null}
             </div>
+
+            {/* call tracking: the outreach state of THIS run. Separate from the
+                contact's pipeline — only the Stripe webhook marks a person paid. */}
+            <div className="ad-filters" style={{ marginBottom: 0 }}>
+              <select
+                className="ad-select" value={open.lead_status} disabled={!canWrite}
+                onChange={(e) => saveCall(open.id, { leadStatus: e.target.value })}
+                aria-label="Call status"
+              >
+                {LEAD_STATUSES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+              </select>
+            </div>
+            <div style={{ marginTop: 10 }}>
+              <textarea
+                className="ad-input" style={{ width: "100%", minHeight: 64 }}
+                defaultValue={open.lead_notes ?? ""} disabled={!canWrite}
+                placeholder="Call notes — who you spoke to, what they said…"
+                aria-label="Call notes"
+                onBlur={(e) => { if (e.target.value !== (open.lead_notes ?? "")) saveCall(open.id, { notes: e.target.value }); }}
+              />
+            </div>
+
+            {open.enrichment && (open.enrichment.phones.length || open.enrichment.emails.length || open.enrichment.address || open.enrichment.socials.length) ? (
+              <div className="ad-sect" style={{ marginTop: 14 }}>
+                <h3 className="ad-sect-h">Published contact details</h3>
+                <dl className="ad-kv">
+                  {open.enrichment.phones.length ? (
+                    <>
+                      <dt>Phone</dt>
+                      <dd>{open.enrichment.phones.map((ph) => (
+                        <a key={ph} href={`tel:${ph.replace(/[^\d+]/g, "")}`} style={{ marginRight: 10, color: "var(--ad-amber-2)", fontWeight: 600 }}>{ph}</a>
+                      ))}</dd>
+                    </>
+                  ) : null}
+                  {open.enrichment.emails.length ? (
+                    <>
+                      <dt>Email</dt>
+                      <dd>{open.enrichment.emails.map((em) => (
+                        <a key={em} href={`mailto:${em}`} style={{ marginRight: 10, color: "var(--ad-amber-2)" }}>{em}</a>
+                      ))}</dd>
+                    </>
+                  ) : null}
+                  {open.enrichment.address ? (<><dt>Address</dt><dd>{open.enrichment.address}</dd></>) : null}
+                  {open.enrichment.socials.length ? (
+                    <>
+                      <dt>Social</dt>
+                      <dd>{open.enrichment.socials.map((so) => (
+                        <a key={so} href={so} target="_blank" rel="noreferrer" style={{ display: "block", color: "var(--ad-ink-2)", fontSize: 12, wordBreak: "break-all" }}>{so}</a>
+                      ))}</dd>
+                    </>
+                  ) : null}
+                </dl>
+                <p className="ad-def">
+                  Copied from the business&apos;s own pages for a one-off personal follow-up. These details carry no
+                  marketing consent — they never enter nurture sequences.
+                </p>
+              </div>
+            ) : null}
 
             {open.failure_reason ? (
               <div className="ad-err" role="note">
@@ -184,6 +285,8 @@ export default function Evaluations({
               <dt>Web searches</dt><dd>{open.web_searches ?? "—"}</dd>
               <dt>Measured cost</dt><dd>{open.est_cost_pence === null ? "—" : `${Number(open.est_cost_pence).toFixed(3)}p`}</dd>
               <dt>Contact</dt><dd>{open.contact?.email ?? "anonymous — no email given"}</dd>
+              <dt>Their phone</dt><dd>{open.phone ? <a href={`tel:${open.phone.replace(/[^\d+]/g, "")}`} style={{ color: "var(--ad-amber-2)", fontWeight: 600 }}>{open.phone}</a> : "not given"}</dd>
+              <dt>Arrived via</dt><dd>{open.entry_source ?? "organic"}</dd>
               <dt>Report emailed</dt><dd>{open.report_emailed_at ? fmtDate(open.report_emailed_at, true) : "not emailed"}</dd>
               <dt>Report viewed</dt><dd>{open.report_viewed_at ? `${fmtDate(open.report_viewed_at, true)} (${open.report_views})` : "not viewed"}</dd>
             </dl>

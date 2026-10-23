@@ -27,6 +27,9 @@ export type Scan = {
   score: number;
   maxScore: number;
   loadMs: number | null;
+  /** The homepage HTML this scan already fetched, so enrichment does not
+   *  fetch the same page twice. Not serialised into reports. */
+  html?: string;
 };
 
 const UA = "Mozilla/5.0 (compatible; BiLabsReadiness/1.0; +https://bilabs.ai)";
@@ -237,5 +240,5 @@ export async function scanSite(rawUrl: string): Promise<Scan> {
   const score = checks.reduce((n, c) => n + (c.pass ? c.weight : 0), 0);
 
   void lower;
-  return { url, reachable: true, checks, score, maxScore, loadMs: home.ms };
+  return { url, reachable: true, checks, score, maxScore, loadMs: home.ms, html };
 }

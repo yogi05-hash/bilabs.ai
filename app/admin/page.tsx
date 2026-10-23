@@ -28,7 +28,7 @@ const TABS: Array<{ id: Tab; label: string }> = [
   { id: "overview", label: "Overview" },
   { id: "visitors", label: "Visitors" },
   { id: "leads", label: "Leads" },
-  { id: "evaluations", label: "Evaluations" },
+  { id: "evaluations", label: "Checks" },
   { id: "customers", label: "Customers & Billing" },
   { id: "campaigns", label: "Campaigns" },
   { id: "followups", label: "Follow-ups" },
@@ -55,6 +55,8 @@ export default function AdminPage() {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
 
+  // set when another tab deep-links into Checks (e.g. a visitor's row)
+  const [checksQuery, setChecksQuery] = useState("");
   const [overview, setOverview] = useState<OverviewData | null>(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
@@ -225,9 +227,11 @@ export default function AdminPage() {
           {tab === "overview" ? (
             <Overview data={overview} loading={loading} error={err} onRetry={loadOverview} onGo={(t) => setTab(t as Tab)} />
           ) : null}
-          {tab === "visitors" ? <Visitors call={call} range={rangeQs()} /> : null}
+          {tab === "visitors" ? (
+            <Visitors call={call} range={rangeQs()} onOpenCheck={(domain) => { setChecksQuery(domain); setTab("evaluations"); }} />
+          ) : null}
           {tab === "leads" ? <Leads call={call} range={rangeQs()} canWrite={canWrite} /> : null}
-          {tab === "evaluations" ? <Evaluations call={call} range={range} canWrite={canWrite} /> : null}
+          {tab === "evaluations" ? <Evaluations call={call} range={range} canWrite={canWrite} initialQuery={checksQuery} /> : null}
           {tab === "customers" ? <Customers call={call} range={range} isOwner={isOwner} /> : null}
           {tab === "campaigns" ? <Campaigns call={call} range={range} /> : null}
           {tab === "followups" ? <FollowUps call={call} canWrite={canWrite} /> : null}

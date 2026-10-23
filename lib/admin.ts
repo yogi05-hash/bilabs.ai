@@ -19,6 +19,7 @@ export type AuditAction =
   | "lead.delete"
   | "lead.export"
   | "evaluation.retry"
+  | "evaluation.status"
   | "followup.create"
   | "followup.complete"
   | "settings.update"

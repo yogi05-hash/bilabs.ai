@@ -158,6 +158,8 @@ export async function POST(request: NextRequest) {
     const postcode = clean(body?.postcode, 12);
     const email = clean(body?.email, 160);
     const consent = body?.marketingConsent === true;
+    // where the check came from: a ?site= link in a nurture email, etc.
+    const entrySource = clean(body?.entrySource, 60) || null;
 
     if (!type || !area) {
       return NextResponse.json({ error: "Tell us what the business does and where it is." }, { status: 400 });
@@ -194,6 +196,9 @@ export async function POST(request: NextRequest) {
       area,
       postcode: postcode || null,
       isTest: ctx.isTest,
+      // our own runs (admin cookie or excluded IP) never reach the lists
+      isInternal: ctx.isInternal,
+      entrySource,
     });
     const startedAtMs = Date.now();
 
@@ -240,6 +245,8 @@ export async function POST(request: NextRequest) {
         model,
         webSearches: queries.reduce((n, q) => n + (q.searches ?? 0), 0),
         startedAtMs,
+        // the scan already fetched this page; enrichment reuses it
+        homepageHtml: scan?.html ?? null,
       });
     }
 
@@ -256,7 +263,9 @@ export async function POST(request: NextRequest) {
         mentions_total: ran.length,
         readiness_score: score,
         marketing_consent: consent,
-        report: { queries, competitors, scan },
+        // scan.html is the raw homepage — useful for enrichment, far too big
+        // and pointless to store on every lead row
+        report: { queries, competitors, scan: scan ? { ...scan, html: undefined } : null },
       });
       if (lead) {
         await alertNewLead(lead, "AI check");

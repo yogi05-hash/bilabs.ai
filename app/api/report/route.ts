@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { alertNewLead, upsertLead } from "@/lib/leads";
+import { alertNewLead, sb, upsertLead } from "@/lib/leads";
 import { sendReport, type Payload } from "@/lib/report";
 import { contextFrom, identifyVisitor, recordEvent, touchVisitor } from "@/lib/analytics";
 import { getSettings } from "@/lib/admin";
@@ -43,6 +43,9 @@ export async function POST(request: NextRequest) {
 
     const type = typeof body?.businessType === "string" ? body.businessType.slice(0, 80) : "";
     const area = typeof body?.area === "string" ? body.area.slice(0, 80) : "";
+    // optional callback number — "want a free 10-minute walkthrough?"
+    const rawPhone = typeof body?.phone === "string" ? body.phone.trim().slice(0, 40) : "";
+    const phone = /\d{7,}/.test(rawPhone.replace(/[^\d]/g, "")) ? rawPhone : null;
 
     /* Order matters, and it was the wrong way round. The email was sent
      * first, so anything that threw while building or sending it returned a
@@ -50,6 +53,7 @@ export async function POST(request: NextRequest) {
      * failure the contact form was fixed for. Record first, mail second. */
     const lead = await upsertLead({
       email,
+      phone,
       company: report.business || null,
       website: report.scan?.url ?? null,
       business_type: type || null,
@@ -84,6 +88,13 @@ export async function POST(request: NextRequest) {
       if (evaluationId) {
         await attachContact(evaluationId, lead.id);
         if (sent) await markReportEmailed(evaluationId);
+        if (phone) {
+          await sb(`bilabs_evaluations?id=eq.${evaluationId}`, {
+            method: "PATCH",
+            headers: { Prefer: "return=minimal" },
+            body: JSON.stringify({ phone }),
+          });
+        }
       }
       if (visitor) await identifyVisitor(visitor.id, lead.id);
       await recordEvent({

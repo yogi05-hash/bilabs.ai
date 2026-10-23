@@ -6,6 +6,7 @@ import { sb } from "@/lib/leads";
 import {
   ABANDON_AFTER_MS,
   DUPLICATE_WINDOW_MS,
+  LEAD_STATUSES,
   startEvaluation,
   sweepAbandoned,
   type Evaluation,
@@ -34,6 +35,7 @@ export async function GET(req: NextRequest) {
   const sort = SORTS[q.get("sort") ?? "started"] ?? "started_at";
   const dir = q.get("dir") === "asc" ? "asc" : "desc";
   const status = q.get("status") ?? "";
+  const leadStatus = q.get("lead_status") ?? "";
   const search = (q.get("q") ?? "").trim();
 
   const parts = [
@@ -43,8 +45,9 @@ export async function GET(req: NextRequest) {
     `limit=${size}`,
     `offset=${page * size}`,
   ];
-  if (q.get("tests") !== "1") parts.push("is_test=is.false");
+  if (q.get("tests") !== "1") parts.push("is_test=is.false", "is_internal=is.false");
   if (status) parts.push(`status=eq.${encodeURIComponent(status)}`);
+  if (leadStatus) parts.push(`lead_status=eq.${encodeURIComponent(leadStatus)}`);
   if (search) {
     const safe = search.replace(/[(),*]/g, " ");
     parts.push(`or=(website.ilike.*${safe}*,business_name.ilike.*${safe}*,business_type.ilike.*${safe}*,area.ilike.*${safe}*)`);
@@ -69,7 +72,7 @@ export async function GET(req: NextRequest) {
   const contactIds = Array.from(new Set(rows.map((r) => r.contact_id).filter(Boolean))) as string[];
   const contacts = contactIds.length
     ? (await sb<{ id: string; email: string | null; company: string | null }[]>(
-        `bilabs_leads?id=in.(${contactIds.join(",")})&select=id,email,company`,
+        `bilabs_leads?id=in.(${contactIds.join(",")})&select=id,email,phone,company`,
       )) ?? []
     : [];
   const byId = new Map(contacts.map((c) => [c.id, c]));
@@ -91,6 +94,43 @@ export async function GET(req: NextRequest) {
       cost: "Cost is the web searches the API actually reported for that run, at $10 per 1,000, converted at a fixed declared rate. Token cost is not included.",
     },
   });
+}
+
+/* Call-tracking on a check: status dropdown and notes.
+ *
+ * lead_status is the outreach state of THIS run. It deliberately does not
+ * touch the contact's pipeline_status — marking a check "paid" is a note
+ * about a phone call, and only the verified Stripe webhook marks a person
+ * paid. */
+export async function PATCH(req: NextRequest) {
+  const guard = await requireWriter(req);
+  if ("error" in guard) return guard.error;
+  const { admin } = guard;
+
+  const body = await req.json().catch(() => null);
+  const id = String(body?.id ?? "");
+  if (!/^[0-9a-f-]{36}$/i.test(id)) return NextResponse.json({ error: "Bad id" }, { status: 400 });
+
+  const patch: Record<string, unknown> = {};
+  if (typeof body?.leadStatus === "string") {
+    if (!(LEAD_STATUSES as readonly string[]).includes(body.leadStatus)) {
+      return NextResponse.json({ error: "Unknown status." }, { status: 400 });
+    }
+    patch.lead_status = body.leadStatus;
+  }
+  if (typeof body?.notes === "string") patch.lead_notes = body.notes.slice(0, 4000);
+  if (!Object.keys(patch).length) return NextResponse.json({ error: "Nothing to change." }, { status: 400 });
+
+  await sb(`bilabs_evaluations?id=eq.${id}`, {
+    method: "PATCH",
+    headers: { Prefer: "return=minimal" },
+    body: JSON.stringify(patch),
+  });
+  await audit(admin, "evaluation.status", { type: "evaluation", id }, {
+    ...(patch.lead_status ? { lead_status: patch.lead_status } : {}),
+    ...(patch.lead_notes !== undefined ? { notes_len: String(patch.lead_notes).length } : {}),
+  });
+  return NextResponse.json({ ok: true });
 }
 
 /* Retry a failed or abandoned check.

@@ -162,3 +162,54 @@ test("an IP is stored only as a stable salted hash, never recoverable", () => {
   assert.equal(h.length, 32);
   assert.ok(!h.includes("81.2"), "the address itself must not survive in the hash");
 });
+
+/* --------------------------------------------------------- enrichment */
+
+import { extractContact } from "../lib/enrich.ts";
+
+const PAGE = `<html><head>
+  <title>Smile Dental — Croydon's friendly dentist</title>
+  <meta property="og:site_name" content="Smile Dental">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"Dentist","name":"Smile Dental","address":{"@type":"PostalAddress","streetAddress":"12 High St","addressLocality":"Croydon","postalCode":"CR0 1AB"}}</script>
+  <script>var junk = "not-an-email@2x.png"; call("020 0000 0000");</script>
+</head><body>
+  <a href="tel:+442081234567">Call us: 020 8123 4567</a>
+  <a href="mailto:hello@smiledental.co.uk">Email us</a>
+  <p>Or ring 07700 900123 after hours. Prices from 2024-2026: £45.</p>
+  <img src="logo@2x.png"> <img src="team@photo.jpg">
+  <a href="https://www.facebook.com/smiledentalcroydon">Facebook</a>
+  <a href="https://www.facebook.com/sharer/sharer.php?u=x">Share</a>
+  <a href="https://instagram.com/smiledental">Instagram</a>
+</body></html>`;
+
+test("enrichment copies published details and nothing else", () => {
+  const c = extractContact(PAGE);
+  assert.equal(c.title, "Smile Dental", "og:site_name beats the sloganed <title>");
+  assert.ok(c.phones.includes("+442081234567"), "the tel: link is the primary phone");
+  assert.ok(c.emails.includes("hello@smiledental.co.uk"));
+  assert.ok(!c.emails.some((e) => e.endsWith(".png") || e.endsWith(".jpg")), "image filenames are not emails");
+  assert.match(c.address ?? "", /12 High St, Croydon/, "schema.org PostalAddress is read");
+  assert.ok(c.socials.some((s) => s.includes("facebook.com/smiledentalcroydon")));
+  assert.ok(!c.socials.some((s) => s.includes("/sharer")), "share widgets are not the business's page");
+  assert.ok(c.socials.some((s) => s.includes("instagram.com/smiledental")));
+});
+
+test("a page that publishes nothing yields nothing — never a guess", () => {
+  const c = extractContact("<html><head><title>Hello</title></head><body><p>Welcome to our site. Established 2019. £1,234,567 turnover.</p></body></html>");
+  assert.deepEqual(c.phones, [], "prices and years must not become phone numbers");
+  assert.deepEqual(c.emails, []);
+  assert.equal(c.address, null);
+  assert.deepEqual(c.socials, []);
+  assert.equal(c.title, "Hello");
+});
+
+test("script contents are not treated as visible contact details", () => {
+  const c = extractContact('<html><body><script>fallback("020 7946 0000")</script><p>No contact here.</p></body></html>');
+  assert.deepEqual(c.phones, [], "a number inside a script tag is code, not a published phone");
+});
+
+test("empty input is an empty result, not an error", () => {
+  const c = extractContact("");
+  assert.deepEqual(c.phones, []);
+  assert.equal(c.title, null);
+});

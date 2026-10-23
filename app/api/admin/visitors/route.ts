@@ -71,6 +71,18 @@ export async function GET(req: NextRequest) {
     }
   }
 
+  // What each visitor checked: their most recent evaluation, one query for
+  // the whole page. Newest first, so the first hit per visitor wins.
+  const vIds = rows.map((r) => r.id);
+  const checkedBy = new Map<string, { id: string; website: string | null; business_name: string | null; readiness_score: number | null; mentions: number | null; mentions_total: number | null }>();
+  if (vIds.length) {
+    const evals = await sb<{ id: string; visitor_id: string; website: string | null; business_name: string | null; readiness_score: number | null; mentions: number | null; mentions_total: number | null }[]>(
+      `bilabs_evaluations?visitor_id=in.(${vIds.join(",")})&is_test=is.false&order=started_at.desc&limit=500` +
+        `&select=id,visitor_id,website,business_name,readiness_score,mentions,mentions_total`,
+    );
+    for (const e of evals ?? []) if (!checkedBy.has(e.visitor_id)) checkedBy.set(e.visitor_id, e);
+  }
+
   // Attach the contact's email where — and only where — one exists.
   const contactIds = Array.from(new Set(rows.map((r) => r.contact_id).filter(Boolean))) as string[];
   const contacts = contactIds.length
@@ -91,6 +103,7 @@ export async function GET(req: NextRequest) {
       visitor_key: undefined,
       channel: channelOf(r.utm_source, r.utm_medium, r.referrer_host),
       contact: r.contact_id ? byId.get(r.contact_id) ?? null : null,
+      checked: checkedBy.get(r.id) ?? null,
       returning: r.visit_count > 1,
     })),
     limitations: [

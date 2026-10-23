@@ -306,4 +306,4 @@ export async function identifyVisitor(visitorId: string, contactId: string): Pro
 
 /** Rows excluded from every production metric. */
 export const CLEAN = "is_bot=is.false&is_internal=is.false&is_test=is.false";
-export const CLEAN_EVAL = "is_test=is.false";
+export const CLEAN_EVAL = "is_test=is.false&is_internal=is.false";

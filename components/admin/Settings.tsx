@@ -131,13 +131,19 @@ export default function Settings({
               {d.settings.internalIpHashes.length} address{d.settings.internalIpHashes.length === 1 ? "" : "es"} excluded.
               Stored only as a salted hash — the address itself is never kept.
             </div>
-            <div style={{ display: "flex", gap: 7 }}>
+            <div style={{ display: "flex", gap: 7, flexWrap: "wrap" }}>
               <input className="ad-input" placeholder="Add an IP to exclude" value={ip} disabled={!isOwner}
                      onChange={(e) => setIp(e.target.value)} aria-label="IP to exclude" />
               <button className="ad-btn" disabled={!isOwner || !ip.trim()}
                       onClick={() => { save({ internalIps: [ip.trim()] }); setIp(""); }}>Add</button>
+              <button className="ad-btn" disabled={!isOwner}
+                      title="The server reads your address from its own headers and stores only a hash"
+                      onClick={() => save({ excludeSelf: true })}>Exclude my current IP</button>
             </div>
-            <p className="ad-def">Anyone signed in to this dashboard is already excluded automatically.</p>
+            <p className="ad-def">
+              Anyone signed in to this dashboard is already excluded automatically. &ldquo;Exclude my current IP&rdquo;
+              covers the same network when you are signed out — your other browsers, phone and anyone on your wifi.
+            </p>
           </div>
         </div>
 

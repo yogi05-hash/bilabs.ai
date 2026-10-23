@@ -16,9 +16,17 @@ type V = {
   device: string | null; country: string | null; returning: boolean;
   identified_at: string | null; is_bot: boolean; is_internal: boolean; is_test: boolean;
   contact: { id: string; email: string | null; company: string | null } | null;
+  checked: { id: string; website: string | null; business_name: string | null; readiness_score: number | null; mentions: number | null; mentions_total: number | null } | null;
 };
 
-export default function Visitors({ call, range }: { call: (p: string, i?: RequestInit) => Promise<Response | null>; range: string }) {
+export default function Visitors({
+  call, range, onOpenCheck,
+}: {
+  call: (p: string, i?: RequestInit) => Promise<Response | null>;
+  range: string;
+  /** jump to the Checks tab filtered to this domain */
+  onOpenCheck: (domain: string) => void;
+}) {
   const [rows, setRows] = useState<V[]>([]);
   const [limits, setLimits] = useState<string[]>([]);
   const [total, setTotal] = useState(0);
@@ -84,6 +92,7 @@ export default function Visitors({ call, range }: { call: (p: string, i?: Reques
                 <Th col="last" sort={sort} dir={dir} onSort={onSort}>Last activity</Th>
                 <Th col="visits" sort={sort} dir={dir} onSort={onSort} numeric>Visits</Th>
                 <Th col="views" sort={sort} dir={dir} onSort={onSort} numeric>Views</Th>
+                <Th>Checked</Th>
                 <Th>Landed on</Th>
                 <Th>Source</Th>
                 <Th>Device</Th>
@@ -105,6 +114,23 @@ export default function Visitors({ call, range }: { call: (p: string, i?: Reques
                   <td className="ad-num ad-muted" style={{ whiteSpace: "nowrap" }}>{ago(v.last_seen_at)}</td>
                   <td className="ad-num" style={{ textAlign: "right" }}>{fmtNum(v.visit_count)}</td>
                   <td className="ad-num" style={{ textAlign: "right" }}>{fmtNum(v.page_views)}</td>
+                  <td style={{ fontSize: 12 }}>
+                    {v.checked?.website ? (
+                      <button
+                        className="ad-row-btn"
+                        onClick={() => onOpenCheck(v.checked!.website!.replace(/^https?:\/\//i, "").replace(/\/.*$/, ""))}
+                        style={{ background: "none", border: "none", padding: 0, font: "inherit", cursor: "pointer", color: "var(--ad-amber-2)", fontWeight: 600, textAlign: "left" }}
+                        title="Open this check"
+                      >
+                        {v.checked.website.replace(/^https?:\/\//i, "").replace(/\/.*$/, "")}
+                        {v.checked.readiness_score !== null ? <span className="ad-muted" style={{ fontWeight: 400 }}> · {v.checked.readiness_score}/100</span> : null}
+                      </button>
+                    ) : v.checked ? (
+                      <span className="ad-muted">{v.checked.business_name ?? "no website given"}</span>
+                    ) : (
+                      <span className="ad-muted">—</span>
+                    )}
+                  </td>
                   <td className="ad-muted" style={{ fontSize: 12 }}>{v.landing_path ?? "—"}</td>
                   <td style={{ fontSize: 12 }}>
                     {v.channel}

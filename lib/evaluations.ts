@@ -1,5 +1,8 @@
+import { env } from "@/lib/env";
 import { sb } from "@/lib/leads";
 import { recordEvent } from "@/lib/analytics";
+import { enrichSite, type Contact } from "@/lib/enrich";
+import { logEmail } from "@/lib/admin";
 
 /* The free AI check, as a tracked job.
  *
@@ -67,7 +70,19 @@ export type Evaluation = {
   requested_by: string | null;
   is_test: boolean;
   created_at: string;
+  /* capture upgrade */
+  site_title: string | null;
+  phone: string | null;
+  /** outreach state for THIS run — not the contact's pipeline_status */
+  lead_status: "new" | "called" | "interested" | "paid" | "not_interested";
+  lead_notes: string | null;
+  is_internal: boolean;
+  entry_source: string | null;
+  enrichment: Contact | null;
+  enriched_at: string | null;
 };
+
+export const LEAD_STATUSES = ["new", "called", "interested", "paid", "not_interested"] as const;
 
 /* Anthropic bills server-side web search at $10 per 1,000 searches, plus
  * normal token cost. Only the search count is reported back per request, so
@@ -91,6 +106,8 @@ export async function startEvaluation(input: {
   area?: string | null;
   postcode?: string | null;
   isTest?: boolean;
+  isInternal?: boolean;
+  entrySource?: string | null;
   requestedBy?: string | null;
   retryOf?: string | null;
   attempt?: number;
@@ -112,6 +129,8 @@ export async function startEvaluation(input: {
       retry_of: input.retryOf ?? null,
       attempt: input.attempt ?? 1,
       is_test: input.isTest ?? false,
+      is_internal: input.isInternal ?? false,
+      entry_source: input.entrySource ?? null,
     }),
   });
   const ev = rows?.[0] ?? null;
@@ -159,6 +178,8 @@ export async function completeEvaluation(
     model: string | null;
     webSearches: number | null;
     startedAtMs: number;
+    /** the homepage HTML the scan already fetched, for enrichment */
+    homepageHtml?: string | null;
   },
 ): Promise<void> {
   const runtime = Date.now() - result.startedAtMs;
@@ -197,6 +218,102 @@ export async function completeEvaluation(
       runtime_ms: runtime,
     },
     isTest: ev?.is_test ?? false,
+  });
+
+  /* Enrichment and the instant alert, best-effort: a scrape or mail failure
+   * must never fail a check the visitor is still waiting on. */
+  if (ev) {
+    let contact: Contact | null = null;
+    if (ev.website && result.homepageHtml) {
+      try {
+        contact = await enrichSite(ev.website, result.homepageHtml);
+        await sb(`bilabs_evaluations?id=eq.${id}`, {
+          method: "PATCH",
+          headers: { Prefer: "return=minimal" },
+          body: JSON.stringify({
+            enrichment: contact,
+            enriched_at: new Date().toISOString(),
+            site_title: contact.title,
+          }),
+        });
+      } catch (e) {
+        console.warn("[evaluations] enrichment failed:", e);
+      }
+    }
+    try {
+      await alertCheck({ ...ev, enrichment: contact ?? ev.enrichment });
+    } catch (e) {
+      console.warn("[evaluations] alert failed:", e);
+    }
+  }
+}
+
+/* The instant "someone just ran a check" email.
+ *
+ * Fires for every real completed check, including fully anonymous ones —
+ * those are exactly the ones where the published business details are the
+ * only way to follow up. Internal and test runs stay silent. */
+export async function alertCheck(ev: Evaluation): Promise<void> {
+  if (ev.is_test || ev.is_internal) return;
+  const key = env("RESEND_API_KEY");
+  if (!key) return;
+
+  const to = env("LEAD_NOTIFY_TO", "hello@bilabs.ai");
+  const from = env("LEAD_FROM", "BiLabs <no-reply@yourbotchat.com>");
+  const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const row = (k: string, v: unknown) =>
+    v === null || v === undefined || v === ""
+      ? ""
+      : `<tr><td style="padding:6px 16px 6px 0;color:#888;vertical-align:top">${k}</td><td style="font-weight:600">${v}</td></tr>`;
+
+  const e = ev.enrichment;
+  // the visitor's own number first; a published one second
+  const phone = ev.phone ?? e?.phones?.[0] ?? null;
+  const email = e?.emails?.[0] ?? null;
+  const domain = ev.website ? ev.website.replace(/^https?:\/\//i, "").replace(/\/.*$/, "") : null;
+
+  const telLink = phone
+    ? `<p style="margin:18px 0 0"><a href="tel:${esc(phone.replace(/[^\d+]/g, ""))}" style="display:inline-block;background:#167C45;color:#fff;padding:11px 20px;border-radius:999px;font-weight:700;text-decoration:none">Call now · ${esc(phone)}</a></p>`
+    : "";
+
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      from,
+      to: [to],
+      subject: `Check run — ${domain ?? ev.business_name ?? "unknown"}${ev.readiness_score !== null ? ` (${ev.readiness_score}/100)` : ""}${ev.mentions !== null ? ` · mentioned ${ev.mentions}/${ev.mentions_total}` : ""}`,
+      html: `<div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;max-width:560px">
+        <h2 style="margin:0 0 14px">Someone just checked ${esc(ev.site_title ?? e?.title ?? domain ?? "a business")}</h2>
+        <table style="font-size:15px;border-collapse:collapse">
+          ${row("Website", domain ? esc(domain) : null)}
+          ${row("Business", esc(ev.business_name ?? e?.title ?? ""))}
+          ${row("Type · area", esc([ev.business_type, ev.area].filter(Boolean).join(" · ")))}
+          ${row("AI readiness", ev.readiness_score !== null ? `${ev.readiness_score}/${ev.readiness_max ?? 100}` : "site not scanned")}
+          ${row("Mentioned", ev.mentions !== null ? `${ev.mentions}/${ev.mentions_total}` : null)}
+          ${row("They gave a phone", ev.phone ? esc(ev.phone) : null)}
+          ${row("Published phone", !ev.phone && e?.phones?.length ? esc(e.phones.join(" · ")) : null)}
+          ${row("Published email", email ? `<a href="mailto:${esc(email)}">${esc(email)}</a>` : null)}
+          ${row("Published address", e?.address ? esc(e.address) : null)}
+          ${row("Arrived via", ev.entry_source ? esc(ev.entry_source) : null)}
+        </table>
+        ${telLink}
+        <p style="margin:18px 0 0;font-size:14px">
+          <a href="${env("NEXT_PUBLIC_SITE_URL", "https://bilabs.ai")}/admin" style="color:#B8841A;font-weight:600">Open in admin →</a>
+        </p>
+        <p style="margin:14px 0 0;font-size:12px;color:#999">
+          Published details were copied from the business's own pages for a one-off personal follow-up — they carry no marketing consent.
+        </p>
+      </div>`,
+    }),
+  });
+  await logEmail({
+    contactId: ev.contact_id,
+    email: to,
+    kind: "check_alert",
+    subject: `Check run — ${domain ?? "unknown"}`,
+    ok: res.ok,
+    error: res.ok ? null : `HTTP ${res.status}`,
   });
 }
 

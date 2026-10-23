@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { track } from "@/components/Track";
 
 /* The free AI check, run from the hero.
@@ -35,6 +35,18 @@ const FREE_CHECKS = 3;
 
 export default function HeroCheck() {
   const [website, setWebsite] = useState("");
+  // ?site=&src= links (nurture emails, ads) prefill the form and attribute
+  // the run. window.location on mount, so no Suspense boundary is needed.
+  const [entrySource, setEntrySource] = useState<string | null>(null);
+  useEffect(() => {
+    try {
+      const q = new URLSearchParams(window.location.search);
+      const site = q.get("site");
+      const src = q.get("src");
+      if (site) setWebsite(site.slice(0, 160));
+      if (src) setEntrySource(src.slice(0, 60));
+    } catch { /* malformed query string — ignore */ }
+  }, []);
   const [businessName, setName] = useState("");
   const [businessType, setType] = useState("");
   const [area, setArea] = useState("");
@@ -46,6 +58,7 @@ export default function HeroCheck() {
   const [result, setResult] = useState<Result | null>(null);
 
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   // unticked by default, deliberately: consent has to be given, not withdrawn
   const [consent, setConsent] = useState(false);
   const [unlocked, setUnlocked] = useState(false);
@@ -63,7 +76,7 @@ export default function HeroCheck() {
       const res = await fetch("/api/visibility", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ businessName: businessName || website, website, businessType, area, postcode }),
+        body: JSON.stringify({ businessName: businessName || website, website, businessType, area, postcode, entrySource }),
       });
       const data = await res.json();
       if (!res.ok) { setErr(data.error ?? "The check could not run just now."); return; }
@@ -87,7 +100,7 @@ export default function HeroCheck() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          email, report: result, businessType, area, marketingConsent: consent,
+          email, phone: phone || null, report: result, businessType, area, marketingConsent: consent,
           evaluationId: result.evaluationId ?? null,
         }),
       });
@@ -163,7 +176,10 @@ export default function HeroCheck() {
             ))}
           </ul>
 
-          {result.competitors.length > 0 && (
+          {/* Who the assistant named instead is the most motivating thing a
+              check finds, so it is the thing the email unlocks. Before the
+              unlock, only the COUNT is shown — a fact, not the detail. */}
+          {result.competitors.length > 0 && unlocked && (
             <>
               <p style={{ margin: "16px 0 6px", fontSize: 11.5, fontWeight: 700, letterSpacing: ".14em", textTransform: "uppercase", color: "var(--ink-3)" }}>
                 Named instead
@@ -174,6 +190,12 @@ export default function HeroCheck() {
                 ))}
               </ul>
             </>
+          )}
+          {result.competitors.length > 0 && !unlocked && (
+            <p style={{ margin: "16px 0 0", fontSize: 13.5, fontWeight: 600, color: "var(--ink)" }}>
+              {result.competitors.length} business{result.competitors.length === 1 ? " was" : "es were"} named instead
+              of you. Unlock the full report below to see who.
+            </p>
           )}
 
           {/* readiness */}
@@ -234,10 +256,12 @@ export default function HeroCheck() {
                 ))}
               </ul>
 
-              {hidden > 0 && !unlocked && (
+              {(hidden > 0 || result.competitors.length > 0) && !unlocked && (
                 <form onSubmit={unlock} style={{ marginTop: 16, background: "var(--warm-alt)", borderRadius: 12, padding: 16 }}>
                   <p style={{ margin: 0, fontSize: 13.5, fontWeight: 600, color: "var(--ink)" }}>
-                    {hidden} more {hidden === 1 ? "check" : "checks"} in the full report
+                    {result.competitors.length > 0
+                      ? `See who AI recommends instead of you${hidden > 0 ? `, plus ${hidden} more ${hidden === 1 ? "check" : "checks"}` : ""}`
+                      : `${hidden} more ${hidden === 1 ? "check" : "checks"} in the full report`}
                   </p>
                   <p style={{ margin: "4px 0 10px", fontSize: 12.5, color: "var(--ink-2)" }}>
                     Enter your email and we&apos;ll unlock the rest here and send you the whole thing.
@@ -251,6 +275,16 @@ export default function HeroCheck() {
                     <button type="submit" className="btn-amber" disabled={sending} style={{ padding: "12px 18px" }}>
                       {sending ? "Sending…" : "Unlock full report"}
                     </button>
+                  </div>
+                  <div style={{ marginTop: 8 }}>
+                    <input
+                      type="tel" value={phone} onChange={(e) => setPhone(e.target.value)}
+                      placeholder="Phone (optional)" aria-label="Phone number, optional"
+                      style={{ ...boxed, width: "100%", maxWidth: 280 }}
+                    />
+                    <p style={{ margin: "5px 0 0", fontSize: 12, color: "var(--ink-3)" }}>
+                      Want a free 10-minute walkthrough? Leave your number.
+                    </p>
                   </div>
                   <label style={{ display: "flex", gap: 9, alignItems: "flex-start", marginTop: 10, cursor: "pointer" }}>
                     <input

@@ -128,14 +128,30 @@ export async function PATCH(req: NextRequest) {
   }
   if (body?.notify && typeof body.notify === "object") patch.notify = body.notify;
 
-  // Internal exclusions are given as plain addresses and stored only as
-  // salted hashes, so the settings row never holds anyone's IP.
-  if (Array.isArray(body?.internalIps)) {
-    patch.internalIpHashes = (body.internalIps as unknown[])
-      .filter((x): x is string => typeof x === "string" && x.trim().length > 0)
-      .slice(0, 50)
-      .map((ip) => hashIp(ip.trim()));
+  // One-click "exclude my current IP": the server reads the caller's address
+  // from its own headers and stores only the hash — it never travels to or
+  // from the browser in the clear.
+  if (body?.excludeSelf === true) {
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "";
+    if (ip) {
+      const current = (await getSettings()).internalIpHashes;
+      patch.internalIpHashes = Array.from(new Set([...current, hashIp(ip)])).slice(0, 50);
+    }
   }
+
+  // Internal exclusions are given as plain addresses and stored only as
+  // salted hashes, so the settings row never holds anyone's IP. ADDED to the
+  // existing list — the previous version replaced the whole list with the one
+  // address just typed, silently un-excluding everything else.
+  if (Array.isArray(body?.internalIps)) {
+    const added = (body.internalIps as unknown[])
+      .filter((x): x is string => typeof x === "string" && x.trim().length > 0)
+      .map((ip) => hashIp(ip.trim()));
+    const current = (patch.internalIpHashes as string[] | undefined) ?? (await getSettings()).internalIpHashes;
+    patch.internalIpHashes = Array.from(new Set([...current, ...added])).slice(0, 50);
+  }
+  // explicit reset path, so clearing the list stays possible
+  if (body?.clearInternalIps === true) patch.internalIpHashes = [];
 
   if (!Object.keys(patch).length) return NextResponse.json({ error: "Nothing to change." }, { status: 400 });
 

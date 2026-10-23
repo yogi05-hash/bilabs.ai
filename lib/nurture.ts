@@ -22,6 +22,14 @@ export const STEPS = [
 ] as const;
 
 const SITE = () => env("NEXT_PUBLIC_SITE_URL", "https://bilabs.ai").replace(/\/+$/, "");
+
+/** A link back to the free check, prefilled with their site and attributed to
+ *  the email that sent them — so an email-driven re-check shows up as one. */
+function checkUrl(lead: Lead, src: string): string {
+  const p = new URLSearchParams({ src: `nurture-${src}` });
+  if (lead.website) p.set("site", lead.website.slice(0, 160));
+  return `${SITE()}/?${p.toString()}#check`;
+}
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
 type Check = { id: string; label: string; weight: number; pass: boolean; detail: string };
@@ -123,7 +131,7 @@ ${top.map((c) => `<li style="margin-bottom:10px"><strong>${esc(c.label)}</strong
         lead,
         `<p>Hi${lead.name ? ` ${esc(lead.name.split(" ")[0])}` : ""},</p>
 <p>This is the last email I will send about this — I would rather stop than keep nagging.</p>
-<p>Your check results are still yours, and the free check is always there if you want to see whether anything has shifted. If the timing is wrong, that is completely fine.</p>
+<p>Your check results are still yours, and <a href="${checkUrl(lead, "last")}" style="color:#B8841A">the free check is always there</a> if you want to see whether anything has shifted. If the timing is wrong, that is completely fine.</p>
 <p>If you ever do want it done for you, reply to this and I will pick it up personally.</p>`,
       ),
     };
@@ -244,7 +252,7 @@ export async function sendWelcome(lead: Lead): Promise<boolean> {
 </ol>
 <p>Reply to this email with anything at all — it comes straight to me.</p>
 <p style="color:#555">One honest note while we start: I can make your business readable, and I will keep it current. What any assistant chooses to quote is still its own decision. Anyone who promises you a guaranteed AI ranking is guessing.</p>
-<p><a href="${site}/#check" style="color:#B8841A">Your free check is always here →</a></p>`,
+<p><a href="${checkUrl(lead, "welcome")}" style="color:#B8841A">Your free check is always here →</a></p>`,
     ),
   });
 }
