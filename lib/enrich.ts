@@ -155,13 +155,16 @@ export function extractContact(html: string): Contact {
   }
 
   /* -------- title: og:site_name beats <title>, which carries slogans */
+  const decode = (t: string) =>
+    t.replace(/&amp;/g, "&").replace(/&#0?39;|&apos;/g, "'").replace(/&quot;/g, '"')
+     .replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&nbsp;/g, " ");
   let title: string | null = null;
   const og = /property\s*=\s*["']og:site_name["'][^>]*content\s*=\s*["']([^"']+)["']/i.exec(html)
     ?? /content\s*=\s*["']([^"']+)["'][^>]*property\s*=\s*["']og:site_name["']/i.exec(html);
-  if (og) title = og[1].trim().slice(0, 120);
+  if (og) title = decode(og[1]).trim().slice(0, 120);
   if (!title) {
     const t = /<title[^>]*>([\s\S]*?)<\/title>/i.exec(html);
-    if (t) title = strip(t[1]).trim().slice(0, 120) || null;
+    if (t) title = decode(strip(t[1])).trim().slice(0, 120) || null;
   }
 
   return {
