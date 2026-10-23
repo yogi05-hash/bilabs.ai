@@ -46,6 +46,7 @@ export default function Evaluations({
   const [dir, setDir] = useState<"asc" | "desc">("desc");
   const [status, setStatus] = useState("");
   const [leadStatus, setLeadStatus] = useState("");
+  const [showOwn, setShowOwn] = useState(false);
   const [q, setQ] = useState(initialQuery);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
@@ -57,13 +58,14 @@ export default function Evaluations({
     const p = new URLSearchParams({ range, page: String(page), size: String(size), sort, dir });
     if (status) p.set("status", status);
     if (leadStatus) p.set("lead_status", leadStatus);
+    if (showOwn) p.set("tests", "1");
     if (q) p.set("q", q);
     const res = await call(`/api/admin/evaluations?${p}`);
     if (!res) { setLoading(false); return; }
     if (!res.ok) { setErr("Could not load evaluations."); setLoading(false); return; }
     const d = await res.json();
     setRows(d.evaluations ?? []); setTotal(d.total ?? 0); setMethod(d.method ?? null); setLoading(false);
-  }, [call, range, page, sort, dir, status, leadStatus, q]);
+  }, [call, range, page, sort, dir, status, leadStatus, showOwn, q]);
 
   useEffect(() => { void load(); }, [load]);
 
@@ -103,6 +105,10 @@ export default function Evaluations({
           <option value="">Any call status</option>
           {LEAD_STATUSES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
         </select>
+        <label className="ad-btn" style={{ display: "flex", alignItems: "center", gap: 7, cursor: "pointer" }}>
+          <input type="checkbox" checked={showOwn} onChange={(e) => { setShowOwn(e.target.checked); setPage(0); }} />
+          Show my own &amp; test runs
+        </label>
       </div>
 
       {loading ? <Loading rows={6} /> : rows.length === 0 ? (
