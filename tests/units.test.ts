@@ -213,3 +213,154 @@ test("empty input is an empty result, not an error", () => {
   assert.deepEqual(c.phones, []);
   assert.equal(c.title, null);
 });
+
+/* -------------------------------------------- reading an AI answer */
+
+import { mentions, namesFrom } from "../lib/match.ts";
+import { article, variations } from "../lib/questions.ts";
+
+test("a business is found by name, by domain, or by every significant word", () => {
+  const answer = "1. **Smile Dental Croydon** (smiledental.co.uk) — friendly\n2. **Bright Teeth Ltd** — cheap";
+  assert.ok(mentions(answer, "Smile Dental"));
+  assert.ok(mentions(answer, "https://www.smiledental.co.uk"), "domain form strips scheme, www and TLD");
+  assert.ok(mentions(answer, "The Bright Teeth"), "'the' and 'Ltd' are ignored");
+  assert.equal(mentions(answer, "Pearl Dental"), false);
+  assert.equal(mentions(answer, ""), false, "an empty needle never matches");
+});
+
+test("competitors come from bold list items, minus award-style phrases", () => {
+  const answer = "Here you go:\n1. **Smile Dental** — great\n- **Bright Teeth**: cheap\n2. **Best Rated Dentist in Croydon**\n3. **Smile Dental** again";
+  assert.deepEqual(namesFrom(answer), ["Smile Dental", "Bright Teeth"]);
+});
+
+test("the article follows the spoken first letter, acronyms included", () => {
+  assert.equal(article("dentist"), "a");
+  assert.equal(article("accountant"), "an");
+  assert.equal(article("AI consultant"), "an");
+  assert.equal(article("MOT centre"), "an");
+  assert.equal(article("SEO agency"), "an");
+  assert.equal(article("HR consultant"), "an");
+  assert.equal(article("UX studio"), "a");
+  assert.equal(article(""), "a");
+});
+
+test("five questions, each naming the type and the area", () => {
+  const vs = variations("dentist", "Croydon", "CR0 1AB", "");
+  assert.equal(vs.length, 5);
+  for (const v of vs) assert.match(v.question, /dentist/);
+  assert.match(vs.find((v) => v.id === "postcode")!.question, /CR0 1AB/);
+});
+
+/* ------------------------------------------------- provider parsers */
+
+import { parseAnthropic, parseOpenAI, parseGemini, parseXai, PROVIDER_IDS } from "../lib/providers.ts";
+
+test("each provider's answer text and billed searches are read from its own shape", () => {
+  assert.deepEqual(
+    parseAnthropic({ content: [{ type: "server_tool_use" }, { type: "text", text: "A" }, { type: "text", text: "B" }], usage: { server_tool_use: { web_search_requests: 2 } } }),
+    { text: "A\nB", searches: 2 },
+  );
+  assert.deepEqual(
+    parseOpenAI({ output: [{ type: "web_search_call" }, { type: "web_search_call" }, { type: "message", content: [{ type: "output_text", text: "Hi" }] }] }),
+    { text: "Hi", searches: 2 },
+  );
+  assert.deepEqual(
+    parseGemini({ candidates: [{ content: { parts: [{ text: "He" }, { text: "llo" }] }, groundingMetadata: { webSearchQueries: ["a", "b", "c"] } }] }),
+    { text: "Hello", searches: 3 },
+  );
+  assert.deepEqual(parseGemini({ candidates: [{ content: { parts: [{ text: "x" }] } }] }), { text: "x", searches: 0 }, "no grounding block means no search was billed");
+  assert.deepEqual(parseXai({ choices: [{ message: { content: "Yo" } }], usage: { num_sources_used: 4 } }), { text: "Yo", searches: 4 });
+});
+
+test("an unexpected or empty response yields no text, never a crash", () => {
+  for (const p of [parseAnthropic, parseOpenAI, parseGemini, parseXai]) {
+    assert.deepEqual(p(null), { text: "", searches: 0 });
+    assert.deepEqual(p({ error: { message: "nope" } }), { text: "", searches: 0 });
+    assert.deepEqual(p("garbage"), { text: "", searches: 0 });
+  }
+  assert.deepEqual(PROVIDER_IDS, ["anthropic", "openai", "gemini", "xai"]);
+});
+
+/* ---------------------------------------------- business profile libs */
+
+import { slugify } from "../lib/slug.ts";
+import { sanitiseBusinessPatch, normaliseWebsite } from "../lib/businessForm.ts";
+import { prefillFromEvaluation } from "../lib/businesses.ts";
+import { makeToken, readToken } from "../lib/signedToken.ts";
+
+test("slugs are lower-case, ascii, hyphenated, and never start or end with one", () => {
+  assert.equal(slugify("Dr. Smith & Co", "Croydon"), "dr-smith-and-co-croydon");
+  assert.equal(slugify("  Café Élan  ", null), "cafe-elan");
+  assert.equal(slugify("!!!", ""), "");
+  assert.ok(slugify("x".repeat(200)).length <= 80);
+});
+
+test("website addresses get a scheme and are rejected when not a host", () => {
+  assert.equal(normaliseWebsite("smiledental.co.uk"), "https://smiledental.co.uk");
+  assert.equal(normaliseWebsite("http://www.example.com/"), "http://www.example.com");
+  assert.equal(normaliseWebsite("not a url"), null);
+  assert.equal(normaliseWebsite(""), null);
+});
+
+test("the business form keeps what it understands and refuses what is over the cap", () => {
+  const r = sanitiseBusinessPatch({
+    name: "  <b>Smile</b> Dental  ",
+    description: "We are a <script>x</script>friendly dentist.\r\nOpen late.",
+    services: [{ name: "Check-up", price: "£45" }, { name: "" }, { name: "Whitening", description: "Fast" }],
+    hours: [{ day: "mon", open: "09:00", close: "17:30" }, { day: "sun", closed: true }, { day: "xyz", open: "1", close: "2" }],
+    faqs: [{ q: "Do you take NHS?", a: "Yes" }, { q: "", a: "no" }],
+    areas: ["Croydon", "Croydon", "Purley"],
+    photos: [{ url: "https://example.com/a.jpg", alt: "Front" }],
+    socials: ["https://facebook.com/smile"],
+    target_models: ["openai", "bogus", "openai", "xai"],
+    stripe_customer_id: "cus_hacked",
+    status: "live",
+  });
+  assert.ok(r.ok);
+  if (!r.ok) return;
+  assert.equal(r.patch.name, "Smile Dental");
+  assert.equal(r.patch.description, "We are a friendly dentist.\nOpen late.");
+  assert.deepEqual(r.patch.services, [{ name: "Check-up", price: "£45" }, { name: "Whitening", description: "Fast" }]);
+  assert.deepEqual(r.patch.hours, [{ day: "mon", open: "09:00", close: "17:30", closed: false }, { day: "sun", open: "", close: "", closed: true }]);
+  assert.deepEqual(r.patch.faqs, [{ q: "Do you take NHS?", a: "Yes" }]);
+  assert.deepEqual(r.patch.areas, ["Croydon", "Purley"]);
+  assert.deepEqual(r.patch.target_models, ["openai", "xai"]);
+  assert.ok(!("stripe_customer_id" in r.patch) && !("status" in r.patch), "unknown and protected keys are ignored");
+
+  assert.equal(sanitiseBusinessPatch({ services: Array.from({ length: 40 }, () => ({ name: "x" })) }).ok, false);
+  assert.equal(sanitiseBusinessPatch({ photos: [{ url: "javascript:alert(1)" }] }).ok, false);
+  assert.equal(sanitiseBusinessPatch({ photos: [{ url: "http://insecure.example/a.jpg" }] }).ok, false);
+  assert.equal(sanitiseBusinessPatch({ target_models: ["bogus"] }).ok, false, "no known assistant is a refusal, not an empty list");
+  assert.equal(sanitiseBusinessPatch({ hours: [{ day: "mon", open: "9am", close: "5pm" }] }).ok, false);
+  assert.equal(sanitiseBusinessPatch({ email: "not-an-email" }).ok, false);
+});
+
+test("a new business is pre-filled from the check that sold it, and nothing is invented", () => {
+  const lead = { company: "Lead Co", website: "lead.example", business_type: "plumber", area: "Sutton (SM1)", phone: "0700" } as never;
+  const ev = {
+    business_name: "", site_title: "Smile Dental", website: "https://smile.example", business_type: "dentist", area: "Croydon", postcode: "CR0",
+    phone: null, enrichment: { phones: ["020 1"], emails: ["hi@smile.example"], address: "1 High St", socials: ["https://facebook.com/s"], title: "T" },
+  } as never;
+  const p = prefillFromEvaluation(ev, lead);
+  assert.equal(p.name, "Smile Dental", "site title beats enrichment title and the lead's company");
+  assert.equal(p.area, "Croydon");
+  assert.equal(p.phone, "020 1");
+  assert.equal(p.email, "hi@smile.example");
+  assert.deepEqual(p.target_models, ["anthropic", "openai", "gemini", "xai"]);
+
+  const q = prefillFromEvaluation(null, lead);
+  assert.equal(q.name, "Lead Co");
+  assert.equal(q.area, "Sutton", "the postcode suffix the check appends is removed");
+  assert.equal(q.email, null);
+  assert.deepEqual(q.socials, []);
+});
+
+test("a signed token is only readable with its secret, its kind, and before it expires", () => {
+  const t = makeToken("s3cret", "cust-link", "Who@Example.com", 60_000);
+  assert.equal(readToken("s3cret", "cust-link", t), "who@example.com");
+  assert.equal(readToken("s3cret", "link", t), null, "a customer token is not an admin token");
+  assert.equal(readToken("other", "cust-link", t), null);
+  assert.equal(readToken("", "cust-link", t), null, "no secret configured means nothing verifies");
+  assert.equal(readToken("s3cret", "cust-link", makeToken("s3cret", "cust-link", "a@b.c", -1)), null);
+  assert.equal(readToken("s3cret", "cust-link", t.slice(0, -2) + "zz"), null);
+});

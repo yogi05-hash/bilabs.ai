@@ -17,9 +17,13 @@ Contact: ${SITE.email}
 
 - Free AI Check — £0. Five real questions put to an AI assistant with live web
   search, plus a readiness scan of the business's own website. No card needed.
-- Get Found by AI — £49/month. Structured business profile and schema built
-  from real services, hours and prices, published where AI systems can read it,
-  kept current, with a monthly AI visibility report.
+- Get Found by AI — £49/month. Self-serve: the business confirms its details,
+  chooses which assistants to monitor (ChatGPT, Claude, Gemini, Grok), and
+  adds services, hours, prices and FAQ. BiLabs publishes a profile with
+  schema.org structured data at ${SITE.url}/b/<business>, notifies the search
+  index, supplies copy-paste snippets for the business's own site, and every
+  month asks each chosen assistant five real questions with live web search,
+  reporting whether the business was named and who was named instead.
 - AI Front Desk — £99/month. Everything in Get Found by AI, plus a 24/7 AI
   receptionist on the website, a shareable link and a QR code, answering from
   the owner's own facts and emailing every enquiry immediately.
@@ -43,6 +47,12 @@ never confirms a booking itself.
 - [Our work](${SITE.url}/work): YourBotChat, ReelMakerBot, Showbizy.
 - [Contact](${SITE.url}/contact)
 - [Privacy](${SITE.url}/privacy)
+
+## Business profiles
+
+Profiles published on behalf of customers live at ${SITE.url}/b/<business>,
+each with a plain-text version at ${SITE.url}/b/<business>/llms.txt. The
+details on them were supplied by the business itself.
 `;
   return new Response(body, {
     headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "public, max-age=3600" },

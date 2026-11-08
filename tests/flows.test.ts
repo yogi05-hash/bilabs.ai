@@ -71,7 +71,14 @@ after(async () => {
     "bilabs_leads?select=id,email&or=(email.like.*@example.com,email.like.*@shared-test.com)",
   );
   for (const l of strays ?? []) {
-    for (const t of ["bilabs_events", "bilabs_evaluations", "bilabs_followups", "bilabs_email_log"]) {
+    // the paid product: results → checks → business, then the money
+    const { body: biz } = await db(`bilabs_businesses?contact_id=eq.${l.id}&select=id`);
+    for (const b of biz ?? []) {
+      await db(`bilabs_check_results?business_id=eq.${b.id}`, { method: "DELETE" });
+      await db(`bilabs_checks?business_id=eq.${b.id}`, { method: "DELETE" });
+      await db(`bilabs_audit_log?target_type=eq.business&target_id=eq.${b.id}`, { method: "DELETE" });
+    }
+    for (const t of ["bilabs_events", "bilabs_evaluations", "bilabs_followups", "bilabs_email_log", "bilabs_businesses", "bilabs_payments", "bilabs_subscriptions"]) {
       await db(`${t}?contact_id=eq.${l.id}`, { method: "DELETE" });
     }
     await db(`bilabs_lead_events?lead_id=eq.${l.id}`, { method: "DELETE" });
@@ -638,4 +645,253 @@ test("Do Not Track suppresses recording entirely", async () => {
   assert.equal(res.status, 204);
   const { body } = await db("bilabs_events?path=eq./dnt-test&select=id");
   assert.equal(body.length, 0, "DNT must mean nothing is stored");
+});
+
+test("a browser beacon cannot record a server-only event such as a payment", async () => {
+  const path = `/forged-${randomUUID()}`;
+  const res = await fetch(`${BASE}/api/track`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "user-agent": "Mozilla/5.0 (Macintosh) Chrome/140.0 Safari/537.36" },
+    body: JSON.stringify({ name: "payment_succeeded", path }),
+  });
+  assert.equal(res.status, 204, "the beacon endpoint never surfaces an error");
+  const { body } = await db(`bilabs_events?path=eq.${encodeURIComponent(path)}&select=id`);
+  assert.equal(body.length, 0, "a forged payment event must not be stored");
+});
+
+/* ------------------------------------------ the paid product: customers */
+
+/* These run the real routes against the real database with the assistants
+ * mocked (the server must be started with PROVIDER_MOCK=1, which answers
+ * every question by naming "Mock Dental Practice"). The business is created
+ * directly, as the Stripe webhook would, because a checkout cannot be
+ * replayed without Stripe. */
+
+const CUST_SECRET = (process.env.CUSTOMER_SESSION_SECRET ?? process.env.ADMIN_SESSION_SECRET ?? "").trim();
+
+function custLink(email: string, kind = "cust-link", ttl = 600_000): string {
+  const body = `${kind}.${Buffer.from(email.toLowerCase()).toString("base64url")}.${Date.now() + ttl}.${randomUUID()}`;
+  return `${body}.${createHmac("sha256", CUST_SECRET).update(body).digest("base64url")}`;
+}
+
+const custEmail = `customer+${Date.now()}@example.com`;
+let custCookie = "";
+let custLeadId = "";
+let custBizId = "";
+let custSlug = "";
+
+test("customer endpoints refuse anonymous, admin-cookie and forged requests", async () => {
+  for (const p of ["/api/me", "/api/me/business", "/api/me/checks", "/api/me/snippets"]) {
+    assert.equal((await fetch(`${BASE}${p}`)).status, 401, `${p} must be 401 anonymously`);
+    assert.equal((await fetch(`${BASE}${p}`, { headers: { cookie } })).status, 401, `${p} must not accept an ADMIN cookie`);
+  }
+  const forged = `bl_cust=${custLink(custEmail, "cust-session").slice(0, -4)}AAAA`;
+  assert.equal((await fetch(`${BASE}/api/me`, { headers: { cookie: forged } })).status, 401);
+  // an admin-kind token signed with the same secret is not a customer session
+  const wrongKind = `bl_cust=${custLink(custEmail, "session")}`;
+  assert.equal((await fetch(`${BASE}/api/me`, { headers: { cookie: wrongKind } })).status, 401);
+  // a bad link bounces to the dashboard with an error, never sets a cookie
+  const bad = await fetch(`${BASE}/api/me/callback?token=garbage`, { redirect: "manual" });
+  assert.equal(bad.status, 307);
+  assert.match(bad.headers.get("location") ?? "", /\/dashboard\?err=link/);
+  assert.equal(bad.headers.get("set-cookie"), null);
+});
+
+test("a paid customer's magic link signs them in and records the login", async () => {
+  const { body: leads } = await db("bilabs_leads", {
+    method: "POST", headers: { Prefer: "return=representation" },
+    body: JSON.stringify({ email: custEmail, status: "paid", pipeline_status: "customer", source: "checkout", is_test: true, company: "Mock Dental Practice" }),
+  });
+  custLeadId = leads[0].id;
+  made.leads.push(custLeadId);
+
+  // nothing to sign in to yet: no business, and status alone is enough —
+  // but a stranger with the same signature shape still is not
+  const { body: biz } = await db("bilabs_businesses", {
+    method: "POST", headers: { Prefer: "return=representation" },
+    body: JSON.stringify({ contact_id: custLeadId, name: "Mock Dental Practice", business_type: "dentist", area: "Croydon", postcode: "CR0 1AB", website: "https://mock-dental.example", plan: "get-found", is_test: true }),
+  });
+  custBizId = biz[0].id;
+
+  const res = await fetch(`${BASE}/api/me/callback?token=${encodeURIComponent(custLink(custEmail))}&next=/dashboard%3Ftab%3Dsetup`, { redirect: "manual" });
+  assert.equal(res.status, 307);
+  assert.match(res.headers.get("location") ?? "", /\/dashboard\?tab=setup$/, "only our own dashboard paths are honoured");
+  const setCookie = res.headers.get("set-cookie") ?? "";
+  assert.match(setCookie, /bl_cust=/);
+  assert.match(setCookie, /HttpOnly/i);
+  custCookie = `bl_cust=${/bl_cust=([^;]+)/.exec(setCookie)![1]}`;
+
+  // an open redirect is refused
+  const evil = await fetch(`${BASE}/api/me/callback?token=${encodeURIComponent(custLink(custEmail))}&next=https://evil.example`, { redirect: "manual" });
+  assert.doesNotMatch(evil.headers.get("location") ?? "", /evil\.example/);
+
+  const me = await fetch(`${BASE}/api/me`, { headers: { cookie: custCookie } });
+  assert.equal(me.status, 200);
+  const d = await me.json();
+  assert.equal(d.email, custEmail);
+  assert.equal(d.business.id, custBizId);
+  assert.equal(d.business.status, "onboarding");
+  assert.equal(d.business.stripe_customer_id, undefined, "Stripe ids never leave the server");
+  assert.equal(d.providers.length, 4);
+
+  const { body: logins } = await db(`bilabs_events?name=eq.dashboard_login&contact_id=eq.${custLeadId}&select=id`);
+  assert.equal(logins.length, 1, "one login event per customer per day");
+});
+
+test("setup: confirm → models → details, with caps and protected fields enforced", async () => {
+  const patch = (body: Record<string, unknown>) =>
+    fetch(`${BASE}/api/me/business`, { method: "PATCH", headers: { "Content-Type": "application/json", cookie: custCookie }, body: JSON.stringify(body) });
+
+  assert.equal((await patch({ step: 1, name: "Mock Dental Practice" })).status, 400, "step 1 requires the confirmation box");
+  let r = await patch({ step: 1, confirm: true, name: "Mock Dental Practice", website: "mock-dental.example", business_type: "dentist", area: "Croydon", postcode: "cr0 1ab" });
+  assert.equal(r.status, 200);
+  let b = (await r.json()).business;
+  assert.equal(b.onboarding_step, 1);
+  assert.equal(b.website, "https://mock-dental.example", "a bare domain gets a scheme");
+  assert.equal(b.postcode, "CR0 1AB");
+  assert.ok(b.confirmed_at);
+
+  assert.equal((await patch({ step: 2, target_models: ["bogus"] })).status, 400);
+  r = await patch({ step: 2, target_models: ["openai", "anthropic", "gemini", "xai"] });
+  assert.equal(r.status, 200);
+  assert.equal((await r.json()).business.onboarding_step, 2);
+
+  // publishing before the details are in is refused with field errors
+  const early = await fetch(`${BASE}/api/me/publish`, { method: "POST", headers: { cookie: custCookie } });
+  assert.equal(early.status, 422);
+  assert.ok((await early.json()).errors.description);
+
+  assert.equal((await patch({ services: Array.from({ length: 40 }, () => ({ name: "x" })) })).status, 400, "over the cap is refused, not truncated");
+  assert.equal((await patch({ photos: [{ url: "javascript:alert(1)" }] })).status, 400);
+
+  r = await patch({
+    step: 3,
+    description: "A friendly family dentist in Croydon offering check-ups, hygiene and whitening, open late on Thursdays.",
+    services: [{ name: "Check-up", price: "£45" }, { name: "Whitening", description: "In-surgery, one visit" }],
+    hours: [{ day: "mon", open: "09:00", close: "17:30" }, { day: "sun", closed: true }],
+    faqs: [{ q: "Do you take NHS patients?", a: "Yes, for check-ups." }],
+    areas: ["Croydon", "Purley"],
+    phone: "020 8123 4567",
+    email: "hello@mock-dental.example",
+    status: "live",                 // protected — must be ignored
+    stripe_customer_id: "cus_hack", // protected — must be ignored
+  });
+  assert.equal(r.status, 200);
+  b = (await r.json()).business;
+  assert.equal(b.onboarding_step, 3);
+  assert.equal(b.status, "onboarding", "status cannot be set from the browser");
+  assert.ok(b.details_completed_at);
+  assert.equal(b.services.length, 2);
+  assert.deepEqual(b.hours.map((h: { day: string }) => h.day), ["mon", "sun"]);
+
+  const { body: row } = await db(`bilabs_businesses?id=eq.${custBizId}&select=stripe_customer_id`);
+  assert.notEqual(row[0].stripe_customer_id, "cus_hack");
+  const { body: onboarded } = await db(`bilabs_events?name=eq.business_onboarded&contact_id=eq.${custLeadId}&select=id`);
+  assert.equal(onboarded.length, 1);
+});
+
+test("publishing makes a public, machine-readable profile and starts the first check", async () => {
+  const res = await fetch(`${BASE}/api/me/publish`, { method: "POST", headers: { cookie: custCookie } });
+  assert.equal(res.status, 200, JSON.stringify(await res.clone().json()));
+  const d = await res.json();
+  assert.equal(d.firstPublish, true);
+  assert.ok(d.checkId, "the first check must be queued on first publish");
+  custSlug = d.business.slug;
+  assert.match(custSlug, /^mock-dental-practice-croydon(-\d+)?$/);
+  assert.ok(["processing", "live"].includes(d.business.status));
+  assert.ok(d.business.next_check_at, "the monthly schedule starts at first publish");
+
+  const page = await fetch(`${BASE}/b/${custSlug}`);
+  assert.equal(page.status, 200);
+  const html = await page.text();
+  assert.match(html, /application\/ld\+json/);
+  assert.match(html, /"@type":"LocalBusiness"/);
+  assert.match(html, /"@type":"FAQPage"/);
+  assert.match(html, /Mock Dental Practice/);
+  assert.match(html, /Do you take NHS patients\?/);
+  assert.match(html, /noindex/, "a test row must not be indexed");
+  assert.doesNotMatch(html, /Free AI check/, "a profile carries no BiLabs marketing navigation");
+
+  const txt = await fetch(`${BASE}/b/${custSlug}/llms.txt`);
+  assert.equal(txt.status, 200);
+  assert.match(await txt.text(), /^# Mock Dental Practice/);
+
+  assert.equal((await fetch(`${BASE}/b/no-such-business-${Date.now()}`)).status, 404);
+
+  const sitemap = await (await fetch(`${BASE}/sitemap.xml`)).text();
+  assert.doesNotMatch(sitemap, new RegExp(custSlug), "test rows stay out of the sitemap");
+
+  const { body: published } = await db(`bilabs_events?name=eq.profile_published&contact_id=eq.${custLeadId}&select=id`);
+  assert.equal(published.length, 1);
+
+  // the first check ran via after() with the mocked assistants
+  let check: { status: string; providers: string[]; found_total: number; answers_total: number } | null = null;
+  for (let i = 0; i < 30 && (!check || check.status === "queued" || check.status === "running"); i++) {
+    await new Promise((r) => setTimeout(r, 1000));
+    const r = await fetch(`${BASE}/api/me/checks?id=${d.checkId}`, { headers: { cookie: custCookie } });
+    check = (await r.json()).check;
+  }
+  assert.equal(check?.status, "completed", `first check must complete with PROVIDER_MOCK=1 (got ${check?.status})`);
+  assert.equal(check!.answers_total, check!.providers.length * 5);
+  assert.equal(check!.found_total, check!.answers_total, "the mock names the business in every answer");
+
+  const { body: biz } = await db(`bilabs_businesses?id=eq.${custBizId}&select=status,last_check_id`);
+  assert.equal(biz[0].status, "live", "processing → live once the first check finishes");
+  assert.equal(biz[0].last_check_id, d.checkId);
+});
+
+test("a manual check runs, stores every answer, and is limited to one a day", async () => {
+  const start = await fetch(`${BASE}/api/me/check`, { method: "POST", headers: { cookie: custCookie } });
+  assert.equal(start.status, 200, JSON.stringify(await start.clone().json()));
+  const { checkId } = await start.json();
+
+  // a second press while it runs, or later the same day, is refused
+  const again = await fetch(`${BASE}/api/me/check`, { method: "POST", headers: { cookie: custCookie } });
+  assert.ok([409, 429].includes(again.status), `second manual run must be refused, got ${again.status}`);
+
+  let detail: { check: { status: string; providers: string[]; competitors: string[] }; results: { provider: string; found: boolean; answer_text: string | null }[] } | null = null;
+  for (let i = 0; i < 30; i++) {
+    await new Promise((r) => setTimeout(r, 1000));
+    const r = await fetch(`${BASE}/api/me/checks?id=${checkId}`, { headers: { cookie: custCookie } });
+    detail = await r.json();
+    if (detail!.check.status === "completed" || detail!.check.status === "failed") break;
+  }
+  assert.equal(detail!.check.status, "completed");
+  assert.equal(detail!.results.length, detail!.check.providers.length * 5);
+  assert.ok(detail!.results.every((r) => r.found && r.answer_text));
+  assert.ok(detail!.check.competitors.includes("Other Clinic"), "rivals named in the answers are listed");
+  assert.ok(!detail!.check.competitors.some((c) => /mock dental/i.test(c)), "the business itself is not its own rival");
+
+  const later = await fetch(`${BASE}/api/me/check`, { method: "POST", headers: { cookie: custCookie } });
+  assert.equal(later.status, 429, "one manual check a day");
+
+  const { body: done } = await db(`bilabs_events?name=eq.check_completed&contact_id=eq.${custLeadId}&select=id`);
+  assert.equal(done.length, 2, "first + manual");
+
+  // snippets come from the same facts as the profile
+  const snips = await (await fetch(`${BASE}/api/me/snippets`, { headers: { cookie: custCookie } })).json();
+  assert.match(snips.jsonLd, /"@type":"LocalBusiness"/);
+  assert.match(snips.robotsTxt, /User-agent: GPTBot/);
+  assert.match(snips.faqHtml, /<details>/);
+  assert.equal(snips.profileUrl.endsWith(`/b/${custSlug}`), true);
+  assert.doesNotMatch(snips.jsonLd, /<\/script>[^]*<\/script>[^]*<\/script>/, "customer text cannot close the script tag");
+});
+
+test("a customer whose subscription ended loses the dashboard on the next call", async () => {
+  await db(`bilabs_businesses?id=eq.${custBizId}`, { method: "DELETE" });
+  await db(`bilabs_leads?id=eq.${custLeadId}`, { method: "PATCH", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ status: "lost" }) });
+  const res = await fetch(`${BASE}/api/me`, { headers: { cookie: custCookie } });
+  assert.equal(res.status, 401, "a valid cookie for a lapsed customer must be refused");
+});
+
+test("the check cron needs the bearer secret, and a spoofed vercel header is not enough", async () => {
+  assert.equal((await fetch(`${BASE}/api/cron/checks`)).status, 401);
+  assert.equal((await fetch(`${BASE}/api/cron/checks`, { headers: { "x-vercel-cron": "1" } })).status, 401, "any client can set a header");
+  const secret = (process.env.CRON_SECRET ?? "").trim();
+  if (!secret) return;
+  const ok = await fetch(`${BASE}/api/cron/checks`, { headers: { authorization: `Bearer ${secret}` } });
+  assert.equal(ok.status, 200);
+  const d = await ok.json();
+  assert.equal(d.ok, true);
+  assert.ok(typeof d.ran === "number" && typeof d.remaining === "number");
 });
