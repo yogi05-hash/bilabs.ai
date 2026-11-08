@@ -13,6 +13,9 @@ import {
   markReportEmailed,
   startEvaluation,
 } from "@/lib/evaluations";
+import { variations, type Variation } from "@/lib/questions";
+import { mentions, namesFrom } from "@/lib/match";
+import { ask, providerEnabled, providerModel } from "@/lib/providers";
 
 export const maxDuration = 60;
 
@@ -28,6 +31,10 @@ export const maxDuration = 60;
  * rather than scoring zero as though it had failed every check. The honest
  * limit is stated on the page and in the email: five samples from one
  * assistant at one moment are not a ranking.
+ *
+ * The free check asks one assistant (Claude). The paid monthly check in
+ * lib/checks.ts asks every assistant the customer chose, with the same
+ * questions and the same matcher, so the two are comparable.
  *
  * Each run costs five live web searches, so the per-IP window stays tight. */
 
@@ -45,105 +52,17 @@ setInterval(() => { const n = Date.now(); for (const [k, v] of hits) if (n > v.r
 
 const clean = (v: unknown, max: number) => (typeof v === "string" ? v.trim().slice(0, max) : "");
 
-function mentions(hay: string, needle: string): boolean {
-  const norm = (s: string) =>
-    s.toLowerCase().replace(/https?:\/\//g, "").replace(/www\./g, "")
-      .replace(/\.(co\.uk|com|net|org|uk)\b/g, "").replace(/\b(ltd|limited|the|and|&)\b/g, " ")
-      .replace(/[^a-z0-9]+/g, " ").trim();
-  const h = norm(hay); const n = norm(needle);
-  if (!n) return false;
-  if (h.includes(n)) return true;
-  const words = n.split(" ").filter((w) => w.length > 3);
-  return words.length > 0 && words.every((w) => h.includes(w));
-}
-
-const ACCOLADE = /\b(award|winner|rated|reviews?|crowned|best .* in|voted)\b/i;
-function namesFrom(answer: string): string[] {
-  const listed = Array.from(answer.matchAll(/^\s*(?:\d+[.)]|[-*])\s*\*\*(.+?)\*\*/gm) as Iterable<RegExpMatchArray>)
-    .map((m: RegExpMatchArray) => m[1].trim());
-  return Array.from(new Set(listed))
-    .map((n) => n.replace(/\s*[-–—:]\s*$/, "").trim())
-    .filter((n) => n.length > 2 && n.length < 70 && /^[A-Z0-9]/.test(n) && !ACCOLADE.test(n));
-}
-
-type Variation = { id: string; label: string; question: string };
-
-/** "a dentist" but "an AI consultant" — the naive template produced "a ai".
- *  Acronyms take the article of their spoken first letter, so it is "an MOT
- *  centre" and "an SEO agency" even though M and S are consonants. */
-function article(noun: string): string {
-  const first = noun.trim().split(/\s+/)[0] ?? "";
-  if (!first) return "a";
-  const letters = first.replace(/[^A-Za-z]/g, "");
-  if (!letters) return "a";
-
-  // Read as an acronym when the opening run is capitals: AI, MOT, SEO, HR.
-  const isAcronym = /^[A-Z]{2,}$/.test(letters) || /^[A-Z]\.?[A-Z]/.test(first);
-  if (isAcronym) return /^[AEFHILMNORSX]/.test(letters) ? "an" : "a";
-
-  return /^[aeiou]/i.test(letters) ? "an" : "a";
-}
-
-/** Per-domain overrides, so we can test our own site with the questions our
- *  own customers would actually ask. Set CUSTOM_QUERIES as JSON:
- *  {"bilabs.ai":["question one","question two"]} */
-function customFor(website: string): string[] | null {
-  const raw = env("CUSTOM_QUERIES");
-  if (!raw || !website) return null;
-  try {
-    const map = JSON.parse(raw) as Record<string, string[]>;
-    const host = website.replace(/^https?:\/\//i, "").replace(/^www\./i, "").split("/")[0].toLowerCase();
-    const hit = map[host];
-    return Array.isArray(hit) && hit.length ? hit.slice(0, 5) : null;
-  } catch {
-    return null;
-  }
-}
-
-function variations(type: string, area: string, postcode: string, website: string): Variation[] {
-  const custom = customFor(website);
-  if (custom) {
-    return custom.map((q, i) => ({ id: `custom-${i + 1}`, label: `Custom query ${i + 1}`, question: q }));
-  }
-  const a = article(type);
-  const where = postcode || area;
-  return [
-    { id: "direct", label: "Straight recommendation", question: `Recommend ${a} ${type} in ${area}. Name up to 6 specific businesses with a one-line reason for each.` },
-    { id: "near-me", label: "\u201CNear me\u201D phrasing", question: `I'm in ${area} and looking for a good ${type} near me. Which specific ones would you suggest? List up to 6 by name.` },
-    { id: "urgent", label: "Urgent need", question: `I need ${a} ${type} in ${area} urgently today. Which specific businesses should I contact? List up to 6 by name.` },
-    { id: "value", label: "Best / affordable", question: `Who is the best value ${type} in ${area}? Name up to 6 specific businesses and say briefly why.` },
-    { id: "postcode", label: postcode ? `Postcode (${postcode})` : "Local area phrasing", question: `Which ${type} businesses serve ${where}? List up to 6 by name.` },
-  ];
-}
-
-async function askOne(key: string, model: string, v: Variation, name: string, website: string) {
-  try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
-      body: JSON.stringify({
-        model,
-        max_tokens: 700,
-        tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 2 }],
-        messages: [{ role: "user", content: v.question }],
-      }),
-    });
-    if (!res.ok) {
-      console.error("[visibility]", v.id, res.status, (await res.text()).slice(0, 200));
-      return { ...v, available: false, found: false, competitors: [] as string[], answer: "", searches: 0 };
-    }
-    const data = await res.json();
-    const answer = (data.content ?? []).filter((c: { type: string }) => c.type === "text")
-      .map((c: { text: string }) => c.text).join("\n").trim();
-    const found = (!!name && mentions(answer, name)) || (!!website && mentions(answer, website));
-    // Billed searches as reported by the API, so the cost shown in the admin
-    // is measured rather than assumed from max_uses.
-    const searches = Number(data?.usage?.server_tool_use?.web_search_requests ?? 0) || 0;
-    return { ...v, available: true, found, competitors: namesFrom(answer).slice(0, 6), answer: answer.slice(0, 1400), searches };
-  } catch (e) {
-    console.error("[visibility]", v.id, "threw:", e);
+async function askOne(v: Variation, name: string, website: string) {
+  const a = await ask("anthropic", v.question);
+  if (!a.ok) {
+    console.error("[visibility]", v.id, a.error);
     return { ...v, available: false, found: false, competitors: [] as string[], answer: "", searches: 0 };
   }
+  const answer = a.text;
+  const found = (!!name && mentions(answer, name)) || (!!website && mentions(answer, website));
+  // Billed searches as reported by the API, so the cost shown in the admin
+  // is measured rather than assumed from max_uses.
+  return { ...v, available: true, found, competitors: namesFrom(answer).slice(0, 6), answer: answer.slice(0, 1400), searches: a.searches };
 }
 
 export async function POST(request: NextRequest) {
@@ -161,16 +80,21 @@ export async function POST(request: NextRequest) {
     // where the check came from: a ?site= link in a nurture email, etc.
     const entrySource = clean(body?.entrySource, 60) || null;
 
+    /* The nurture cron re-runs a lead's check on day 16. It arrives from our
+     * own server, so it must not share the visitor's per-IP window or be
+     * collapsed as a double-submit. The header must match CRON_SECRET. */
+    const cronSecret = env("CRON_SECRET");
+    const internal = Boolean(cronSecret) && request.headers.get("x-internal-recheck") === cronSecret;
+
     if (!type || !area) {
       return NextResponse.json({ error: "Tell us what the business does and where it is." }, { status: 400 });
     }
-    if (!allow(ip)) {
+    if (!internal && !allow(ip)) {
       return NextResponse.json({ error: "You've run a few checks already — try again in an hour." }, { status: 429 });
     }
 
-    const key = env("ANTHROPIC_API_KEY");
-    if (!key) return NextResponse.json({ error: "The check is unavailable just now." }, { status: 503 });
-    const model = env("ANTHROPIC_MODEL", "claude-haiku-4-5-20251001");
+    if (!providerEnabled("anthropic")) return NextResponse.json({ error: "The check is unavailable just now." }, { status: 503 });
+    const model = providerModel("anthropic");
 
     /* Open a row before any work happens. A check that crashed, timed out or
      * lost its tab used to vanish without trace; now it always ends as
@@ -180,7 +104,7 @@ export async function POST(request: NextRequest) {
     const { visitor } = await touchVisitor({ ctx, path: "/", countPageView: false });
 
     // A double-submit must not buy a second round of paid web searches.
-    const dup = await findRunningDuplicate(visitor?.id ?? null, website || null);
+    const dup = internal ? null : await findRunningDuplicate(visitor?.id ?? null, website || null);
     if (dup) {
       return NextResponse.json(
         { error: "That check is already running — give it a few seconds." },
@@ -198,7 +122,8 @@ export async function POST(request: NextRequest) {
       isTest: ctx.isTest,
       // our own runs (admin cookie or excluded IP) never reach the lists
       isInternal: ctx.isInternal,
-      entrySource,
+      entrySource: entrySource ?? (internal ? "nurture-recheck" : null),
+      requestedBy: internal ? "nurture" : undefined,
     });
     const startedAtMs = Date.now();
 
@@ -207,7 +132,7 @@ export async function POST(request: NextRequest) {
     try {
       const vs = variations(type, area, postcode, website);
       [queries, scan] = await Promise.all([
-        Promise.all(vs.map((v) => askOne(key, model, v, businessName, website))),
+        Promise.all(vs.map((v) => askOne(v, businessName, website))),
         website ? scanSite(website) : Promise.resolve(null),
       ]);
     } catch (e) {
@@ -310,4 +235,3 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "The check could not run just now." }, { status: 500 });
   }
 }
-

@@ -1,7 +1,7 @@
-import { createHmac, timingSafeEqual, randomUUID } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { env } from "@/lib/env";
 import { sb } from "@/lib/leads";
+import { makeToken, readToken } from "@/lib/signedToken";
 
 /* Admin access, by magic link we deliver ourselves.
  *
@@ -25,39 +25,10 @@ export const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 const secret = () => env("ADMIN_SESSION_SECRET");
 
-function sign(payload: string): string {
-  return createHmac("sha256", secret()).update(payload).digest("base64url");
-}
-
-function pack(kind: "link" | "session", email: string, expiresAt: number): string {
-  // nonce makes two tokens for the same email differ, so one cannot be
-  // recognised or replayed from a previously seen string
-  const body = `${kind}.${Buffer.from(email).toString("base64url")}.${expiresAt}.${randomUUID()}`;
-  return `${body}.${sign(body)}`;
-}
-
-function unpack(kind: "link" | "session", token: string): string | null {
-  if (!secret() || !token) return null;
-  const parts = token.split(".");
-  if (parts.length !== 5) return null;
-  const [k, emailB64, expStr, nonce, mac] = parts;
-  if (k !== kind) return null;
-
-  const body = `${k}.${emailB64}.${expStr}.${nonce}`;
-  const expected = sign(body);
-  const a = Buffer.from(expected);
-  const b = Buffer.from(mac);
-  if (a.length !== b.length || !timingSafeEqual(a, b)) return null;
-
-  const exp = Number(expStr);
-  if (!Number.isFinite(exp) || Date.now() > exp) return null;
-
-  try {
-    return Buffer.from(emailB64, "base64url").toString("utf8").toLowerCase();
-  } catch {
-    return null;
-  }
-}
+// The token format lives in lib/signedToken.ts and is shared with the
+// customer sign-in; the kinds differ, so neither can be read as the other.
+const pack = (kind: "link" | "session", email: string, ttlMs: number) => makeToken(secret(), kind, email, ttlMs);
+const unpack = (kind: "link" | "session", token: string) => readToken(secret(), kind, token);
 
 export function adminEmails(): string[] {
   return env("ADMIN_EMAILS", "hello@bilabs.ai")
@@ -68,10 +39,10 @@ export function adminEmails(): string[] {
 
 export const isAdminEmail = (email: string) => adminEmails().includes(email.trim().toLowerCase());
 
-export const makeLinkToken = (email: string) => pack("link", email.toLowerCase(), Date.now() + LINK_TTL_MS);
+export const makeLinkToken = (email: string) => pack("link", email, LINK_TTL_MS);
 export const readLinkToken = (token: string) => unpack("link", token);
 
-export const makeSession = (email: string) => pack("session", email.toLowerCase(), Date.now() + SESSION_TTL_MS);
+export const makeSession = (email: string) => pack("session", email, SESSION_TTL_MS);
 
 export type Role = "owner" | "admin" | "readonly";
 export type Admin = { email: string; role: Role };
