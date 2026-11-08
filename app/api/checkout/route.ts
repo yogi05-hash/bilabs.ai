@@ -63,7 +63,9 @@ export async function POST(request: NextRequest) {
       mode: "subscription",
       "line_items[0][price]": price,
       "line_items[0][quantity]": "1",
-      success_url: `${site}/contact?started=${planId}`,
+      // Stripe substitutes the placeholder; the welcome page uses the session
+      // to confirm payment and hand over the dashboard link.
+      success_url: `${site}/welcome?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${site}/#packages`,
       // allow_promotion_codes cannot be sent alongside discounts — Stripe
       // rejects the pair outright, even when it is "false".

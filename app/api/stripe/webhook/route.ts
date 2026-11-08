@@ -4,6 +4,8 @@ import { env } from "@/lib/env";
 import { getLeadByEmail, logEvent, sb, setStatus, upsertLead, type Lead } from "@/lib/leads";
 import { sendWelcome } from "@/lib/nurture";
 import { recordEvent } from "@/lib/analytics";
+import { ensureBusinessForCheckout, syncBusinessWithSubscription } from "@/lib/businesses";
+import { customerLoginUrl } from "@/lib/customerAuth";
 import {
   isBilabsProduct,
   planLabel,
@@ -223,9 +225,20 @@ async function handle(event: StripeEvent): Promise<{ status: string; reason?: st
         props: { plan, amount_pence: amount, currency },
         isTest: !event.livemode,
       });
-      // nurture stops because status is no longer "nurturing"; send the
-      // onboarding note instead of the next sales email
-      await sendWelcome({ ...lead, status: "paid" });
+      /* The product starts here: a business row pre-filled from the check
+       * that sold it, and a welcome email whose link signs them straight into
+       * the setup wizard. Nurture stops on its own because the lead's status
+       * is no longer "nurturing". */
+      const business = await ensureBusinessForCheckout({
+        lead,
+        evaluationId: meta.evaluation_id || null,
+        customerId,
+        subscriptionId: (s.subscription as string) ?? null,
+        plan: plan ?? null,
+        livemode: event.livemode,
+      });
+      const dashboardUrl = business && lead.email ? customerLoginUrl(lead.email) : null;
+      await sendWelcome({ ...lead, status: "paid" }, { dashboardUrl });
     }
     return { status: "processed" };
   }
@@ -368,6 +381,9 @@ async function handle(event: StripeEvent): Promise<{ status: string; reason?: st
         props: { status, subscription: sub.id },
         isTest: !event.livemode,
       });
+      // Billing drives the published profile: unpaid pauses it, deleted takes
+      // it down, paying again brings it back.
+      await syncBusinessWithSubscription(lead.id, status, event.type);
       // Only a genuine end of the relationship closes the contact. An update
       // that merely flags cancel_at_period_end has not ended anything yet.
       if (event.type === "customer.subscription.deleted") {

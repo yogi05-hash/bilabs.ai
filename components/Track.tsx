@@ -37,6 +37,36 @@ export function readUtm(): Record<string, string> {
   }
 }
 
+/* The free check a visitor just ran is remembered the same way, so a checkout
+ * started from anywhere on the page can be tied to it — and the paid business
+ * pre-filled from what that check found. */
+const EVAL_STORE = "bl_eval";
+
+export function rememberEvaluation(id: string | null | undefined, email?: string | null): void {
+  if (typeof window === "undefined") return;
+  try {
+    const prev = readEvaluation();
+    const next = { id: id ?? prev.id, email: email ?? prev.email };
+    if (next.id || next.email) sessionStorage.setItem(EVAL_STORE, JSON.stringify(next));
+  } catch {
+    /* storage can be unavailable; the checkout simply loses the link */
+  }
+}
+
+export function readEvaluation(): { id: string | null; email: string | null } {
+  if (typeof window === "undefined") return { id: null, email: null };
+  try {
+    const saved = sessionStorage.getItem(EVAL_STORE);
+    const v = saved ? (JSON.parse(saved) as { id?: unknown; email?: unknown }) : {};
+    return {
+      id: typeof v.id === "string" && /^[0-9a-f-]{36}$/i.test(v.id) ? v.id : null,
+      email: typeof v.email === "string" && v.email.includes("@") ? v.email.slice(0, 160) : null,
+    };
+  } catch {
+    return { id: null, email: null };
+  }
+}
+
 export function track(name: string, props: Record<string, unknown> = {}): void {
   if (typeof window === "undefined") return;
   const payload = JSON.stringify({

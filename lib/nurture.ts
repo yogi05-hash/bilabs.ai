@@ -1,5 +1,6 @@
 import { env } from "@/lib/env";
 import { logEvent, sb, unsubscribeUrl, type Lead } from "@/lib/leads";
+import { logEmail } from "@/lib/admin";
 
 /* The nurture sequence.
  *
@@ -116,7 +117,7 @@ ${top.map((c) => `<li style="margin-bottom:10px"><strong>${esc(c.label)}</strong
       html: wrap(
         lead,
         `<p>Hi${lead.name ? ` ${esc(lead.name.split(" ")[0])}` : ""},</p>
-<p>Quick one. We build your profile and schema from your real services, hours and prices, publish it where AI assistants can fetch it, keep it current, and send you a monthly report on what they are saying.</p>
+<p>Quick one. You confirm your business and add your services, hours, prices and FAQ — five minutes. We publish a profile with structured data where AI web search reads it, give you snippets for your own site, and every month ask ChatGPT, Claude, Gemini and Grok whether they name you — with every answer in your dashboard and your inbox.</p>
 <p>It is £49 a month. Your first month is £1, and you can cancel any time — if it is not earning its keep, stop.</p>
 <p><a href="${site}/#packages" style="display:inline-block;background:#F5B731;color:#1a1205;padding:12px 22px;border-radius:999px;font-weight:600;text-decoration:none">Start for £1</a></p>
 <p style="color:#555">If the receptionist side is more use to you — answering enquiries 24/7 and emailing you each one — that is AI Front Desk at £99.</p>`,
@@ -236,8 +237,32 @@ export async function advance(lead: Lead, step: number, id: string, sent: boolea
   await logEvent(lead.id, sent ? `nurture:${id}` : `nurture:${id}:skipped`);
 }
 
-export async function sendWelcome(lead: Lead): Promise<boolean> {
+/** The email after payment. With a dashboard link it is the hand-over to the
+ *  self-serve setup; without one (no business row could be made) it falls back
+ *  to the personal note so nobody who has just paid hears nothing. */
+export async function sendWelcome(lead: Lead, opts: { dashboardUrl?: string | null } = {}): Promise<boolean> {
   const site = SITE();
+  if (opts.dashboardUrl) {
+    const ok = await sendMail(lead, {
+      subject: `You're in — set up your profile (5 minutes)`,
+      html: wrap(
+        lead,
+        `<p>Hi${lead.name ? ` ${esc(lead.name.split(" ")[0])}` : ""},</p>
+<p>Thanks — you're in. ${esc(who(lead))} now has a profile waiting to be set up, and it takes about five minutes.</p>
+<p><a href="${opts.dashboardUrl}" style="display:inline-block;background:#F5B731;color:#1a1205;padding:12px 22px;border-radius:999px;font-weight:600;text-decoration:none">Set up my profile →</a></p>
+<ol style="padding-left:18px">
+  <li style="margin-bottom:8px">Confirm it's your business — we've pre-filled what your free check found.</li>
+  <li style="margin-bottom:8px">Choose which assistants to monitor: ChatGPT, Claude, Gemini and Grok.</li>
+  <li style="margin-bottom:8px">Add your services, hours, prices and the questions customers ask you.</li>
+</ol>
+<p>The moment you finish, your profile is published where AI web search can read it, the first check runs straight away, and then every month. Each result lands in your dashboard and in your inbox.</p>
+<p style="color:#555">One honest note while we start: we make your business discoverable to AI web search and measure whether assistants name you. We do not — and cannot — put anything inside a model. Anyone who promises you a guaranteed AI ranking is guessing.</p>
+<p style="color:#555;font-size:13px">That button signs you in and is good for 15 minutes. After that, enter your email at <a href="${site}/dashboard" style="color:#B8841A">${site.replace(/^https?:\/\//, "")}/dashboard</a> and we'll send a fresh link.</p>`,
+      ),
+    });
+    await logEmail({ contactId: lead.id, email: lead.email, kind: "welcome_dashboard", subject: "You're in — set up your profile", ok });
+    return ok;
+  }
   return sendMail(lead, {
     subject: `You're in — what happens next`,
     html: wrap(

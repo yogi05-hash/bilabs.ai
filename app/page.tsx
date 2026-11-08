@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { readUtm, track } from "@/components/Track";
+import { startCheckout } from "@/lib/checkoutClient";
 import FadeIn from "@/components/FadeIn";
 import ScrubVideo from "@/components/ScrubVideo";
 import HeroCheck from "@/components/HeroCheck";
@@ -428,23 +428,10 @@ function Packages() {
   const start = async (plan: string) => {
     if (busy) return;
     setBusy(plan); setErr(null);
-    try {
-      const res = await fetch("/api/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        // carry the campaign out to Stripe and back on the webhook, so a
-        // paying customer still attributes to the channel that found them
-        body: JSON.stringify({ plan, utm: readUtm() }),
-      });
-      const data = await res.json();
-      if (!res.ok || !data.url) { setErr(data.error ?? "Could not start checkout."); return; }
-      track("checkout_started", { plan });
-      window.location.href = data.url;
-    } catch {
-      setErr("Could not start checkout. Please email hello@bilabs.ai.");
-    } finally {
-      setBusy(null);
-    }
+    // lib/checkoutClient carries the campaign and the free check out to
+    // Stripe, so the payment attributes and the profile is pre-filled
+    const r = await startCheckout(plan);
+    if (!r.ok) { setErr(r.error); setBusy(null); }
   };
 
   return (
@@ -541,12 +528,12 @@ function Packages() {
 
 const FAQS = [
   { q: "Will this guarantee AI recommendations?", a: "No. We improve access and clarity; each platform decides what it indexes and recommends. What we control is whether your business is readable — accurate, structured, current, and published where these systems look. Anyone promising you a guaranteed AI ranking is guessing." },
-  { q: "What do I actually get each month?", a: "On Get Found by AI (£49/month): your profile and schema built from your real services, hours and prices, published where AI systems can read it, kept current as things change, and a monthly report on what the assistants are saying. AI Front Desk (£99/month) adds the receptionist that answers enquiries on your site, a link and a QR code, and emails each one to you." },
+  { q: "What do I actually get each month?", a: "On Get Found by AI (£49/month): a published profile with structured data at bilabs.ai/b/your-business, copy-paste snippets for your own site, and every month we ask ChatGPT, Claude, Gemini and Grok five real questions with live web search and send you whether they named you and who they named instead — all of it in your dashboard too. AI Front Desk (£99/month) adds the receptionist that answers enquiries on your site, a link and a QR code, and emails each one to you." },
   { q: "What is the £1 first month?", a: "The first ten businesses to sign up pay £1 for their first month instead of £49 or £99, then the normal price from month two. It is applied automatically at checkout while places remain — you do not need a code. Cancel before the second month and £1 is all you ever pay." },
   { q: "Can you work with my existing website?", a: "Yes. Nothing here requires a rebuild. We work with the site you have — reading it, structuring what it already says, and adding the assistant to it. If your site is thin, we will tell you which gaps matter." },
   { q: "How is this different from SEO?", a: "SEO is about ranking a page in a list of links. This is about whether an assistant answering a spoken question has accurate facts about you to draw on. They overlap — both reward clear, structured, honest information — but the output is an answer, not a results page." },
-  { q: "What happens after my free check?", a: "Nothing automatic. The result is yours to read, and you decide whether to act on it. If you want to, the audit goes deeper, and the other two packages fix and then answer. No one will chase you." },
-  { q: "How long does it take?", a: "The audit is back within a few working days. Get Found by AI is usually live within two weeks, depending on how quickly we can agree your services and prices. The AI Front Desk adds a few days for the assistant to be set up and tested." },
+  { q: "What happens after my free check?", a: "Nothing automatic. The result is yours to read, and you decide whether to act on it. If you want it fixed, Get Found by AI publishes and measures, and AI Front Desk adds the receptionist. No one will chase you." },
+  { q: "How long does it take?", a: "Get Found by AI goes live the moment you finish the five-minute setup: your profile is published, the search index is told, and the first check across all four assistants runs straight away — then monthly. The AI Front Desk adds a few days for the assistant to be set up and tested." },
   { q: "Does the assistant make things up?", a: "It answers only from facts you have given it. If it has not been told a price, it says it will check rather than inventing one, and it never confirms a booking itself — it shares your booking link or takes details for you to confirm." },
 ];
 

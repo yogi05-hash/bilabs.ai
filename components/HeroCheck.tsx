@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { track } from "@/components/Track";
+import { rememberEvaluation, track } from "@/components/Track";
+import { startCheckout } from "@/lib/checkoutClient";
+import { HONESTY_LINE } from "@/lib/site";
 
 /* The free AI check, run from the hero.
  *
@@ -65,6 +67,15 @@ export default function HeroCheck() {
   const [sending, setSending] = useState(false);
   const [mailErr, setMailErr] = useState<string | null>(null);
   const [showWeights, setShowWeights] = useState(false);
+  const [paying, setPaying] = useState(false);
+  const [payErr, setPayErr] = useState<string | null>(null);
+
+  const fix = async () => {
+    if (paying) return;
+    setPaying(true); setPayErr(null);
+    const r = await startCheckout("get-found");
+    if (!r.ok) { setPayErr(r.error); setPaying(false); }
+  };
 
   const run = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,6 +92,9 @@ export default function HeroCheck() {
       const data = await res.json();
       if (!res.ok) { setErr(data.error ?? "The check could not run just now."); return; }
       setResult(data);
+      // remembered so a checkout started anywhere on the page ties back to
+      // this run, and the paid profile is pre-filled from it
+      rememberEvaluation(data.evaluationId ?? null);
       // the full result is now on screen — count the report view against
       // this specific run rather than as a bare page event
       track("report_viewed", { evaluationId: data.evaluationId ?? null });
@@ -107,6 +121,7 @@ export default function HeroCheck() {
       const data = await res.json();
       if (!res.ok) { setMailErr(data.error ?? "Could not send that just now."); return; }
       setUnlocked(true);
+      rememberEvaluation(result.evaluationId ?? null, email);
     } catch {
       setMailErr("Could not send that just now.");
     } finally {
@@ -316,9 +331,24 @@ export default function HeroCheck() {
             your own site and will stay the same until you change it.
           </p>
 
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginTop: 16 }}>
-            <a href="#packages" className="btn-amber" style={{ padding: "11px 18px", fontSize: 14 }}>Fix this for me →</a>
-            <a href="/contact" className="btn-line" style={{ padding: "11px 18px", fontSize: 14 }}>Talk to us</a>
+          {/* The paid step, right where the result is. Mentioned in two or
+              fewer is a problem to fix; more is a position to keep. */}
+          <div style={{ marginTop: 16, background: "var(--warm-alt)", borderRadius: 12, padding: 16 }}>
+            <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: "var(--ink)" }}>
+              {result.mentionCount <= 2 ? "Get found by AI — £49/month, first month £1" : "Keep it that way — £49/month, first month £1"}
+            </p>
+            <p style={{ margin: "4px 0 0", fontSize: 12.5, lineHeight: 1.55, color: "var(--ink-2)" }}>
+              We publish your profile where AI web search can read it, then ask ChatGPT, Claude, Gemini and Grok every
+              month and send you what they say. Set-up takes five minutes.
+            </p>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginTop: 12 }}>
+              <button type="button" onClick={fix} disabled={paying} className="btn-amber" style={{ padding: "11px 18px", fontSize: 14, opacity: paying ? 0.6 : 1 }}>
+                {paying ? "Opening checkout…" : result.mentionCount <= 2 ? "Fix this for £49/mo →" : "Keep it that way — £49/mo →"}
+              </button>
+              <a href="/contact" className="btn-line" style={{ padding: "11px 18px", fontSize: 14 }}>Talk to us</a>
+            </div>
+            {payErr && <p style={{ margin: "8px 0 0", fontSize: 12.5, color: "#9a2a2a" }}>{payErr}</p>}
+            <p style={{ margin: "10px 0 0", fontSize: 11.5, lineHeight: 1.55, color: "var(--ink-3)" }}>{HONESTY_LINE}</p>
           </div>
         </div>
       )}
