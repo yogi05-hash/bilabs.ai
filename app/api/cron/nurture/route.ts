@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { env } from "@/lib/env";
 import { sb, setStatus, type Lead } from "@/lib/leads";
 import { STEPS, advance, buildEmail, buildRecheck, sendMail } from "@/lib/nurture";
+import { cronAuthorised } from "@/lib/cron";
 
 export const maxDuration = 60;
 
@@ -11,19 +11,10 @@ export const maxDuration = 60;
  * Paid, unsubscribed and lost are excluded in the query itself rather than
  * filtered later, so a bug in the loop cannot email someone who opted out. */
 
-function authorised(req: NextRequest): boolean {
-  const secret = env("CRON_SECRET");
-  if (!secret) return false;
-  const header = req.headers.get("authorization") ?? "";
-  if (header === `Bearer ${secret}`) return true;
-  // Vercel cron sends its own header
-  return req.headers.get("x-vercel-cron") !== null;
-}
-
 const days = (iso: string) => (Date.now() - new Date(iso).getTime()) / 86_400_000;
 
 export async function GET(req: NextRequest) {
-  if (!authorised(req)) return NextResponse.json({ error: "Unauthorised" }, { status: 401 });
+  if (!cronAuthorised(req)) return NextResponse.json({ error: "Unauthorised" }, { status: 401 });
 
   const leads =
     (await sb<Lead[]>(

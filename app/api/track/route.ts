@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
   EVENTS,
+  SERVER_ONLY_EVENTS,
   VISITOR_COOKIE,
   contextFrom,
   newVisitorKey,
@@ -24,7 +25,7 @@ export const runtime = "nodejs";
  * means no row — never a wrong one.
  */
 
-const ALLOWED = new Set<string>([...EVENTS]);
+const ALLOWED = new Set<string>(EVENTS.filter((e) => !SERVER_ONLY_EVENTS.has(e)));
 
 /* Generous, because a real session legitimately fires a handful of events, but
  * finite so a loop in someone's console cannot fill the table. */

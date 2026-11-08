@@ -38,8 +38,29 @@ export const EVENTS = [
   "payment_succeeded",
   "subscription_updated",
   "refund_recorded",
+  /* the paid product */
+  "dashboard_login",
+  "business_onboarded",
+  "profile_published",
+  "check_completed",
 ] as const;
 export type EventName = (typeof EVENTS)[number];
+
+/* Events only server code may record. A browser beacon claiming a payment
+ * succeeded is a signal from a page, not a fact, and /api/track refuses it. */
+export const SERVER_ONLY_EVENTS: ReadonlySet<EventName> = new Set<EventName>([
+  "evaluation_started",
+  "email_captured",
+  "evaluation_completed",
+  "evaluation_failed",
+  "payment_succeeded",
+  "subscription_updated",
+  "refund_recorded",
+  "dashboard_login",
+  "business_onboarded",
+  "profile_published",
+  "check_completed",
+]);
 
 export const VISITOR_COOKIE = "bl_vid";
 
