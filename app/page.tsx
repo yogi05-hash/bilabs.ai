@@ -470,17 +470,6 @@ function Packages() {
                     {p.sub && <span style={{ fontSize: 13.5, color: "var(--ink-3)" }}>{p.sub}</span>}
                   </p>
 
-                  {p.offer && (
-                    <span style={{
-                      display: "inline-block", marginTop: 10, alignSelf: "flex-start",
-                      fontSize: 11.5, fontWeight: 600, color: "#7a5a0d",
-                      background: "rgba(245,183,49,.24)", border: "1px solid rgba(245,183,49,.5)",
-                      borderRadius: 999, padding: "4px 10px",
-                    }}>
-                      First month £1
-                    </span>
-                  )}
-
                   <ul style={{ listStyle: "none", padding: 0, margin: "16px 0 0", display: "flex", flexDirection: "column", gap: 9, flex: 1 }}>
                     {p.points.map((pt) => (
                       <li key={pt} style={{ display: "flex", gap: 9, fontSize: 13.5, lineHeight: 1.55, color: "var(--ink-2)" }}>
@@ -529,7 +518,6 @@ function Packages() {
 const FAQS = [
   { q: "Will this guarantee AI recommendations?", a: "No. We improve access and clarity; each platform decides what it indexes and recommends. What we control is whether your business is readable — accurate, structured, current, and published where these systems look. Anyone promising you a guaranteed AI ranking is guessing." },
   { q: "What do I actually get each month?", a: "On Get Found by AI (£49/month): a published profile with structured data at bilabs.ai/b/your-business, copy-paste snippets for your own site, and every month we ask ChatGPT, Claude, Gemini and Grok five real questions with live web search and send you whether they named you and who they named instead — all of it in your dashboard too. AI Front Desk (£99/month) adds the receptionist that answers enquiries on your site, a link and a QR code, and emails each one to you." },
-  { q: "What is the £1 first month?", a: "The first ten businesses to sign up pay £1 for their first month instead of £49 or £99, then the normal price from month two. It is applied automatically at checkout while places remain — you do not need a code. Cancel before the second month and £1 is all you ever pay." },
   { q: "Can you work with my existing website?", a: "Yes. Nothing here requires a rebuild. We work with the site you have — reading it, structuring what it already says, and adding the assistant to it. If your site is thin, we will tell you which gaps matter." },
   { q: "How is this different from SEO?", a: "SEO is about ranking a page in a list of links. This is about whether an assistant answering a spoken question has accurate facts about you to draw on. They overlap — both reward clear, structured, honest information — but the output is an answer, not a results page." },
   { q: "What happens after my free check?", a: "Nothing automatic. The result is yours to read, and you decide whether to act on it. If you want it fixed, Get Found by AI publishes and measures, and AI Front Desk adds the receptionist. No one will chase you." },

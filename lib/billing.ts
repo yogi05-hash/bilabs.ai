@@ -98,10 +98,9 @@ export function planLabel(priceId: string | null): string | null {
  *   - An annual price contributes amount/12. Monthly contributes its amount.
  *     Weekly and daily intervals are normalised to a 30.4375-day month.
  *   - One-off payments never contribute. They are reported separately.
- *   - Quantity is honoured. Discounts and coupons are NOT deducted: the £1
- *     first month is a one-off coupon, so subtracting it would understate the
- *     recurring run-rate from month two. The discounted amount still shows in
- *     payments received.
+ *   - Quantity is honoured. Any coupon applied by hand in Stripe is NOT
+ *     deducted: a one-off discount would understate the recurring run-rate.
+ *     The amount actually charged still shows in payments received.
  *   - Currencies are never added together. Each currency is reported as its
  *     own line; there is no FX rate in this system and inventing one would
  *     make the headline number untraceable.

@@ -5,39 +5,15 @@ import { getSettings } from "@/lib/admin";
 
 /* Stripe Checkout for the two monthly plans.
  *
- * The launch offer is "first month £1 — first 10 businesses". Stripe caps
- * redemptions per coupon, and there is one coupon per plan, so the per-coupon
- * caps alone would allow ten on each and twenty in total. The combined count
- * is therefore checked here before the discount is attached: once ten have
- * been taken across both plans, checkout still works and simply charges full
- * price rather than quietly honouring an offer that has ended. */
+ * Full price from the first payment: no coupons, no promotion codes, no
+ * trial. What the page says is what the first invoice charges. */
 
 const PLANS = {
-  "get-found": { price: "STRIPE_PRICE_GET_FOUND", coupon: "STRIPE_COUPON_GET_FOUND", label: "Get Found by AI" },
-  "front-desk": { price: "STRIPE_PRICE_FRONT_DESK", coupon: "STRIPE_COUPON_FRONT_DESK", label: "AI Front Desk" },
+  "get-found": { price: "STRIPE_PRICE_GET_FOUND", label: "Get Found by AI" },
+  "front-desk": { price: "STRIPE_PRICE_FRONT_DESK", label: "AI Front Desk" },
 } as const;
 
 type PlanId = keyof typeof PLANS;
-
-async function offerPlacesLeft(secret: string): Promise<boolean> {
-  const limit = Number(env("STRIPE_OFFER_LIMIT", "10")) || 10;
-  const ids = [env("STRIPE_COUPON_GET_FOUND"), env("STRIPE_COUPON_FRONT_DESK")].filter(Boolean);
-  try {
-    let used = 0;
-    for (const id of ids) {
-      const res = await fetch(`https://api.stripe.com/v1/coupons/${encodeURIComponent(id)}`, {
-        headers: { Authorization: `Bearer ${secret}` },
-        cache: "no-store",
-      });
-      if (!res.ok) return false; // can't prove places remain — don't discount
-      const c = await res.json();
-      used += Number(c.times_redeemed ?? 0);
-    }
-    return used < limit;
-  } catch {
-    return false;
-  }
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -67,8 +43,6 @@ export async function POST(request: NextRequest) {
       // to confirm payment and hand over the dashboard link.
       success_url: `${site}/welcome?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${site}/#packages`,
-      // allow_promotion_codes cannot be sent alongside discounts — Stripe
-      // rejects the pair outright, even when it is "false".
       "subscription_data[metadata][plan]": planId,
       "metadata[plan]": planId,
     });
@@ -97,11 +71,6 @@ export async function POST(request: NextRequest) {
       form.set(`subscription_data[metadata][${k}]`, v);
     }
 
-    const coupon = env(plan.coupon);
-    if (coupon && (await offerPlacesLeft(secret))) {
-      form.set("discounts[0][coupon]", coupon);
-    }
-
     const res = await fetch("https://api.stripe.com/v1/checkout/sessions", {
       method: "POST",
       headers: { Authorization: `Bearer ${secret}`, "Content-Type": "application/x-www-form-urlencoded" },
@@ -122,7 +91,7 @@ export async function POST(request: NextRequest) {
       visitorId: visitor?.id ?? null,
       contactId: visitor?.contact_id ?? null,
       dedupeKey: `checkout_started:${session.id}`,
-      props: { plan: planId, session_id: session.id, discounted: form.has("discounts[0][coupon]") },
+      props: { plan: planId, session_id: session.id },
       isInternal: ctx.isInternal,
       isTest: ctx.isTest,
     });

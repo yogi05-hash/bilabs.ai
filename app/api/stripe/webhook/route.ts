@@ -177,8 +177,8 @@ async function handle(event: StripeEvent): Promise<{ status: string; reason?: st
       lead = await upsertLead({ email, source: "checkout", business_type: null, area: null });
     }
 
-    // amount_total is what was actually charged, so the £1 first month shows
-    // as £1 in receipts rather than the £49 list price.
+    // amount_total is what was actually charged, which is what receipts and
+    // revenue must show — not the list price.
     const amount = Number(s.amount_total ?? 0);
     const currency = String(s.currency ?? "gbp");
 

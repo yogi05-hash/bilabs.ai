@@ -335,7 +335,7 @@ export default function HeroCheck() {
               fewer is a problem to fix; more is a position to keep. */}
           <div style={{ marginTop: 16, background: "var(--warm-alt)", borderRadius: 12, padding: 16 }}>
             <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: "var(--ink)" }}>
-              {result.mentionCount <= 2 ? "Get found by AI — £49/month, first month £1" : "Keep it that way — £49/month, first month £1"}
+              {result.mentionCount <= 2 ? "Get found by AI — £49/month, cancel anytime" : "Keep it that way — £49/month, cancel anytime"}
             </p>
             <p style={{ margin: "4px 0 0", fontSize: 12.5, lineHeight: 1.55, color: "var(--ink-2)" }}>
               We publish your profile where AI web search can read it, then ask ChatGPT, Claude, Gemini and Grok every

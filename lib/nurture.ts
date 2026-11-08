@@ -89,7 +89,7 @@ export function buildEmail(lead: Lead, stepId: string): Mail {
 ${top.map((c) => `<li style="margin-bottom:10px"><strong>${esc(c.label)}</strong> — worth ${c.weight} points.<br><span style="color:#555">${esc(c.detail)}</span></li>`).join("")}
 </ol>
 <p>None of these need a rebuild. They are things your existing site should already be saying out loud, in text a machine can read.</p>
-<p>If you want them done for you, that is what <a href="${site}/#packages" style="color:#B8841A">Get Found by AI</a> is — £49 a month, first month £1.</p>`,
+<p>If you want them done for you, that is what <a href="${site}/#packages" style="color:#B8841A">Get Found by AI</a> is — £49 a month, cancel anytime.</p>`,
       ),
     };
   }
@@ -113,13 +113,13 @@ ${top.map((c) => `<li style="margin-bottom:10px"><strong>${esc(c.label)}</strong
 
   if (stepId === "offer") {
     return {
-      subject: `First month £1 — we fix ${name} for you`,
+      subject: `Get ${name} found by AI — here's how it works`,
       html: wrap(
         lead,
         `<p>Hi${lead.name ? ` ${esc(lead.name.split(" ")[0])}` : ""},</p>
 <p>Quick one. You confirm your business and add your services, hours, prices and FAQ — five minutes. We publish a profile with structured data where AI web search reads it, give you snippets for your own site, and every month ask ChatGPT, Claude, Gemini and Grok whether they name you — with every answer in your dashboard and your inbox.</p>
-<p>It is £49 a month. Your first month is £1, and you can cancel any time — if it is not earning its keep, stop.</p>
-<p><a href="${site}/#packages" style="display:inline-block;background:#F5B731;color:#1a1205;padding:12px 22px;border-radius:999px;font-weight:600;text-decoration:none">Start for £1</a></p>
+<p>It is £49 a month, and you can cancel any time — if it is not earning its keep, stop.</p>
+<p><a href="${site}/#packages" style="display:inline-block;background:#F5B731;color:#1a1205;padding:12px 22px;border-radius:999px;font-weight:600;text-decoration:none">Start for £49/month</a></p>
 <p style="color:#555">If the receptionist side is more use to you — answering enquiries 24/7 and emailing you each one — that is AI Front Desk at £99.</p>`,
       ),
     };
@@ -189,7 +189,7 @@ export async function buildRecheck(lead: Lead): Promise<Mail> {
           ? `So it has moved ${direction}. These answers do shift on their own as sources change — which is exactly why it is worth having your own details published rather than leaving it to chance.`
           : `No change — which is the usual answer when nothing has been published in between. These systems can only repeat what they can read.`
       }</p>
-<p><a href="${site}/#packages" style="color:#B8841A">Fix it for £1 for the first month →</a></p>`,
+<p><a href="${site}/#packages" style="color:#B8841A">Fix it for £49/month, cancel anytime →</a></p>`,
     ),
   };
 }

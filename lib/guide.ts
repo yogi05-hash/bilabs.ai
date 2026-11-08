@@ -32,15 +32,12 @@ cancel anytime:
    from the facts you gave it, and emails you each enquiry the moment it
    arrives.
 
-LAUNCH OFFER — currently open
-First month £1 on either paid plan, then the normal £49 or £99 from month
-two. Applied automatically at checkout while the offer is running; no code
-needed. Cancel before month two and £1 is all they pay. It is a limited
-launch offer — if asked how long it lasts or how many places remain, say you
-do not know and they should start now or ask us.
+PRICING
+Full price from the first payment: £49 or £99 a month. Cancel anytime.
 
-THERE IS NO £149 AUDIT, £499 OR £999 PACKAGE, AND NO SETUP FEE. If someone
-mentions those, tell them the pricing changed and give the three plans above.
+THERE IS NO £149 AUDIT, £499 OR £999 PACKAGE, NO SETUP FEE, AND NO DISCOUNTED
+OR £1 FIRST MONTH. If someone mentions those, tell them the pricing changed and
+give the three plans above.
 
 HOW IT WORKS
 Check → Publish → Measure → Answer. We find out what AI says about you, we
@@ -58,7 +55,7 @@ HARD LIMITS — NEVER BREAK THESE
   details; the business confirms.
 - It answers only from facts the business supplied, and will not invent a
   price or a detail it was not told.
-- Beyond the launch offer above, no other plans, discounts, trials or guarantees exist. If asked about
+- No other plans, discounts, trials or guarantees exist. If asked about
   something not listed above, say it is not something we offer.
 `.trim();
 
@@ -87,11 +84,11 @@ export const CONTEXTS: Record<string, Ctx> = {
   },
   "get-found": {
     label: "Get Found by AI — £49/month",
-    focus: "They are considering Get Found by AI at £49/month. Be clear it makes them readable, not ranked, and mention the £1 first month while places remain.",
+    focus: "They are considering Get Found by AI at £49/month. Be clear it makes them readable, not ranked, and that they can cancel anytime.",
   },
   "front-desk": {
     label: "AI Front Desk — £99/month",
-    focus: "They want the receptionist too, at £99/month. Cover answering 24/7 and lead capture, that it never confirms bookings itself, and the £1 first month.",
+    focus: "They want the receptionist too, at £99/month. Cover answering 24/7 and lead capture, that it never confirms bookings itself, and that they can cancel anytime.",
   },
   report: {
     label: "Your visibility result",
@@ -126,7 +123,7 @@ EVERY REPLY MUST CALL THE reply TOOL with:
     * "#check" to run the free visibility check
     * "#packages" to compare the three
     * "#packages" to compare the plans, or "/contact" to talk to someone
-  with a plain label such as "Start for £1".
+  with a plain label such as "Start for £49/month".
 - lead: what they actually told you (business_type, area, monthly_enquiries, recommended_package). Omit anything unsaid. Never guess.`;
 }
 

@@ -99,7 +99,7 @@ export async function GET(req: NextRequest) {
       mrr:
         "Subscriptions in status active or trialing, for BiLabs products only. Annual prices contribute amount/12; weekly and daily are normalised to a 30.4375-day month. Quantity is honoured. Past-due, incomplete and cancelled are excluded. One-off payments never contribute.",
       discounts:
-        "Coupons are not deducted. The £1 first month is a one-off discount, so subtracting it would understate the run-rate from month two. The £1 actually charged still appears in payments received.",
+        "Checkout applies no discounts. A coupon added by hand in Stripe is not deducted from MRR, since a one-off discount would understate the run-rate; the amount actually charged still appears in payments received.",
       currency:
         "Currencies are reported separately and never added together — there is no FX rate in this system, and inventing one would make the headline untraceable.",
       testMode:

@@ -14,7 +14,6 @@ export type Pack = {
   cta: "scroll" | "checkout";
   ctaLabel: string;
   href?: string;
-  offer: boolean;
   featured?: boolean;
 };
 
@@ -34,7 +33,6 @@ export const PACKAGES: Pack[] = [
     cta: "scroll",
     ctaLabel: "Run the free check",
     href: "#check",
-    offer: false,
   },
   {
     id: "get-found",
@@ -49,8 +47,7 @@ export const PACKAGES: Pack[] = [
       "Cancel anytime",
     ],
     cta: "checkout",
-    ctaLabel: "Start for £1",
-    offer: true,
+    ctaLabel: "Start for £49/month",
   },
   {
     id: "front-desk",
@@ -65,8 +62,7 @@ export const PACKAGES: Pack[] = [
       "Enquiries emailed to you the moment they arrive",
     ],
     cta: "checkout",
-    ctaLabel: "Start for £1",
-    offer: true,
+    ctaLabel: "Start for £99/month",
     featured: true,
   },
 ];

@@ -49,7 +49,7 @@ Supabase. Run the SQL files in `supabase/` in order in the SQL editor: `0002_ana
 | `OPENAI_API_KEY`, `OPENAI_MODEL` | ChatGPT (paid checks; default `gpt-4.1-mini`) |
 | `GEMINI_API_KEY`, `GEMINI_MODEL` | Gemini (paid checks; default `gemini-2.5-flash`) |
 | `XAI_API_KEY`, `XAI_MODEL` | Grok (paid checks; default `grok-4-fast`) |
-| `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_GET_FOUND`, `STRIPE_PRICE_FRONT_DESK`, `STRIPE_COUPON_*`, `STRIPE_OFFER_LIMIT` | billing |
+| `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_GET_FOUND`, `STRIPE_PRICE_FRONT_DESK` | billing — full price from the first payment, no coupons |
 | `RESEND_API_KEY`, `LEAD_FROM`, `NURTURE_FROM`, `CUSTOMER_FROM`, `LEAD_NOTIFY_TO` | email (`CUSTOMER_FROM` for dashboard links and reports; falls back to `NURTURE_FROM`) |
 | `ADMIN_EMAILS`, `ADMIN_SESSION_SECRET` | admin magic-link sign-in |
 | `CUSTOMER_SESSION_SECRET` | customer magic-link sign-in (falls back to `ADMIN_SESSION_SECRET`) |
