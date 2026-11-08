@@ -8,16 +8,22 @@ import { usePathname } from "next/navigation";
  *
  * A route group would be the tidier fix but would mean moving every public
  * page on disk; this keeps the change to one file. */
+const APP_ROUTE = /^\/(admin|dashboard)(\/|$)/;
+// A published business profile is that business's page, not ours: it has its
+// own small header and footer and no marketing navigation.
+const PROFILE_ROUTE = /^\/b\//;
+
 export default function SiteChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  if (pathname?.startsWith("/admin")) return null;
+  if (pathname && (APP_ROUTE.test(pathname) || PROFILE_ROUTE.test(pathname))) return null;
   return <>{children}</>;
 }
 
 /** Page-view tracking is for the public site only — admin traffic is our own
- *  and is already excluded from metrics, so there is no reason to record it. */
+ *  and is already excluded from metrics, and a customer inside their own
+ *  dashboard is not a visitor being marketed to. */
 export function PublicOnly({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  if (pathname?.startsWith("/admin")) return null;
+  if (pathname && APP_ROUTE.test(pathname)) return null;
   return <>{children}</>;
 }

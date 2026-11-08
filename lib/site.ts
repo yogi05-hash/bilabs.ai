@@ -38,7 +38,7 @@ export const SITE = {
     {
       name: "Get Found by AI",
       description:
-        "Your business profile and schema built from your real services, hours and prices, published where AI systems can read it, kept current, with a monthly AI visibility report.",
+        "A published business profile with schema.org structured data, hosted on bilabs.ai with copy-paste snippets for your own site, and a monthly check of whether ChatGPT, Claude, Gemini and Grok name your business — with every answer in your dashboard.",
       price: 49,
       period: "MONTH",
     },
@@ -52,8 +52,14 @@ export const SITE = {
   ],
 } as const;
 
+/* The one sentence every page, email and plan description must agree on.
+ * Nobody can put facts inside a model; we publish where AI web search reads
+ * and we measure what comes back. Weakening this anywhere is a bug. */
+export const HONESTY_LINE =
+  "We make your business discoverable to AI web search and measure whether assistants name you. We do not — and cannot — put anything inside a model.";
+
 /** Drops empty strings and empty arrays so nothing unverified reaches the markup. */
-function prune<T>(obj: T): T {
+export function prune<T>(obj: T): T {
   if (Array.isArray(obj)) return obj.map(prune).filter((v) => v !== undefined) as unknown as T;
   if (obj && typeof obj === "object") {
     const out: Record<string, unknown> = {};
