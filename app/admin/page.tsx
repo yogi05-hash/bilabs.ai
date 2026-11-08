@@ -6,6 +6,7 @@ import Visitors from "@/components/admin/Visitors";
 import Leads from "@/components/admin/Leads";
 import Evaluations from "@/components/admin/Evaluations";
 import Customers from "@/components/admin/Customers";
+import Businesses from "@/components/admin/Businesses";
 import Campaigns from "@/components/admin/Campaigns";
 import FollowUps from "@/components/admin/FollowUps";
 import Settings from "@/components/admin/Settings";
@@ -22,7 +23,7 @@ import { ErrorBox } from "@/components/admin/ui";
  * Dates and period boundaries are Europe/London throughout.
  */
 
-type Tab = "overview" | "visitors" | "leads" | "evaluations" | "customers" | "campaigns" | "followups" | "settings";
+type Tab = "overview" | "visitors" | "leads" | "evaluations" | "customers" | "businesses" | "campaigns" | "followups" | "settings";
 
 const TABS: Array<{ id: Tab; label: string }> = [
   { id: "overview", label: "Overview" },
@@ -30,6 +31,7 @@ const TABS: Array<{ id: Tab; label: string }> = [
   { id: "leads", label: "Leads" },
   { id: "evaluations", label: "Checks" },
   { id: "customers", label: "Customers & Billing" },
+  { id: "businesses", label: "Businesses" },
   { id: "campaigns", label: "Campaigns" },
   { id: "followups", label: "Follow-ups" },
   { id: "settings", label: "Settings" },
@@ -169,6 +171,7 @@ export default function AdminPage() {
         leads: overview.contacts.total,
         evaluations: overview.evaluations.started.value,
         customers: overview.mrr?.activeCount ?? 0,
+        businesses: (overview.businesses?.live ?? 0) + (overview.businesses?.processing ?? 0),
       }
     : {};
 
@@ -203,7 +206,7 @@ export default function AdminPage() {
               <p className="ad-sub">All dates and reporting boundaries are Europe/London.</p>
             </div>
 
-            {tab !== "settings" && tab !== "followups" ? (
+            {tab !== "settings" && tab !== "followups" && tab !== "businesses" ? (
               <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
                 <div className="ad-tabs" role="group" aria-label="Date range">
                   {RANGES.map((r) => (
@@ -233,6 +236,7 @@ export default function AdminPage() {
           {tab === "leads" ? <Leads call={call} range={rangeQs()} canWrite={canWrite} /> : null}
           {tab === "evaluations" ? <Evaluations call={call} range={range} canWrite={canWrite} initialQuery={checksQuery} /> : null}
           {tab === "customers" ? <Customers call={call} range={range} isOwner={isOwner} /> : null}
+          {tab === "businesses" ? <Businesses call={call} canWrite={canWrite} /> : null}
           {tab === "campaigns" ? <Campaigns call={call} range={range} /> : null}
           {tab === "followups" ? <FollowUps call={call} canWrite={canWrite} /> : null}
           {tab === "settings" ? <Settings call={call} isOwner={isOwner} /> : null}

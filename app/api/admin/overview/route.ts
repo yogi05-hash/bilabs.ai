@@ -31,7 +31,9 @@ export async function GET(req: NextRequest) {
    * a failing check, a follow-up that is late, a payment that did not go
    * through, an email that bounced, or a webhook we could not process. */
   const nowIso = new Date().toISOString();
-  const [failed, overdue, failedPayments, failedEmails, badHooks] = await Promise.all([
+  const threeDaysAgo = new Date(Date.now() - 3 * 86_400_000).toISOString();
+  const twoDaysAgo = new Date(Date.now() - 2 * 86_400_000).toISOString();
+  const [failed, overdue, failedPayments, failedEmails, badHooks, stuckOnboarding, failedChecks, overdueChecks, bizStatus] = await Promise.all([
     sb<{ id: string; website: string | null; failure_reason: string | null; started_at: string }[]>(
       `bilabs_evaluations?is_test=is.false&status=eq.failed&order=started_at.desc&limit=5&select=id,website,failure_reason,started_at`,
     ),
@@ -47,7 +49,22 @@ export async function GET(req: NextRequest) {
     sb<{ stripe_event_id: string; type: string; reason: string | null; received_at: string }[]>(
       `bilabs_webhook_events?status=eq.error&order=received_at.desc&limit=5&select=stripe_event_id,type,reason,received_at`,
     ),
+    /* the paid product: someone who paid and never finished setup, a monthly
+     * check that failed, a live business whose check is overdue */
+    sb<{ id: string; name: string | null; created_at: string; onboarding_step: number }[]>(
+      `bilabs_businesses?is_test=is.false&status=eq.onboarding&created_at=lt.${threeDaysAgo}&order=created_at.asc&limit=5&select=id,name,created_at,onboarding_step`,
+    ),
+    sb<{ id: string; business_id: string; failure_reason: string | null; created_at: string }[]>(
+      `bilabs_checks?is_test=is.false&status=eq.failed&order=created_at.desc&limit=5&select=id,business_id,failure_reason,created_at`,
+    ),
+    sb<{ id: string; name: string | null; next_check_at: string }[]>(
+      `bilabs_businesses?is_test=is.false&status=eq.live&next_check_at=lt.${twoDaysAgo}&order=next_check_at.asc&limit=5&select=id,name,next_check_at`,
+    ),
+    sb<{ status: string }[]>("bilabs_businesses?is_test=is.false&select=status"),
   ]);
+
+  const businesses = { onboarding: 0, processing: 0, live: 0, paused: 0, cancelled: 0 } as Record<string, number>;
+  for (const b of bizStatus ?? []) if (b.status in businesses) businesses[b.status]++;
 
   const recent =
     (await sb<{ name: string; occurred_at: string; path: string | null; contact_id: string | null; props: unknown }[]>(
@@ -63,7 +80,11 @@ export async function GET(req: NextRequest) {
       failedPayments: failedPayments ?? [],
       failedEmails: failedEmails ?? [],
       webhookErrors: badHooks ?? [],
+      stuckOnboarding: stuckOnboarding ?? [],
+      failedChecks: failedChecks ?? [],
+      overdueChecks: overdueChecks ?? [],
     },
+    businesses,
     recent,
     settings: { attributionWindowDays: settings.attributionWindowDays },
     role: admin.role,

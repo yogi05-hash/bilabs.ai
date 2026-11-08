@@ -39,7 +39,11 @@ export type OverviewData = {
     failedPayments: Array<{ id: string; email: string | null; occurred_at: string; amount_pence: number }>;
     failedEmails: Array<{ id: string; email: string | null; kind: string; error: string | null; created_at: string }>;
     webhookErrors: Array<{ stripe_event_id: string; type: string; reason: string | null; received_at: string }>;
+    stuckOnboarding?: Array<{ id: string; name: string | null; created_at: string; onboarding_step: number }>;
+    failedChecks?: Array<{ id: string; business_id: string; failure_reason: string | null; created_at: string }>;
+    overdueChecks?: Array<{ id: string; name: string | null; next_check_at: string }>;
   };
+  businesses?: { onboarding: number; processing: number; live: number; paused: number; cancelled: number };
   recent: Array<{ name: string; occurred_at: string; path: string | null; contact_id: string | null }>;
 };
 
@@ -83,6 +87,18 @@ export default function Overview({
     ...d.actionNeeded.webhookErrors.map((w) => ({
       k: `wh-${w.stripe_event_id}`, tone: "bad" as const, what: "Webhook could not be processed",
       detail: `${w.type} — ${w.reason ?? "no reason recorded"}`, when: w.received_at, go: "customers",
+    })),
+    ...(d.actionNeeded.stuckOnboarding ?? []).map((b) => ({
+      k: `so-${b.id}`, tone: "bad" as const, what: "Paid, setup not finished",
+      detail: `${b.name ?? "unnamed business"} — stuck at step ${b.onboarding_step}/3 for 3+ days`, when: b.created_at, go: "businesses",
+    })),
+    ...(d.actionNeeded.failedChecks ?? []).map((c) => ({
+      k: `fc-${c.id}`, tone: "bad" as const, what: "Monthly check failed",
+      detail: c.failure_reason ?? "no reason recorded", when: c.created_at, go: "businesses",
+    })),
+    ...(d.actionNeeded.overdueChecks ?? []).map((b) => ({
+      k: `oc-${b.id}`, tone: "bad" as const, what: "Scheduled check overdue",
+      detail: `${b.name ?? "unnamed business"} — was due ${fmtDate(b.next_check_at)}`, when: b.next_check_at, go: "businesses",
     })),
   ];
 
@@ -187,6 +203,13 @@ export default function Overview({
               />
             </>
           )}
+          {d.businesses ? (
+            <Stat
+              label="Live businesses" value={fmtNum(d.businesses.live + d.businesses.processing)}
+              note={<>{fmtNum(d.businesses.onboarding)} still in setup{d.businesses.paused ? ` · ${fmtNum(d.businesses.paused)} paused` : ""}</>}
+              hint="Paying customers whose profile is published. Setup = paid but the wizard is unfinished."
+            />
+          ) : null}
           <Stat label="Contacts on record" value={fmtNum(d.contacts.total)} note="With an email address, excluding merged duplicates" />
           <Stat
             label="Checks in flight" value={fmtNum(d.evaluations.running)}

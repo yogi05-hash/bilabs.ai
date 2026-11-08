@@ -24,7 +24,10 @@ export type AuditAction =
   | "followup.complete"
   | "settings.update"
   | "admin.role"
-  | "billing.reconcile";
+  | "billing.reconcile"
+  | "business.status"
+  | "business.publish"
+  | "business.recheck";
 
 export async function audit(
   admin: Admin,
