@@ -339,7 +339,7 @@ export async function buildOverview(p: Period, windowDays: number): Promise<Over
   const [captured, prevCaptured, totalContacts] = await Promise.all([
     count(`bilabs_events?name=eq.email_captured&${between("occurred_at", p)}&is_internal=is.false&is_test=is.false`),
     count(`bilabs_events?name=eq.email_captured&${between("occurred_at", p.prev)}&is_internal=is.false&is_test=is.false`),
-    count("bilabs_leads?email=not.is.null&merged_into=is.null"),
+    count("bilabs_leads?email=not.is.null&merged_into=is.null&is_test=is.false"),
   ]);
 
   const [coStarted, pCoStarted, coDone, pCoDone] = await Promise.all([
@@ -350,8 +350,8 @@ export async function buildOverview(p: Period, windowDays: number): Promise<Over
   ]);
 
   const [newCust, pNewCust] = await Promise.all([
-    count(`bilabs_leads?status=eq.paid&${between("updated_at", p)}`),
-    count(`bilabs_leads?status=eq.paid&${between("updated_at", p.prev)}`),
+    count(`bilabs_leads?status=eq.paid&is_test=is.false&${between("updated_at", p)}`),
+    count(`bilabs_leads?status=eq.paid&is_test=is.false&${between("updated_at", p.prev)}`),
   ]);
 
   const mrr = subs ? mrrFrom(subs) : null;

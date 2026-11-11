@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
   const admin = await requireAdmin(req);
   if (!admin) return NextResponse.json({ error: "Unauthorised" }, { status: 401 });
 
-  const leads = (await sb<Lead[]>("bilabs_leads?select=created_at,status&merged_into=is.null&limit=5000")) ?? [];
+  const leads = (await sb<Lead[]>("bilabs_leads?select=created_at,status&merged_into=is.null&is_test=is.false&limit=5000")) ?? [];
   const now = Date.now();
   const since = (d: number) => leads.filter((l) => now - new Date(l.created_at).getTime() < d * 86_400_000).length;
 

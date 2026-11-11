@@ -115,7 +115,7 @@ export async function GET(req: NextRequest) {
    * recorded separately on the contact row by the capture path. */
   const contacts =
     (await sb<{ id: string; last_utm: Record<string, string> | null; last_source: string | null; status: string }[]>(
-      `bilabs_leads?created_at=gte.${fromIso}&created_at=lt.${toIso}&select=id,last_utm,last_source,status&limit=5000`,
+      `bilabs_leads?is_test=is.false&created_at=gte.${fromIso}&created_at=lt.${toIso}&select=id,last_utm,last_source,status&limit=5000`,
     )) ?? [];
   const latest = new Map<string, { key: string; leads: number; customers: number }>();
   for (const c of contacts) {
