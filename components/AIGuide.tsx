@@ -20,7 +20,7 @@ const OPENERS: Record<string, string> = {
   "how-it-works": "How does this work, step by step?",
   audit: "Tell me about the free AI visibility check.",
   "get-found": "Tell me about Get Found by AI.",
-  "front-desk": "Tell me about the AI Front Desk.",
+  "front-desk": "Is the AI receptionist available?",
   report: "I just ran the check — what should I do about it?",
   faq: "I have a question.",
 };
@@ -31,7 +31,7 @@ const TITLES: Record<string, string> = {
   "how-it-works": "How it works",
   audit: "Free AI visibility check",
   "get-found": "Get Found by AI",
-  "front-desk": "AI Front Desk",
+  "front-desk": "AI receptionist (on hold)",
   report: "Your result",
   faq: "Ask anything",
 };

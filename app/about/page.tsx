@@ -70,7 +70,7 @@ export default function AboutPage() {
           <ul className="body" style={{ marginTop: 10, paddingLeft: 20 }}>
             <li><strong>Free AI Check</strong> — £0.</li>
             <li><strong>Get Found by AI</strong> — £49 per month.</li>
-            <li><strong>AI Front Desk</strong> — £99 per month.</li>
+            <li><strong>AI Front Desk</strong> — on hold while we focus on AI visibility.</li>
           </ul>
 
           <h2 style={{ fontSize: 20, fontWeight: 700, marginTop: 36 }}>Contact</h2>

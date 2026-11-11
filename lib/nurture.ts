@@ -125,7 +125,7 @@ ${top.map((c) => `<li style="margin-bottom:10px"><strong>${esc(c.label)}</strong
 <p>Quick one. You confirm your business and add your services, hours, prices and FAQ — five minutes. We publish a profile with structured data where AI web search reads it, give you snippets for your own site, and every month ask ChatGPT, Claude, Gemini and Grok whether they name you — with every answer in your dashboard and your inbox.</p>
 <p>It is £49 a month, and you can cancel any time — if it is not earning its keep, stop.</p>
 <p><a href="${payUrl(lead, "offer")}" style="display:inline-block;background:#F5B731;color:#1a1205;padding:12px 22px;border-radius:999px;font-weight:600;text-decoration:none">Start for £49/month</a></p>
-<p style="color:#555">If the receptionist side is more use to you — answering enquiries 24/7 and emailing you each one — that is AI Front Desk at £99.</p>`,
+<p style="color:#555">Everything is automatic from the moment you pay: the setup takes five minutes, and if you stop halfway we remind you.</p>`,
       ),
     };
   }

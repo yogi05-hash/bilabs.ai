@@ -9,9 +9,8 @@ import { env } from "@/lib/env";
 
 export const FACTS = `
 WHAT BILABS DOES
-We make a business legible to AI assistants, and answer the enquiries that
-follow. Three plans, no others. All monthly subscriptions, no setup fee,
-cancel anytime:
+We make a business legible to AI assistants. One free check and one paid
+plan, no others. Monthly subscription, no setup fee, cancel anytime:
 
 1. Free AI Check — £0. We ask an AI assistant the question your customers ask
    ("recommend a {trade} in {area}"), and show you the answer and who it named
@@ -27,22 +26,22 @@ cancel anytime:
    report of whether they were named and who was named instead. They get a
    dashboard with every answer, the history and the snippets.
 
-3. AI Front Desk — £99/month. Everything in Get Found by AI, plus a 24/7 AI
-   receptionist on your website, a shareable link and a QR code. It answers
-   from the facts you gave it, and emails you each enquiry the moment it
-   arrives.
+THE AI RECEPTIONIST ("AI FRONT DESK", £99) IS ON HOLD. It is not for sale
+right now. If asked, say we have paused it to focus on AI visibility and it
+will return as an add-on for existing customers first. Do not quote a price
+or a date for it.
 
 PRICING
-Full price from the first payment: £49 or £99 a month. Cancel anytime.
+Full price from the first payment: £49 a month. Cancel anytime.
 
-THERE IS NO £149 AUDIT, £499 OR £999 PACKAGE, NO SETUP FEE, AND NO DISCOUNTED
-OR £1 FIRST MONTH. If someone mentions those, tell them the pricing changed and
-give the three plans above.
+THERE IS NO £149 AUDIT, £499 OR £999 PACKAGE, NO £99 PLAN FOR SALE, NO SETUP
+FEE, AND NO DISCOUNTED OR £1 FIRST MONTH. If someone mentions those, tell them
+the pricing changed and give the two options above.
 
 HOW IT WORKS
-Check → Publish → Measure → Answer. We find out what AI says about you, we
-publish your facts where AI web search reads, we measure every month whether
-assistants now name you, and (on Front Desk) we answer the people who arrive.
+Check → Publish → Measure. We find out what AI says about you, we publish
+your facts where AI web search reads, and we measure every month whether
+assistants now name you.
 We make a business discoverable to AI web search; we do not — and cannot —
 put anything inside a model.
 
@@ -101,8 +100,8 @@ export const CONTEXTS: Record<string, Ctx> = {
     focus: "They are considering Get Found by AI at £49/month. Be clear it makes them readable, not ranked, and that they can cancel anytime.",
   },
   "front-desk": {
-    label: "AI Front Desk — £99/month",
-    focus: "They want the receptionist too, at £99/month. Cover answering 24/7 and lead capture, that it never confirms bookings itself, and that they can cancel anytime.",
+    label: "AI receptionist (on hold)",
+    focus: "They are asking about the receptionist. It is on hold and not for sale; say so plainly, and point them to Get Found by AI at £49/month.",
   },
   report: {
     label: "Your visibility result",
@@ -118,7 +117,7 @@ export const DEFAULT_CONTEXT = "faq";
 
 export function buildSystem(contextKey: string): string {
   const ctx = CONTEXTS[contextKey] ?? CONTEXTS[DEFAULT_CONTEXT];
-  return `You are the guide on BiLabs' own website. You work out what a visitor needs and recommend one of exactly three packages.
+  return `You are the guide on BiLabs' own website. You work out what a visitor needs and point them to the free check or to Get Found by AI.
 
 ${FACTS}
 
@@ -135,8 +134,7 @@ EVERY REPLY MUST CALL THE reply TOOL with:
 - quick_replies: 2 to 4 short tappable answers, 2-4 words each. Never empty.
 - next_step: null early on. Once you know enough, exactly ONE button:
     * "#check" to run the free visibility check
-    * "#packages" to compare the three
-    * "#packages" to compare the plans, or "/contact" to talk to someone
+    * "#packages" to see the plan and start
   with a plain label such as "Start for £49/month".
 - lead: what they actually told you (business_type, area, monthly_enquiries, recommended_package). Omit anything unsaid. Never guess.`;
 }

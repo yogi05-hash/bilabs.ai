@@ -42,13 +42,6 @@ export const SITE = {
       price: 49,
       period: "MONTH",
     },
-    {
-      name: "AI Front Desk",
-      description:
-        "Everything in Get Found by AI, plus a 24/7 AI receptionist on your website, a shareable link and a QR code, which answers from your facts and emails you every enquiry.",
-      price: 99,
-      period: "MONTH",
-    },
   ],
 } as const;
 

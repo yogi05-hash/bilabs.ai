@@ -17,7 +17,11 @@ export type Pack = {
   featured?: boolean;
 };
 
-export const PACKAGES: Pack[] = [
+/* Every plan we have built. The receptionist (AI Front Desk) is on hold while
+ * the site sells one thing — AI visibility — so it stays defined here, with
+ * its Stripe price and checkout path intact, but out of PACKAGES and off every
+ * page until it is brought back. */
+export const ALL_PACKAGES: Pack[] = [
   {
     id: "free",
     name: "Free AI Check",
@@ -67,3 +71,8 @@ export const PACKAGES: Pack[] = [
     ctaLabel: "Start for £99/month",
   },
 ];
+
+export const ON_HOLD = new Set<Pack["id"]>(["front-desk"]);
+
+/** What the site shows and sells today. */
+export const PACKAGES: Pack[] = ALL_PACKAGES.filter((p) => !ON_HOLD.has(p.id));

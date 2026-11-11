@@ -57,7 +57,6 @@ export default function Page() {
           <ul className="body" style={{ marginTop: 10, paddingLeft: 20 }}>
             <li><strong>Free AI Check</strong> — £0. Five real questions put to an AI assistant, plus a readiness scan of your site.</li>
             <li><strong>Get Found by AI</strong> — £49 per month. Profile and schema built, published and kept current, with a monthly report.</li>
-            <li><strong>AI Front Desk</strong> — £99 per month. Everything above, plus a 24/7 AI receptionist that answers enquiries and emails them to you.</li>
           </ul>
           <p className="body" style={{ marginTop: 10 }}>
             No setup fee. Cancel anytime. Prices in GBP.

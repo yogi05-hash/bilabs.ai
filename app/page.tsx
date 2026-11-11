@@ -285,7 +285,7 @@ function Packages() {
     <section id="packages" className="sec" style={{ scrollMarginTop: 80 }}>
       <div className="wrap">
         <FadeIn>
-          <h2 className="h2">Pick a plan. You&apos;re set up in five minutes.</h2>
+          <h2 className="h2">One plan. You&apos;re set up in five minutes.</h2>
           <p className="body" style={{ maxWidth: 620, marginTop: 12 }}>
             Full price from the first payment, no setup fee, cancel anytime from your dashboard. Payment opens your setup
             straight away — no call, no waiting for a reply.
@@ -359,12 +359,12 @@ function Packages() {
 const FAQS = [
   { q: "What exactly happens after I pay?", a: "Within seconds you're on the setup page (and the same link is emailed to you). You confirm your business details — pre-filled from your free check — tick which assistants to monitor, add your services, hours, prices and FAQ, and press Publish. Your profile goes live immediately with structured data, the search index is pinged, and the first check across your chosen assistants runs straight away. From then on it's monthly, with the report emailed to you. If you stop halfway through setup, we email you a reminder with a sign-in link on days 1, 3, 7 and 14." },
   { q: "Will this guarantee AI recommendations?", a: "No. We improve access and clarity; each platform decides what it indexes and recommends. What we control is whether your business is readable — accurate, structured, current, and published where these systems look. Anyone promising you a guaranteed AI ranking is guessing." },
-  { q: "What do I get each month?", a: "On Get Found by AI (£49/month): your profile stays published and editable, and every month we ask ChatGPT, Claude, Gemini and Grok five real questions with live web search and send you whether they named you, who they named instead, and what to do next — all in your dashboard too, with the history. AI Front Desk (£99/month) adds the receptionist that answers enquiries on your site, a link and a QR code, and emails each enquiry to you." },
+  { q: "What do I get each month?", a: "Your profile stays published and editable, and every month we ask ChatGPT, Claude, Gemini and Grok five real questions with live web search and send you whether they named you, who they named instead, and what to do next — all in your dashboard too, with the history." },
   { q: "What happens after the free check if I don't pay?", a: "You get the full report by email with a one-click link to start whenever you like. If you tick the box, we also send a handful of short emails over the next month — the fixes that matter most for your site, who's being named instead of you, and a free re-check two weeks on. Unsubscribe is one click. If you don't tick it, the report is the only email." },
   { q: "Do I need a new website?", a: "No. Nothing here requires a rebuild. Your profile is hosted on bilabs.ai, and the snippets we give you paste into the site you already have. If your site is thin, the readiness checks in your free report say exactly which gaps matter." },
   { q: "How is this different from SEO?", a: "SEO is about ranking a page in a list of links. This is about whether an assistant answering a spoken question has accurate facts about you to draw on. They overlap — both reward clear, structured, honest information — but the output is an answer, not a results page." },
   { q: "What if a payment fails or I want to stop?", a: "If a card is declined we email you straight away and Stripe retries for a few days; if it keeps failing your profile pauses rather than disappears, and comes back the moment a payment succeeds. Cancelling is one click in Billing in your dashboard — no call, no email, no questions." },
-  { q: "Does the Front Desk assistant make things up?", a: "It answers only from facts you have given it. If it has not been told a price, it says it will check rather than inventing one, and it never confirms a booking itself — it shares your booking link or takes details for you to confirm." },
+  { q: "Is there a bigger plan?", a: "Not right now. One plan, £49 a month, everything included. We've put our AI receptionist product on hold to do this one thing properly; it will come back as an add-on for existing customers first." },
 ];
 
 function Faq() {

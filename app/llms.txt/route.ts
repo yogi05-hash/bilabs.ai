@@ -24,25 +24,21 @@ Contact: ${SITE.email}
   index, supplies copy-paste snippets for the business's own site, and every
   month asks each chosen assistant five real questions with live web search,
   reporting whether the business was named and who was named instead.
-- AI Front Desk — £99/month. Everything in Get Found by AI, plus a 24/7 AI
-  receptionist on the website, a shareable link and a QR code, answering from
-  the owner's own facts and emailing every enquiry immediately.
 
-No setup fee. Monthly. Cancel anytime. Prices in GBP.
+No setup fee. Monthly. Cancel anytime. Prices in GBP. The AI receptionist
+("AI Front Desk") is on hold and not currently for sale.
 
 ## Honest limits
 
 BiLabs does not guarantee that any AI assistant will recommend a business.
 Each platform decides what it indexes and quotes. BiLabs makes a business
 readable: accurate, structured, current, and published where these systems
-look. The AI receptionist answers only from facts the business supplied and
-never confirms a booking itself.
+look.
 
 ## Pages
 
 - [Home](${SITE.url}/): what BiLabs does, the free check, prices.
 - [AI visibility for London businesses](${SITE.url}/ai-visibility-london): the publishing service, in detail.
-- [AI receptionist for small businesses](${SITE.url}/ai-receptionist-small-business): the receptionist, in detail.
 - [About](${SITE.url}/about): founder and products built.
 - [Our work](${SITE.url}/work): YourBotChat, ReelMakerBot, Showbizy.
 - [Contact](${SITE.url}/contact)

@@ -57,9 +57,9 @@ export default function Page() {
 
           <h2 style={{ fontSize: 20, fontWeight: 700, marginTop: 36 }}>Price</h2>
           <p className="body" style={{ marginTop: 10 }}>
-            <strong>AI Front Desk — £99 per month.</strong> Includes everything in Get Found by AI (£49 per month):
-            your structured profile and schema published and kept current, with a monthly AI visibility report. No
-            setup fee. Cancel anytime. Prices in GBP.
+            <strong>On hold.</strong> The AI Front Desk is not for sale right now: we have paused it to focus on
+            <a href="/#packages" style={{ color: "#B8841A" }}> Get Found by AI</a> (£49 per month). It will return as
+            an add-on for existing customers first.
           </p>
 
           <h2 style={{ fontSize: 20, fontWeight: 700, marginTop: 36 }}>Who it suits</h2>
