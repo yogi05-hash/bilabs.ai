@@ -28,11 +28,18 @@ export default function Pulse() {
   useEffect(() => {
     fetch("/api/pulse", { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : null))
-      .then((d: Pulse | null) => setP(d))
+      .then((d: Pulse | null) => {
+        // only recent items: a strip with one stale entry reads as an empty shop
+        const cutoff = Date.now() - 14 * 86_400_000;
+        setP(d ? { ...d, recent: d.recent.filter((r) => new Date(r.at).getTime() > cutoff) } : null);
+      })
       .catch(() => setP(null));
   }, []);
 
-  if (!p || p.recent.length < 3) return null;
+  // three recent checks is the least that is worth showing
+  const fresh = p?.recent ?? [];
+  if (!p || fresh.length < 3) return null;
+  const showCount = p.checksThisWeek >= 5;
 
   return (
     <section className="strip" aria-label="Recent activity">
@@ -42,9 +49,13 @@ export default function Pulse() {
             <span aria-hidden style={{ width: 8, height: 8, borderRadius: 999, background: "#1f6b36", boxShadow: "0 0 0 4px rgba(31,107,54,.15)" }} />
             Live
           </p>
-          <span style={{ fontSize: 14, color: "var(--ink-2)" }}>
-            <strong style={{ color: "var(--ink)" }}>{p.checksThisWeek}</strong> free check{p.checksThisWeek === 1 ? "" : "s"} this week
-          </span>
+          {showCount ? (
+            <span style={{ fontSize: 14, color: "var(--ink-2)" }}>
+              <strong style={{ color: "var(--ink)" }}>{p.checksThisWeek}</strong> free checks this week
+            </span>
+          ) : (
+            <span style={{ fontSize: 14, color: "var(--ink-2)" }}>Recent free checks, anonymised</span>
+          )}
           {p.liveProfiles > 0 && (
             <span style={{ fontSize: 14, color: "var(--ink-2)" }}>
               <strong style={{ color: "var(--ink)" }}>{p.liveProfiles}</strong> business{p.liveProfiles === 1 ? "" : "es"} published to AI search
@@ -52,7 +63,7 @@ export default function Pulse() {
           )}
         </div>
         <ul style={{ listStyle: "none", padding: 0, margin: "12px 0 0", display: "flex", flexWrap: "wrap", gap: 8 }}>
-          {p.recent.map((r, i) => (
+          {fresh.map((r, i) => (
             <li
               key={`${r.at}-${i}`}
               style={{ border: "1px solid var(--line)", background: "#fff", borderRadius: 999, padding: "6px 12px", fontSize: 12.5, color: "var(--ink-2)", whiteSpace: "nowrap" }}

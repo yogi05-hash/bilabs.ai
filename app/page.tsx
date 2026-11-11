@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { startCheckout } from "@/lib/checkoutClient";
 import FadeIn from "@/components/FadeIn";
-import ScrubVideo from "@/components/ScrubVideo";
 import HeroCheck from "@/components/HeroCheck";
 import Pulse from "@/components/Pulse";
 import { GuideProvider, useGuide } from "@/components/AIGuide";
@@ -49,55 +48,91 @@ const QUICK = [
   { n: "3", t: "We do the rest", d: "Published today, checked monthly, emailed to you." },
 ];
 
+/* The example answer beside the form: the problem, drawn once, before the
+ * visitor has typed anything. Plainly labelled as an example. */
+const EXAMPLE_NAMES = ["Northside Plumbing & Heating", "Headingley Gas Services", "Aire Valley Plumbers"];
+
+function AnswerCard() {
+  return (
+    <div aria-hidden style={{ background: "#fff", border: "1px solid var(--line)", borderRadius: 18, padding: 22, boxShadow: "0 24px 60px -30px rgba(17,17,18,.35)", maxWidth: 440, marginLeft: "auto" }}>
+      <p style={{ margin: 0, fontSize: 11.5, fontWeight: 700, letterSpacing: ".14em", textTransform: "uppercase", color: "var(--ink-3)" }}>Example · what an assistant answers</p>
+      <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 14 }}>
+        <p style={{ margin: 0, background: "var(--warm-alt)", borderRadius: "14px 14px 4px 14px", padding: "10px 14px", fontSize: 14, color: "var(--ink)", maxWidth: 300 }}>
+          Recommend a plumber near me in Leeds
+        </p>
+      </div>
+      <div style={{ display: "flex", gap: 10, marginTop: 12, alignItems: "flex-start" }}>
+        <span style={{ width: 28, height: 28, borderRadius: 999, background: "var(--ink)", color: "#fff", display: "grid", placeItems: "center", fontSize: 12, fontWeight: 700, flexShrink: 0 }}>AI</span>
+        <div style={{ background: "#FAF8F3", border: "1px solid var(--line)", borderRadius: "4px 14px 14px 14px", padding: "12px 14px", fontSize: 13.5, color: "var(--ink)", flex: 1 }}>
+          <p style={{ margin: 0, color: "var(--ink-2)" }}>Here are three well-reviewed plumbers in Leeds:</p>
+          <ol style={{ margin: "8px 0 0", paddingLeft: 18, display: "flex", flexDirection: "column", gap: 5 }}>
+            {EXAMPLE_NAMES.map((n) => (
+              <li key={n}><strong>{n}</strong></li>
+            ))}
+          </ol>
+        </div>
+      </div>
+      <div style={{ marginTop: 16, borderTop: "1px dashed var(--line)", paddingTop: 14, display: "flex", alignItems: "center", gap: 10 }}>
+        <span style={{ width: 10, height: 10, borderRadius: 999, background: "#c7791a", flexShrink: 0 }} />
+        <p style={{ margin: 0, fontSize: 13.5, color: "var(--ink)" }}>
+          <strong>Your business:</strong> not mentioned. <span style={{ color: "var(--ink-2)" }}>The free check shows you this for your trade and your area.</span>
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function Hero() {
   return (
-    <section className="hero-warm hero-full">
-      <div className="hero-video">
-        <ScrubVideo src="/hero.mp4" />
-      </div>
-      <div className="hero-scrim" aria-hidden />
+    <section className="hero-warm">
+      <div className="wrap" style={{ paddingTop: 112, paddingBottom: 44 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "36px 48px", alignItems: "center" }}>
+          <FadeIn>
+            <div style={{ maxWidth: 620 }}>
+              <p style={{ margin: "0 0 12px", fontSize: 12, fontWeight: 700, letterSpacing: ".16em", textTransform: "uppercase", color: "var(--ink-2)" }}>
+                Step 1 of 3 · free · 20 seconds
+              </p>
+              <h1
+                style={{
+                  fontSize: "clamp(2.2rem, 5vw, 3.6rem)",
+                  lineHeight: 1.04,
+                  letterSpacing: "-0.04em",
+                  fontWeight: 700,
+                  margin: 0,
+                  color: "var(--ink)",
+                }}
+              >
+                Does <span style={{ color: "var(--brand)" }}>AI</span> recommend your business? Find out now.
+              </h1>
+              <p style={{ fontSize: 16.5, lineHeight: 1.55, color: "var(--ink)", margin: "16px 0 0", maxWidth: 540, fontWeight: 500 }}>
+                Type your website. We ask an AI assistant the way your customers do and show you the answer — and who it
+                named instead.
+              </p>
+              <p style={{ fontSize: 14.5, lineHeight: 1.6, color: "var(--ink-2)", margin: "8px 0 22px", maxWidth: 520 }}>
+                Not in the answer? One click fixes it: £49/month publishes you where AI search reads, live the same day.
+                Cancel anytime.
+              </p>
+              <HeroCheck />
 
-      <div className="wrap hero-copy-full">
-        <FadeIn>
-          <div style={{ maxWidth: 600 }}>
-            <p style={{ margin: "0 0 12px", fontSize: 12, fontWeight: 700, letterSpacing: ".16em", textTransform: "uppercase", color: "var(--ink-2)" }}>
-              Step 1 of 3 · takes 20 seconds
-            </p>
-            <h1
-              style={{
-                fontSize: "clamp(2.3rem, 5.6vw, 3.8rem)",
-                lineHeight: 1.04,
-                letterSpacing: "-0.04em",
-                fontWeight: 700,
-                margin: 0,
-                color: "var(--ink)",
-              }}
-            >
-              Does <span style={{ color: "var(--brand)" }}>AI</span> recommend your business? Find out now.
-            </h1>
-            <p style={{ fontSize: 16.5, lineHeight: 1.55, color: "var(--ink)", margin: "16px 0 0", maxWidth: 520, fontWeight: 500 }}>
-              Type your website below. We ask an AI assistant the way your customers do and show you the answer — and who it
-              named instead.
-            </p>
-            <p style={{ fontSize: 14.5, lineHeight: 1.6, color: "var(--ink-2)", margin: "8px 0 22px", maxWidth: 500 }}>
-              If you&apos;re not in the answer, one click fixes it: £49/month publishes you where AI search reads, live the
-              same day. Cancel anytime.
-            </p>
-            <HeroCheck />
-
-            <ol style={{ listStyle: "none", padding: 0, margin: "26px 0 0", display: "flex", flexWrap: "wrap", gap: "10px 22px" }}>
-              {QUICK.map((s) => (
-                <li key={s.n} style={{ display: "flex", gap: 9, alignItems: "flex-start", minWidth: 180, flex: "1 1 180px" }}>
-                  <span className="step-num" style={{ fontSize: 12 }}>{s.n}</span>
-                  <span>
-                    <span style={{ display: "block", fontSize: 13.5, fontWeight: 700, color: "var(--ink)" }}>{s.t}</span>
-                    <span style={{ display: "block", fontSize: 12.5, lineHeight: 1.5, color: "var(--ink-2)" }}>{s.d}</span>
-                  </span>
-                </li>
-              ))}
-            </ol>
+              <ol style={{ listStyle: "none", padding: 0, margin: "26px 0 0", display: "flex", flexWrap: "wrap", gap: "10px 22px" }}>
+                {QUICK.map((s) => (
+                  <li key={s.n} style={{ display: "flex", gap: 9, alignItems: "flex-start", minWidth: 150, flex: "1 1 150px" }}>
+                    <span className="step-num" style={{ fontSize: 12 }}>{s.n}</span>
+                    <span>
+                      <span style={{ display: "block", fontSize: 13.5, fontWeight: 700, color: "var(--ink)" }}>{s.t}</span>
+                      <span style={{ display: "block", fontSize: 12.5, lineHeight: 1.5, color: "var(--ink-2)" }}>{s.d}</span>
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </FadeIn>
+          <div className="hero-answer">
+            <FadeIn delay={0.1}>
+              <AnswerCard />
+            </FadeIn>
           </div>
-        </FadeIn>
+        </div>
       </div>
     </section>
   );

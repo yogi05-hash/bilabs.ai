@@ -60,7 +60,6 @@ export default function HeroCheck() {
   const [result, setResult] = useState<Result | null>(null);
 
   const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
   // unticked by default, deliberately: consent has to be given, not withdrawn
   const [consent, setConsent] = useState(false);
   const [unlocked, setUnlocked] = useState(false);
@@ -114,7 +113,7 @@ export default function HeroCheck() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          email, phone: phone || null, report: result, businessType, area, marketingConsent: consent,
+          email, phone: null, report: result, businessType, area, marketingConsent: consent,
           evaluationId: result.evaluationId ?? null,
         }),
       });
@@ -271,58 +270,54 @@ export default function HeroCheck() {
                 ))}
               </ul>
 
-              {(hidden > 0 || result.competitors.length > 0) && !unlocked && (
-                <form onSubmit={unlock} style={{ marginTop: 16, background: "var(--warm-alt)", borderRadius: 12, padding: 16 }}>
-                  <p style={{ margin: 0, fontSize: 13.5, fontWeight: 600, color: "var(--ink)" }}>
-                    {result.competitors.length > 0
-                      ? `See who AI recommends instead of you${hidden > 0 ? `, plus ${hidden} more ${hidden === 1 ? "check" : "checks"}` : ""}`
-                      : `${hidden} more ${hidden === 1 ? "check" : "checks"} in the full report`}
-                  </p>
-                  <p style={{ margin: "4px 0 10px", fontSize: 12.5, color: "var(--ink-2)" }}>
-                    Enter your email and we&apos;ll unlock the rest here and send you the whole thing.
-                  </p>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                    <input
-                      type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
-                      placeholder="you@yourbusiness.co.uk" aria-label="Your email"
-                      style={{ ...boxed, flex: "1 1 200px" }}
-                    />
-                    <button type="submit" className="btn-amber" disabled={sending} style={{ padding: "12px 18px" }}>
-                      {sending ? "Sending…" : "Unlock full report"}
-                    </button>
-                  </div>
-                  <div style={{ marginTop: 8 }}>
-                    <input
-                      type="tel" value={phone} onChange={(e) => setPhone(e.target.value)}
-                      placeholder="Phone (optional)" aria-label="Phone number, optional"
-                      style={{ ...boxed, width: "100%", maxWidth: 280 }}
-                    />
-                    <p style={{ margin: "5px 0 0", fontSize: 12, color: "var(--ink-3)" }}>
-                      Want a free 10-minute walkthrough? Leave your number.
-                    </p>
-                  </div>
-                  <label style={{ display: "flex", gap: 9, alignItems: "flex-start", marginTop: 10, cursor: "pointer" }}>
-                    <input
-                      type="checkbox"
-                      checked={consent}
-                      onChange={(e) => setConsent(e.target.checked)}
-                      aria-label="Email me tips and offers from BiLabs"
-                      style={{ marginTop: 2, width: 15, height: 15, accentColor: "var(--brand)" }}
-                    />
-                    <span style={{ fontSize: 12.5, lineHeight: 1.5, color: "var(--ink-2)" }}>
-                      Email me tips and offers from BiLabs. Unsubscribe any time — your report is sent either way.
-                    </span>
-                  </label>
-                  {mailErr && <p style={{ margin: "8px 0 0", fontSize: 12.5, color: "#9a2a2a" }}>{mailErr}</p>}
-                </form>
-              )}
-
-              {unlocked && (
-                <p style={{ marginTop: 14, fontSize: 13, color: "#1f6b36", fontWeight: 600 }}>
-                  Sent — the full report is on its way to {email}.
-                </p>
-              )}
             </div>
+          )}
+
+          {/* The unlock lives outside the readiness block on purpose: a site
+              we could not reach still has competitors worth seeing, and the
+              email is the only way the report — and the pay link — reach them. */}
+          {!unlocked && (
+            <form onSubmit={unlock} style={{ marginTop: 16, background: "var(--warm-alt)", borderRadius: 12, padding: 16 }}>
+              <p style={{ margin: 0, fontSize: 13.5, fontWeight: 600, color: "var(--ink)" }}>
+                {result.competitors.length > 0
+                  ? `See who AI recommends instead of you${hidden > 0 ? `, plus ${hidden} more ${hidden === 1 ? "check" : "checks"}` : ""}`
+                  : hidden > 0
+                    ? `${hidden} more ${hidden === 1 ? "check" : "checks"} in the full report`
+                    : "Get this result by email, with every answer in full"}
+              </p>
+              <p style={{ margin: "4px 0 10px", fontSize: 12.5, color: "var(--ink-2)" }}>
+                Enter your email and we&apos;ll unlock the rest here and send you the whole report.
+              </p>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                <input
+                  type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@yourbusiness.co.uk" aria-label="Your email"
+                  style={{ ...boxed, flex: "1 1 200px" }}
+                />
+                <button type="submit" className="btn-amber" disabled={sending} style={{ padding: "12px 18px" }}>
+                  {sending ? "Sending…" : "Unlock full report"}
+                </button>
+              </div>
+              <label style={{ display: "flex", gap: 9, alignItems: "flex-start", marginTop: 10, cursor: "pointer" }}>
+                <input
+                  type="checkbox"
+                  checked={consent}
+                  onChange={(e) => setConsent(e.target.checked)}
+                  aria-label="Email me tips and offers from BiLabs"
+                  style={{ marginTop: 2, width: 15, height: 15, accentColor: "var(--brand)" }}
+                />
+                <span style={{ fontSize: 12.5, lineHeight: 1.5, color: "var(--ink-2)" }}>
+                  Email me tips and offers from BiLabs. Unsubscribe any time — your report is sent either way.
+                </span>
+              </label>
+              {mailErr && <p style={{ margin: "8px 0 0", fontSize: 12.5, color: "#9a2a2a" }}>{mailErr}</p>}
+            </form>
+          )}
+
+          {unlocked && (
+            <p style={{ marginTop: 14, fontSize: 13, color: "#1f6b36", fontWeight: 600 }}>
+              Sent — the full report is on its way to {email}.
+            </p>
           )}
 
           <p style={{ marginTop: 18, fontSize: 12, lineHeight: 1.6, color: "var(--ink-3)" }}>

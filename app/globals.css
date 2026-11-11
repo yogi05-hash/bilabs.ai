@@ -958,3 +958,8 @@ table.ad-table { width: 100%; border-collapse: collapse; font-size: 13px; min-wi
 .ad-chip-sm { font-size: 10.5px; font-weight: 700; padding: 2px 7px; border-radius: 5px; background: rgba(17,17,18,.06); color: var(--ad-ink-2); white-space: nowrap; }
 .ad-chip-sm.on { background: rgba(22,124,69,.13); color: var(--ad-good); }
 .ad-chip-sm.off { opacity: .45; }
+
+/* The example answer beside the hero form. On a phone the form must be the
+   first screen and the next section the second, so the card steps aside. */
+.hero-answer { display: block; }
+@media (max-width: 719px) { .hero-answer { display: none; } }

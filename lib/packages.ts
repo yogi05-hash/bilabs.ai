@@ -48,6 +48,7 @@ export const PACKAGES: Pack[] = [
     ],
     cta: "checkout",
     ctaLabel: "Start for £49/month",
+    featured: true,
   },
   {
     id: "front-desk",
@@ -60,9 +61,9 @@ export const PACKAGES: Pack[] = [
       "24/7 AI receptionist on your site, a link and a QR code",
       "Answers from your facts — and never invents one",
       "Enquiries emailed to you the moment they arrive",
+      "Receptionist configured for you within two working days of paying",
     ],
     cta: "checkout",
     ctaLabel: "Start for £99/month",
-    featured: true,
   },
 ];
