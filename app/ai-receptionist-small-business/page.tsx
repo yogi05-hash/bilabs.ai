@@ -8,7 +8,7 @@ const URL = `${SITE.url}/ai-receptionist-small-business`;
 export const metadata: Metadata = {
   title: "AI receptionist for small businesses — BiLabs",
   description:
-    "A 24/7 AI receptionist that answers customers from your own facts, captures the enquiry and emails it to you. £99/month, cancel anytime. London and UK-wide.",
+    "A 24/7 AI receptionist that answers customers from your own facts, captures the enquiry and emails it to you. Currently on hold while BiLabs focuses on AI visibility.",
   alternates: { canonical: "/ai-receptionist-small-business" },
 };
 
