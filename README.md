@@ -17,10 +17,13 @@ npm run test:flows               # …then the end-to-end flows against it and t
 ## How the product works
 
 ```
-Free check (homepage) ──▶ Stripe checkout ──▶ /welcome ──▶ email with dashboard link
-                                   │ webhook: checkout.session.completed
+Free check (homepage) ──▶ report email + nurture emails, each with a /start pay link
+                                   │ one click → Stripe checkout (email + check attached)
+                                   ▼
+              /welcome ──▶ email with dashboard link        webhook: checkout.session.completed
                                    ▼
               bilabs_businesses row, pre-filled from the free check (status: onboarding)
+                                   │ not published after 1/3/7/14 days → setup reminder emails
                                    ▼
    /dashboard: confirm business → choose assistants → services/hours/prices/FAQ → Publish
                                    ▼
@@ -28,16 +31,20 @@ Free check (homepage) ──▶ Stripe checkout ──▶ /welcome ──▶ ema
                                 → first check (runs immediately via after()) → "you're live" email
                                    ▼
    lib/checks.runCheck: every chosen assistant × 5 questions, live web search
-                      → bilabs_checks + bilabs_check_results → report email → dashboard
+                      → bilabs_checks + bilabs_check_results → report email ("do this next") → dashboard
+                      → failed? retried tomorrow; customer told after two misses
                                    ▼
-   /api/cron/checks (daily): queues the monthly run for every live business and drains the queue
+   /api/cron/checks (daily): setup reminders, the monthly run for every live business, drains the queue
+   Stripe webhook: renewal recorded; declined card → email; unpaid → profile paused (+ email); paid again → restored
 ```
+
+Nothing in this sequence waits for a person. The platform chases: `/start` (`app/start/route.ts`) is the one-click pay link every email carries, `lib/setupNudges.ts` reminds paying customers who stopped mid-setup, and `lib/checks.ts` retries a failed scheduled check daily. The homepage shows live, anonymised activity from `/api/pulse`.
 
 The honest line that every page, email and plan description carries (`HONESTY_LINE` in `lib/site.ts`): *we make a business discoverable to AI web search and measure whether assistants name it; we do not — and cannot — put anything inside a model.*
 
 ## Database
 
-Supabase. Run the SQL files in `supabase/` in order in the SQL editor: `0002_analytics.sql` → `0003_capture.sql` → `0004_ai_visibility.sql`. Migrations are additive only. RLS is enabled with no policies on every table — all access is server-side with the service-role key through `sb()` in `lib/leads.ts`.
+Supabase. Run the SQL files in `supabase/` in order in the SQL editor: `0002_analytics.sql` → `0003_capture.sql` → `0004_ai_visibility.sql` → `0005_automation.sql`. Migrations are additive only. RLS is enabled with no policies on every table — all access is server-side with the service-role key through `sb()` in `lib/leads.ts`.
 
 ## Environment
 
@@ -47,7 +54,7 @@ Supabase. Run the SQL files in `supabase/` in order in the SQL editor: `0002_ana
 | `NEXT_PUBLIC_SITE_URL` | absolute links in emails, profiles, IndexNow |
 | `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL` | Claude (free check and paid checks) |
 | `OPENAI_API_KEY`, `OPENAI_MODEL` | ChatGPT (paid checks; default `gpt-4.1-mini`) |
-| `GEMINI_API_KEY`, `GEMINI_MODEL` | Gemini (paid checks; default `gemini-2.5-flash`) |
+| `GEMINI_API_KEY`, `GEMINI_MODEL` | Gemini (paid checks; default `gemini-3.8-flash`) |
 | `XAI_API_KEY`, `XAI_MODEL` | Grok (paid checks; default `grok-4-fast`) |
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_GET_FOUND`, `STRIPE_PRICE_FRONT_DESK` | billing — full price from the first payment, no coupons |
 | `RESEND_API_KEY`, `LEAD_FROM`, `NURTURE_FROM`, `CUSTOMER_FROM`, `LEAD_NOTIFY_TO` | email (`CUSTOMER_FROM` for dashboard links and reports; falls back to `NURTURE_FROM`) |
@@ -64,7 +71,9 @@ A provider with no key is simply not asked: the dashboard shows it as "coming so
 ## Scheduled jobs (`vercel.json`)
 
 - `/api/cron/nurture` daily 09:00 — the consented email sequence for free-check leads.
-- `/api/cron/checks` daily 10:15 — queues each live business whose monthly date has come and works the queue in 60-second slices, chaining itself through `after()` until it is empty. Customer-triggered checks never wait for this.
+- `/api/cron/checks` daily 10:15 — sends setup reminders, queues each live business whose monthly date has come, and works the queue in 60-second slices, chaining itself through `after()` until it is empty. Customer-triggered checks never wait for this.
+
+The Stripe webhook endpoint must be subscribed to `checkout.session.completed`, `customer.subscription.created/updated/deleted`, `invoice.payment_succeeded`, `invoice.payment_failed` and `charge.refunded` — the code handles all of them, and renewals, failed cards and pauses are invisible without the last four.
 
 ## Where things are
 

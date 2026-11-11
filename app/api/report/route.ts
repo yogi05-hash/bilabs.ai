@@ -4,6 +4,7 @@ import { sendReport, type Payload } from "@/lib/report";
 import { contextFrom, identifyVisitor, recordEvent, touchVisitor } from "@/lib/analytics";
 import { getSettings } from "@/lib/admin";
 import { attachContact, markReportEmailed } from "@/lib/evaluations";
+import { startUrl } from "@/lib/checkout";
 
 /* Unlocks the full checklist by emailing the report.
  *
@@ -72,7 +73,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const sent = await sendReport(email, report, { type, area });
+    const evaluationIdForLink = typeof body?.evaluationId === "string" && /^[0-9a-f-]{36}$/i.test(body.evaluationId) ? body.evaluationId : null;
+    const sent = await sendReport(email, report, {
+      type,
+      area,
+      // one click from the inbox to Stripe, with this check attached
+      startUrl: startUrl({ contactId: lead.id, evaluationId: evaluationIdForLink, src: "report" }),
+    });
     await alertNewLead(lead, "report unlock");
 
     /* This is the "email after the evaluation" half of capture. The funnel

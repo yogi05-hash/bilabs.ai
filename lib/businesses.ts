@@ -71,6 +71,12 @@ export type Business = {
   last_check_id: string | null;
   last_error: string | null;
   is_test: boolean;
+  /* automation (0005): setup reminders, check retries, snippet detection */
+  setup_nudge_step: number;
+  setup_nudged_at: string | null;
+  check_failures: number;
+  trouble_notified_at: string | null;
+  snippets_seen_at: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -195,27 +201,37 @@ export async function ensureBusinessForCheckout(input: {
 /** Billing drives the product state, in one direction each way:
  *  a deleted or unpaid subscription takes the profile down or pauses it,
  *  a subscription that is paying again brings it back. */
+export type SyncOutcome = { action: "paused" | "cancelled" | "restored" | null; business: Business | null };
+
+/** Billing drives the profile. Returns what changed so the caller can tell
+ *  the customer — the email is sent from the webhook, not from here. */
 export async function syncBusinessWithSubscription(
   contactId: string,
   subStatus: string | null,
   eventType: string,
-): Promise<void> {
+): Promise<SyncOutcome> {
   const b = await getBusinessByContact(contactId);
-  if (!b) return;
+  if (!b) return { action: null, business: null };
 
   if (eventType === "customer.subscription.deleted" || subStatus === "canceled") {
-    if (b.status !== "cancelled") await setBusinessStatus(b.id, "cancelled");
-    return;
+    if (b.status !== "cancelled") {
+      await setBusinessStatus(b.id, "cancelled");
+      return { action: "cancelled", business: b };
+    }
+    return { action: null, business: b };
   }
   if (subStatus === "unpaid" || subStatus === "incomplete_expired") {
     if (b.status === "live" || b.status === "processing" || b.status === "onboarding") {
       await setBusinessStatus(b.id, "paused");
+      return { action: "paused", business: b };
     }
-    return;
+    return { action: null, business: b };
   }
   if (subStatus === "active" || subStatus === "trialing") {
     if (b.status === "paused" || b.status === "cancelled") {
       await setBusinessStatus(b.id, b.published_at ? "live" : "onboarding");
+      return { action: "restored", business: b };
     }
   }
+  return { action: null, business: b };
 }

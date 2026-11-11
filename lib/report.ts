@@ -15,7 +15,7 @@ export type Payload = {
 
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
-export async function sendReport(to: string, p: Payload, ctx: { type: string; area: string }): Promise<boolean> {
+export async function sendReport(to: string, p: Payload, ctx: { type: string; area: string; startUrl?: string | null }): Promise<boolean> {
   const RESEND = env("RESEND_API_KEY");
   const FROM = env("LEAD_FROM", "BiLabs <no-reply@yourbotchat.com>");
   if (!RESEND) return false;
@@ -56,9 +56,16 @@ export async function sendReport(to: string, p: Payload, ctx: { type: string; ar
       specifically. Ask again tomorrow and the answers can differ. The readiness checks are live fetches of your
       own site and will be stable until you change it.
     </p>
-    <p style="margin:18px 0 0;font-size:14px">
-      <a href="https://bilabs.ai/#packages" style="color:#B8841A;font-weight:600">See what fixing this costs →</a>
-    </p>
+    <div style="margin:24px 0 0;background:#FBF6EA;border-radius:12px;padding:16px 18px">
+      <p style="margin:0;font-size:15px;font-weight:600">${p.mentionCount <= 2 ? "Get found by AI — £49/month, cancel anytime" : "Keep it that way — £49/month, cancel anytime"}</p>
+      <p style="margin:6px 0 0;font-size:13.5px;line-height:1.6;color:#444">
+        One click below opens checkout with this check attached. After paying you confirm your business and add your services,
+        hours, prices and FAQ — about five minutes — and we publish you where AI web search reads, then ask ChatGPT, Claude,
+        Gemini and Grok every month whether they name you. Everything is automatic from there.
+      </p>
+      <p style="margin:14px 0 0"><a href="${esc(ctx.startUrl ?? "https://bilabs.ai/#packages")}" style="display:inline-block;background:#F5B731;color:#1a1205;padding:12px 22px;border-radius:999px;font-weight:600;text-decoration:none">${p.mentionCount <= 2 ? "Fix this for £49/month →" : "Keep it that way — £49/month →"}</a></p>
+      <p style="margin:12px 0 0;font-size:12px;color:#777">We make your business readable to AI web search and measure whether assistants name you. No one can put facts inside a model, and no one can guarantee a recommendation.</p>
+    </div>
   </div>`;
 
   try {

@@ -3,6 +3,7 @@ import { env } from "@/lib/env";
 import { cronAuthorised } from "@/lib/cron";
 import { claimQueuedCheck, runCheck, scheduleDueBusinesses, sweepAbandonedChecks } from "@/lib/checks";
 import { sb } from "@/lib/leads";
+import { sendSetupNudges } from "@/lib/setupNudges";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -28,6 +29,8 @@ export async function GET(req: NextRequest) {
 
   const swept = await sweepAbandonedChecks();
   const scheduled = hop === 0 ? await scheduleDueBusinesses() : 0;
+  // paid but not published: remind, with a fresh sign-in link, on days 1/3/7/14
+  const nudges = hop === 0 ? await sendSetupNudges() : null;
 
   let ran = 0;
   const outcomes: { id: string; ok: boolean; reason?: string }[] = [];
@@ -53,5 +56,5 @@ export async function GET(req: NextRequest) {
     });
   }
 
-  return NextResponse.json({ ok: true, hop, swept, scheduled, ran, outcomes, remaining, ms: Date.now() - t0 });
+  return NextResponse.json({ ok: true, hop, swept, scheduled, nudges, ran, outcomes, remaining, ms: Date.now() - t0 });
 }

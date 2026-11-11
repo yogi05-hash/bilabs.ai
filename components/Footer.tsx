@@ -13,8 +13,9 @@ export default function Footer() {
           </div>
 
           <nav style={{ display: "flex", flexWrap: "wrap", gap: "8px 26px", fontSize: 13.5 }}>
-            <Link href="/#services">Services</Link>
-            <Link href="/#packages">Packages</Link>
+            <Link href="/#check">Free check</Link>
+            <Link href="/#process">How it works</Link>
+            <Link href="/#packages">Pricing</Link>
             <Link href="/work">Our work</Link>
             <Link href="/contact">Contact</Link>
             <Link href="/privacy">Privacy</Link>

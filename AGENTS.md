@@ -8,7 +8,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 - **No SDKs.** Supabase, Stripe, Resend and every AI provider are called with plain `fetch`. Keep it that way.
 - **All database access goes through `sb()` in `lib/leads.ts`** (PostgREST with the service-role key). RLS is enabled with no policies on every table; nothing runs in the browser against the database.
-- **Migrations are additive and numbered** in `supabase/` (`0004_…` is the latest). Never drop or rewrite a column; add one with a default.
+- **Migrations are additive and numbered** in `supabase/` (`0005_…` is the latest). Never drop or rewrite a column; add one with a default.
 - **Dashboards use the `.ad-*` classes** in `app/globals.css`, not Tailwind utilities (they do not apply in this project). The customer dashboard shares them with the admin on purpose.
 - **Route handlers** declare `runtime = "nodejs"` and `dynamic = "force-dynamic"`; anything that starts background work with `after()` must also export `maxDuration = 60`. `params` and `cookies()` are Promises in this Next.js.
 - **Events** are allow-listed in `lib/analytics.ts`; those in `SERVER_ONLY_EVENTS` may only be recorded by server code and `/api/track` refuses them.

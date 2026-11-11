@@ -4,7 +4,8 @@ import { env } from "@/lib/env";
 import { getLeadByEmail, logEvent, sb, setStatus, upsertLead, type Lead } from "@/lib/leads";
 import { sendWelcome } from "@/lib/nurture";
 import { recordEvent } from "@/lib/analytics";
-import { ensureBusinessForCheckout, syncBusinessWithSubscription } from "@/lib/businesses";
+import { ensureBusinessForCheckout, getBusinessByContact, syncBusinessWithSubscription } from "@/lib/businesses";
+import { sendPaused, sendPaymentFailed, sendRestored } from "@/lib/customerMail";
 import { customerLoginUrl } from "@/lib/customerAuth";
 import {
   isBilabsProduct,
@@ -284,6 +285,11 @@ async function handle(event: StripeEvent): Promise<{ status: string; reason?: st
         props: { invoice: inv.id, failed },
         isTest: !event.livemode,
       });
+      // Tell them before Stripe gives up, while the fix is still one minute.
+      if (failed && lead.email && !lead.is_test && event.livemode) {
+        const business = await getBusinessByContact(lead.id);
+        await sendPaymentFailed(lead, business, Number(inv.amount_due ?? 0));
+      }
     }
     return { status: "processed" };
   }
@@ -383,7 +389,11 @@ async function handle(event: StripeEvent): Promise<{ status: string; reason?: st
       });
       // Billing drives the published profile: unpaid pauses it, deleted takes
       // it down, paying again brings it back.
-      await syncBusinessWithSubscription(lead.id, status, event.type);
+      const sync = await syncBusinessWithSubscription(lead.id, status, event.type);
+      if (sync.business && lead.email && !lead.is_test && event.livemode) {
+        if (sync.action === "paused") await sendPaused(lead, sync.business);
+        if (sync.action === "restored") await sendRestored(lead, sync.business);
+      }
       // Only a genuine end of the relationship closes the contact. An update
       // that merely flags cancel_at_period_end has not ended anything yet.
       if (event.type === "customer.subscription.deleted") {

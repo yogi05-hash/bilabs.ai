@@ -345,7 +345,6 @@ export default function HeroCheck() {
               <button type="button" onClick={fix} disabled={paying} className="btn-amber" style={{ padding: "11px 18px", fontSize: 14, opacity: paying ? 0.6 : 1 }}>
                 {paying ? "Opening checkout…" : result.mentionCount <= 2 ? "Fix this for £49/mo →" : "Keep it that way — £49/mo →"}
               </button>
-              <a href="/contact" className="btn-line" style={{ padding: "11px 18px", fontSize: 14 }}>Talk to us</a>
             </div>
             {payErr && <p style={{ margin: "8px 0 0", fontSize: 12.5, color: "#9a2a2a" }}>{payErr}</p>}
             <p style={{ margin: "10px 0 0", fontSize: 11.5, lineHeight: 1.55, color: "var(--ink-3)" }}>{HONESTY_LINE}</p>

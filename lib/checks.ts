@@ -6,7 +6,7 @@ import { getBusiness, updateBusiness, type Business } from "@/lib/businesses";
 import { variations, type Variation } from "@/lib/questions";
 import { mentions, namesFrom } from "@/lib/match";
 import { ask, enabledProviders, estimateProviderCostPence, PROVIDER_IDS, PROVIDERS, type ProviderId } from "@/lib/providers";
-import { sendVisibilityReport } from "@/lib/customerMail";
+import { sendCheckTrouble, sendVisibilityReport } from "@/lib/customerMail";
 
 /* The paid check: every assistant the customer chose, the same five questions
  * as the free check, once a month and on demand.
@@ -211,8 +211,52 @@ async function failCheck(check: Check, reason: string, startedAt: number, patch:
       failure_reason: reason.slice(0, 500),
     }),
   });
-  await updateBusiness(check.business_id, { last_error: reason.slice(0, 300) });
+  /* A failed scheduled run is retried tomorrow, not next month. After two
+   * misses in a row the customer is told once, and we keep retrying; the
+   * admin is alerted every time. A manual run is the customer's own click
+   * and is not rescheduled. */
+  const business = await getBusiness(check.business_id);
+  const failures = (business?.check_failures ?? 0) + 1;
+  const scheduled = check.trigger === "scheduled" || check.trigger === "first";
+  const retry = scheduled && business && (business.status === "live" || business.status === "processing");
+  await updateBusiness(check.business_id, {
+    last_error: reason.slice(0, 300),
+    check_failures: failures,
+    ...(retry ? { next_check_at: new Date(Date.now() + 86_400_000).toISOString() } : {}),
+  });
   if (!check.is_test) await alertCheckFailed(check, reason);
+
+  const notifiedRecently = business?.trouble_notified_at && Date.now() - Date.parse(business.trouble_notified_at) < 7 * 86_400_000;
+  if (business && scheduled && failures >= 2 && !check.is_test && !notifiedRecently) {
+    const leads = await sb<Lead[]>(`bilabs_leads?id=eq.${business.contact_id}&limit=1`);
+    const lead = leads?.[0];
+    if (lead?.email && (await sendCheckTrouble(lead, business))) {
+      await updateBusiness(business.id, { trouble_notified_at: new Date().toISOString() });
+    }
+  }
+}
+
+/* Did they put our snippets on their own site? A monthly fetch of the
+ * homepage, looking for a JSON-LD block with a schema.org local business or
+ * our profile URL. It only ever sets the "seen" stamp; a fetch that fails
+ * proves nothing and changes nothing. */
+export async function detectSnippets(business: Pick<Business, "website" | "slug">): Promise<boolean> {
+  const site = (business.website ?? "").trim();
+  if (!/^https?:\/\//i.test(site)) return false;
+  try {
+    const res = await fetch(site, {
+      headers: { "user-agent": "Mozilla/5.0 (compatible; BiLabsBot/1.0; +https://bilabs.ai)", accept: "text/html" },
+      redirect: "follow",
+      signal: AbortSignal.timeout(8_000),
+    });
+    if (!res.ok) return false;
+    const html = (await res.text()).slice(0, 1_500_000);
+    if (business.slug && html.includes(`/b/${business.slug}`)) return true;
+    const blocks = html.match(/<script[^>]+application\/ld\+json[^>]*>([\s\S]*?)<\/script>/gi) ?? [];
+    return blocks.some((b) => /schema\.org/i.test(b) && /LocalBusiness|openingHoursSpecification|FAQPage|"Dentist"|"Plumber"|"Electrician"|"HairSalon"|"Restaurant"/i.test(b));
+  } catch {
+    return false;
+  }
 }
 
 /** Run a check to completion. Idempotent on status: a queued check is claimed
@@ -298,12 +342,18 @@ export async function runCheck(checkId: string): Promise<{ ok: boolean; reason?:
     });
     const completed = done?.[0] ?? { ...check, ...base, status: "completed" as const, found_total: foundTotal, answers_total: answersTotal, competitors };
 
-    await updateBusiness(business.id, {
-      last_check_at: new Date().toISOString(),
-      last_check_id: check.id,
-      last_error: null,
-      ...(business.status === "processing" ? { status: "live" } : {}),
-    });
+    // while we are here: are the snippets on their own site yet?
+    const snippetsSeen = business.snippets_seen_at ? true : await detectSnippets(business);
+    const now = new Date().toISOString();
+    const updatedBusiness =
+      (await updateBusiness(business.id, {
+        last_check_at: now,
+        last_check_id: check.id,
+        last_error: null,
+        check_failures: 0,
+        ...(snippetsSeen && !business.snippets_seen_at ? { snippets_seen_at: now } : {}),
+        ...(business.status === "processing" ? { status: "live" } : {}),
+      })) ?? business;
 
     await recordEvent({
       name: "check_completed",
@@ -319,7 +369,7 @@ export async function runCheck(checkId: string): Promise<{ ok: boolean; reason?:
       const leads = await sb<Lead[]>(`bilabs_leads?id=eq.${business.contact_id}&limit=1`);
       const lead = leads?.[0];
       if (lead?.email) {
-        const sent = await sendVisibilityReport(lead, business, completed, rows.map((r) => ({ ...r, id: "", check_id: check!.id, business_id: business.id, created_at: "" })));
+        const sent = await sendVisibilityReport(lead, updatedBusiness, completed, rows.map((r) => ({ ...r, id: "", check_id: check!.id, business_id: business.id, created_at: "" })));
         if (sent) {
           await sb(`bilabs_checks?id=eq.${check.id}`, {
             method: "PATCH",

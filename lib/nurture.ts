@@ -1,4 +1,5 @@
 import { env } from "@/lib/env";
+import { startUrl } from "@/lib/checkout";
 import { logEvent, sb, unsubscribeUrl, type Lead } from "@/lib/leads";
 import { logEmail } from "@/lib/admin";
 
@@ -32,6 +33,11 @@ function checkUrl(lead: Lead, src: string): string {
   return `${SITE()}/?${p.toString()}#check`;
 }
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+/** One click to Stripe with this contact attached — never a trip via the
+ *  pricing section. The step name travels as src so attribution per email
+ *  survives the round trip. */
+const payUrl = (lead: Lead, src: string) => startUrl({ contactId: lead.id, src: `nurture-${src}` });
 
 type Check = { id: string; label: string; weight: number; pass: boolean; detail: string };
 type Report = {
@@ -70,7 +76,6 @@ export type Mail = { subject: string; html: string } | null;
 export function buildEmail(lead: Lead, stepId: string): Mail {
   const r = (lead.report ?? {}) as Report;
   const name = who(lead);
-  const site = SITE();
   const failed = failedChecks(lead);
   const score = r.scan?.score ?? lead.readiness_score;
   const competitors = (r.competitors ?? []).slice(0, 5);
@@ -89,7 +94,7 @@ export function buildEmail(lead: Lead, stepId: string): Mail {
 ${top.map((c) => `<li style="margin-bottom:10px"><strong>${esc(c.label)}</strong> — worth ${c.weight} points.<br><span style="color:#555">${esc(c.detail)}</span></li>`).join("")}
 </ol>
 <p>None of these need a rebuild. They are things your existing site should already be saying out loud, in text a machine can read.</p>
-<p>If you want them done for you, that is what <a href="${site}/#packages" style="color:#B8841A">Get Found by AI</a> is — £49 a month, cancel anytime.</p>`,
+<p>If you want them done for you, that is what <a href="${payUrl(lead, "fixes")}" style="color:#B8841A">Get Found by AI</a> is — £49 a month, cancel anytime.</p>`,
       ),
     };
   }
@@ -106,7 +111,7 @@ ${top.map((c) => `<li style="margin-bottom:10px"><strong>${esc(c.label)}</strong
 <p>When we asked an AI assistant five different ways, ${esc(name)} came up in ${mention} of ${total}. These are the businesses it named:</p>
 <ul style="padding-left:18px">${competitors.map((c) => `<li>${esc(c)}</li>`).join("")}</ul>
 <p>They are not necessarily better than you. They are easier to read — their details are published where these systems look, and yours are not yet.</p>
-<p>That gap is the whole job. <a href="${site}/#packages" style="color:#B8841A">See what closing it costs →</a></p>`,
+<p>That gap is the whole job. <a href="${payUrl(lead, "competitors")}" style="color:#B8841A">Close it for £49/month, cancel anytime →</a></p>`,
       ),
     };
   }
@@ -119,7 +124,7 @@ ${top.map((c) => `<li style="margin-bottom:10px"><strong>${esc(c.label)}</strong
         `<p>Hi${lead.name ? ` ${esc(lead.name.split(" ")[0])}` : ""},</p>
 <p>Quick one. You confirm your business and add your services, hours, prices and FAQ — five minutes. We publish a profile with structured data where AI web search reads it, give you snippets for your own site, and every month ask ChatGPT, Claude, Gemini and Grok whether they name you — with every answer in your dashboard and your inbox.</p>
 <p>It is £49 a month, and you can cancel any time — if it is not earning its keep, stop.</p>
-<p><a href="${site}/#packages" style="display:inline-block;background:#F5B731;color:#1a1205;padding:12px 22px;border-radius:999px;font-weight:600;text-decoration:none">Start for £49/month</a></p>
+<p><a href="${payUrl(lead, "offer")}" style="display:inline-block;background:#F5B731;color:#1a1205;padding:12px 22px;border-radius:999px;font-weight:600;text-decoration:none">Start for £49/month</a></p>
 <p style="color:#555">If the receptionist side is more use to you — answering enquiries 24/7 and emailing you each one — that is AI Front Desk at £99.</p>`,
       ),
     };
@@ -189,7 +194,7 @@ export async function buildRecheck(lead: Lead): Promise<Mail> {
           ? `So it has moved ${direction}. These answers do shift on their own as sources change — which is exactly why it is worth having your own details published rather than leaving it to chance.`
           : `No change — which is the usual answer when nothing has been published in between. These systems can only repeat what they can read.`
       }</p>
-<p><a href="${site}/#packages" style="color:#B8841A">Fix it for £49/month, cancel anytime →</a></p>`,
+<p><a href="${payUrl(lead, "recheck")}" style="color:#B8841A">Fix it for £49/month, cancel anytime →</a></p>`,
     ),
   };
 }
@@ -268,14 +273,14 @@ export async function sendWelcome(lead: Lead, opts: { dashboardUrl?: string | nu
     html: wrap(
       lead,
       `<p>Hi${lead.name ? ` ${esc(lead.name.split(" ")[0])}` : ""},</p>
-<p>Thanks — you're set up, and I'll start on ${esc(who(lead))} straight away.</p>
+<p>Thanks — your payment for ${esc(who(lead))} went through.</p>
 <p><strong>What happens now:</strong></p>
 <ol style="padding-left:18px">
-  <li style="margin-bottom:8px">I'll reply within one working day with a short list of what I need from you — services, hours, prices. Usually five minutes of your time.</li>
-  <li style="margin-bottom:8px">Your profile and schema go live within about two weeks.</li>
-  <li style="margin-bottom:8px">You'll get a monthly report on what the assistants are saying.</li>
+  <li style="margin-bottom:8px">Go to <a href="${SITE()}/dashboard" style="color:#B8841A">${SITE().replace(/^https?:\/\//, "")}/dashboard</a>, enter this email address, and open the sign-in link we send. That takes you to the five-minute setup: confirm your business, choose assistants, add services, hours, prices and FAQ.</li>
+  <li style="margin-bottom:8px">Press Publish and your profile goes live immediately; the first check runs straight away.</li>
+  <li style="margin-bottom:8px">Every month after that, the report arrives in your inbox.</li>
 </ol>
-<p>Reply to this email with anything at all — it comes straight to me.</p>
+<p>If the sign-in link doesn't arrive, reply to this email and a person sorts it.</p>
 <p style="color:#555">One honest note while we start: I can make your business readable, and I will keep it current. What any assistant chooses to quote is still its own decision. Anyone who promises you a guaranteed AI ranking is guessing.</p>
 <p><a href="${checkUrl(lead, "welcome")}" style="color:#B8841A">Your free check is always here →</a></p>`,
     ),

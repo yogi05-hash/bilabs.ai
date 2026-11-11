@@ -895,3 +895,35 @@ test("the check cron needs the bearer secret, and a spoofed vercel header is not
   assert.equal(d.ok, true);
   assert.ok(typeof d.ran === "number" && typeof d.remaining === "number");
 });
+
+test("the one-click pay link refuses bad input without touching Stripe, and sends a customer to the dashboard", async () => {
+  const noFollow = { redirect: "manual" as const };
+  const bad = await fetch(`${BASE}/start?plan=nope`, noFollow);
+  assert.equal(bad.status, 303);
+  assert.match(bad.headers.get("location") ?? "", /\/#packages$/);
+
+  // an existing customer is routed to their dashboard, never to a second checkout
+  const { body: leads } = await db("bilabs_leads", {
+    method: "POST", headers: { Prefer: "return=representation" },
+    body: JSON.stringify({ email: `start-${Date.now()}@example.com`, status: "paid", source: "checkout", is_test: true }),
+  });
+  made.leads.push(leads[0].id);
+  await db("bilabs_businesses", {
+    method: "POST", headers: { Prefer: "return=minimal" },
+    body: JSON.stringify({ contact_id: leads[0].id, name: "Start Co", is_test: true }),
+  });
+  const cust = await fetch(`${BASE}/start?plan=get-found&c=${leads[0].id}`, noFollow);
+  assert.equal(cust.status, 303);
+  assert.match(cust.headers.get("location") ?? "", /\/dashboard$/);
+});
+
+test("the homepage pulse is anonymous and excludes test rows", async () => {
+  const res = await fetch(`${BASE}/api/pulse`);
+  assert.equal(res.status, 200);
+  const d = await res.json();
+  assert.ok(typeof d.checksThisWeek === "number" && typeof d.liveProfiles === "number" && Array.isArray(d.recent));
+  for (const r of d.recent) {
+    assert.deepEqual(Object.keys(r).sort(), ["area", "at", "mentions", "total", "type"], "no names, emails or websites leave the server");
+    assert.doesNotMatch(`${r.type} ${r.area}`, /example\.com|shared-test|Mock Dental/i);
+  }
+});

@@ -10,10 +10,10 @@ import { Menu, X } from "lucide-react";
 // the previous set pointed at #industries, #video-demo and #products, none of
 // which survived the rebuild.
 const links = [
-  { href: "/#services", label: "Services" },
+  { href: "/#check", label: "Free check" },
   { href: "/#process", label: "How it works" },
-  { href: "/#packages", label: "Packages" },
-  { href: "/contact", label: "Contact" },
+  { href: "/#packages", label: "Pricing" },
+  { href: "/dashboard", label: "Customer login" },
 ]
 
 export default function Navbar() {

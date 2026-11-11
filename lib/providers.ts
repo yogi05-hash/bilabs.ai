@@ -31,7 +31,7 @@ export type ProviderMeta = {
 export const PROVIDERS: Record<ProviderId, ProviderMeta> = {
   anthropic: { label: "Claude", keyEnv: "ANTHROPIC_API_KEY", modelEnv: "ANTHROPIC_MODEL", defaultModel: "claude-haiku-4-5-20251001", usdPerSearch: 0.01 },
   openai: { label: "ChatGPT", keyEnv: "OPENAI_API_KEY", modelEnv: "OPENAI_MODEL", defaultModel: "gpt-4.1-mini", usdPerSearch: 0.025 },
-  gemini: { label: "Gemini", keyEnv: "GEMINI_API_KEY", modelEnv: "GEMINI_MODEL", defaultModel: "gemini-2.5-flash", usdPerSearch: 0.035 },
+  gemini: { label: "Gemini", keyEnv: "GEMINI_API_KEY", modelEnv: "GEMINI_MODEL", defaultModel: "gemini-3.8-flash", usdPerSearch: 0.035 },
   xai: { label: "Grok", keyEnv: "XAI_API_KEY", modelEnv: "XAI_MODEL", defaultModel: "grok-4-fast", usdPerSearch: 0.025 },
 };
 

@@ -4,6 +4,7 @@ import { logEmail } from "@/lib/admin";
 import type { Business } from "@/lib/businesses";
 import type { Check, CheckResult } from "@/lib/checks";
 import { PROVIDERS, type ProviderId } from "@/lib/providers";
+import { customerLoginUrl } from "@/lib/customerAuth";
 
 /* Email to paying customers.
  *
@@ -155,6 +156,22 @@ ${questions.map((q) => `<tr><td style="padding:5px 10px 5px 0;border-top:1px sol
 
   const competitors = (check.competitors ?? []).slice(0, 8);
 
+  /* The report is not just a score; it says what to do about it. Each line
+   * is a fact we checked — not advice padded in. */
+  const next: string[] = [];
+  const host = (business.website ?? "").replace(/^https?:\/\//, "").replace(/\/.*$/, "");
+  if (business.website && !business.snippets_seen_at) {
+    next.push(`Add the snippets to <strong>${esc(host)}</strong>. We looked at your site this time and could not find them yet. They are in your dashboard under “For your site”, ready to paste — your own domain is where assistants look first.`);
+  }
+  if (!(business.photos?.length)) next.push("Add a photo or two to your profile. A page with images is picked up and shown more readily.");
+  if ((business.faqs?.length ?? 0) < 3) next.push("Add at least three FAQs — the exact questions customers ask are what assistants match on.");
+  if ((check.found_total ?? 0) === 0 && check.trigger !== "scheduled") {
+    next.push("Early days: assistants pick up a new page over days to a few weeks. Next month's check is the first real reading.");
+  }
+  const nextHtml = next.length
+    ? `<p style="margin:18px 0 6px"><strong>Do this next</strong></p><ol style="padding-left:18px;margin:0">${next.slice(0, 3).map((t) => `<li style="margin-bottom:8px">${t}</li>`).join("")}</ol>`
+    : `<p style="margin:18px 0 0"><strong>Nothing to do this month.</strong> Your profile, snippets, photos and FAQ are all in place; the rest is the assistants' schedule, which is what the monthly check watches.</p>`;
+
   return sendCustomerMail(
     lead.email,
     {
@@ -165,11 +182,146 @@ ${questions.map((q) => `<tr><td style="padding:5px 10px 5px 0;border-top:1px sol
 <ul style="padding-left:18px">${providerLines}</ul>
 ${table}
 ${competitors.length ? `<p><strong>Named instead or alongside you:</strong> ${competitors.map(esc).join(" · ")}</p>` : ""}
+${nextHtml}
 ${button(`${site}/dashboard`, "See the full answers")}
 <p style="color:#555;font-size:13.5px">Five questions per assistant, one moment in time — not a ranking. Answers shift as sources change, which is why we ask every month rather than once.</p>`,
       ),
     },
     "visibility_report",
+    lead.id,
+  );
+}
+
+/* ----------------------------------------------- the platform chasing */
+
+const STEP_NAMES = [
+  "confirm your business details",
+  "choose which assistants to monitor",
+  "add your services, hours, prices and FAQ, then press Publish",
+];
+
+/** Paid but not published. Four of these, days 1/3/7/14, each with a fresh
+ *  sign-in link and the exact step they stopped at. */
+export async function sendSetupReminder(lead: Lead, business: Business, n: number): Promise<boolean> {
+  if (!lead.email) return false;
+  const name = business.name ?? "your business";
+  const step = Math.min(Math.max(business.onboarding_step ?? 0, 0), 2);
+  const left = 3 - step;
+  const nextStep = STEP_NAMES[step];
+  const link = customerLoginUrl(lead.email);
+  const i = Math.min(Math.max(n, 1), 4) - 1;
+  const subjects = [
+    `${name} isn't live yet — ${left} short step${left === 1 ? "" : "s"} to go`,
+    `AI search still can't read ${name}`,
+    `Five minutes and ${name} is published`,
+    `Last reminder: ${name} is still unpublished`,
+  ];
+  const intros = [
+    `You started setting up ${esc(name)} and stopped at “${nextStep}”. Nothing is published until you press Publish, and nothing is checked — so right now your subscription is buying you nothing.`,
+    `Quick nudge. Your subscription is running but ${esc(name)} still isn't published, so the assistants have nothing new to read about you.`,
+    `Your profile is ${left} step${left === 1 ? "" : "s"} from live. The free check that brought you here already filled in most of it.`,
+    `This is the last reminder we'll send. ${esc(name)} is still unpublished, and you're paying for a profile that isn't up yet. If you've changed your mind, Billing in your dashboard cancels in one click — no questions.`,
+  ];
+  return sendCustomerMail(
+    lead.email,
+    {
+      subject: subjects[i],
+      html: wrapTransactional(
+        `${hi(lead)}
+<p>${intros[i]}</p>
+<p><strong>Next step:</strong> ${nextStep}. About ${left === 3 ? "five" : "two or three"} minutes.</p>
+${button(link, "Finish setting up →")}
+<p style="color:#555;font-size:13px">That button signs you in and is good for 15 minutes. After that, enter your email at <a href="${SITE()}/dashboard" style="color:#B8841A">${SITE().replace(/^https?:\/\//, "")}/dashboard</a> and we'll send a fresh one.</p>
+<p style="color:#555;font-size:13.5px">The moment you press Publish: your profile goes up, the search index is told, and the first check across your chosen assistants runs straight away. Everything after that is automatic.</p>`,
+      ),
+    },
+    "setup_reminder",
+    lead.id,
+  );
+}
+
+const pounds = (pence: number) => `£${(pence / 100).toFixed(pence % 100 ? 2 : 0)}`;
+
+/** A renewal was declined. Stripe retries on its own; this tells them why
+ *  the profile may pause and how to stop that in one minute. */
+export async function sendPaymentFailed(lead: Lead, business: Business | null, amountPence: number): Promise<boolean> {
+  if (!lead.email) return false;
+  const name = business?.name ?? "your business";
+  return sendCustomerMail(
+    lead.email,
+    {
+      subject: `Your BiLabs payment didn't go through`,
+      html: wrapTransactional(
+        `${hi(lead)}
+<p>We tried to take this month's ${amountPence ? pounds(amountPence) : "payment"} for ${esc(name)} and the card was declined. That happens — expired cards, a new one issued, a limit.</p>
+<p>Stripe will retry automatically over the next few days. To keep ${esc(name)} live without a gap, update the card now — it takes a minute in Billing.</p>
+${button(`${SITE()}/dashboard`, "Update my card")}
+<p style="color:#555;font-size:13.5px">If payment keeps failing, your profile is paused — not deleted — and the monthly checks stop. It all comes straight back the moment a payment succeeds.</p>`,
+      ),
+    },
+    "payment_failed",
+    lead.id,
+  );
+}
+
+/** Billing lapsed and the profile has been paused. */
+export async function sendPaused(lead: Lead, business: Business): Promise<boolean> {
+  if (!lead.email) return false;
+  const name = business.name ?? "your business";
+  const profile = business.slug ? `${SITE()}/b/${business.slug}` : null;
+  return sendCustomerMail(
+    lead.email,
+    {
+      subject: `${name} has been paused`,
+      html: wrapTransactional(
+        `${hi(lead)}
+<p>We couldn't collect payment for ${esc(name)}, so the monthly checks have stopped${profile ? ` and your profile at <a href="${profile}" style="color:#B8841A">${esc(profile.replace(/^https?:\/\//, ""))}</a> is paused` : ""}.</p>
+<p>Nothing has been deleted. Update your card and everything resumes on its own — profile, checks, reports.</p>
+${button(`${SITE()}/dashboard`, "Update my card")}
+<p style="color:#555;font-size:13.5px">If you meant to stop, you don't need to do anything else.</p>`,
+      ),
+    },
+    "paused",
+    lead.id,
+  );
+}
+
+/** Payment succeeded after a pause; the profile is live again. */
+export async function sendRestored(lead: Lead, business: Business): Promise<boolean> {
+  if (!lead.email) return false;
+  const name = business.name ?? "your business";
+  return sendCustomerMail(
+    lead.email,
+    {
+      subject: `${name} is back`,
+      html: wrapTransactional(
+        `${hi(lead)}
+<p>Payment received — thank you. ${esc(name)} is ${business.published_at ? "live again and the monthly checks resume on schedule" : "active again; finish the setup and we'll publish it"}.</p>
+${button(`${SITE()}/dashboard`, "Open my dashboard")}`,
+      ),
+    },
+    "restored",
+    lead.id,
+  );
+}
+
+/** Two scheduled checks in a row returned nothing usable. We keep retrying
+ *  daily; this just says so, so a quiet month is never a mystery. */
+export async function sendCheckTrouble(lead: Lead, business: Business): Promise<boolean> {
+  if (!lead.email) return false;
+  const name = business.name ?? "your business";
+  return sendCustomerMail(
+    lead.email,
+    {
+      subject: `We couldn't complete ${name}'s check — retrying`,
+      html: wrapTransactional(
+        `${hi(lead)}
+<p>This month's check for ${esc(name)} hasn't completed: twice running, the assistants returned nothing we could use. That is almost always an outage or a limit on their side, not anything about your profile.</p>
+<p>We retry automatically every day until it goes through, and the report lands in your inbox and dashboard as usual when it does. There is nothing for you to do. If it is still stuck after a week, a person looks at it.</p>
+${button(`${SITE()}/dashboard`, "Open my dashboard")}`,
+      ),
+    },
+    "check_trouble",
     lead.id,
   );
 }

@@ -1,102 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
-import { env } from "@/lib/env";
-import { contextFrom, recordEvent, touchVisitor } from "@/lib/analytics";
-import { getSettings } from "@/lib/admin";
+import { createCheckoutSession, isPlanId } from "@/lib/checkout";
 
-/* Stripe Checkout for the two monthly plans.
- *
- * Full price from the first payment: no coupons, no promotion codes, no
- * trial. What the page says is what the first invoice charges. */
-
-const PLANS = {
-  "get-found": { price: "STRIPE_PRICE_GET_FOUND", label: "Get Found by AI" },
-  "front-desk": { price: "STRIPE_PRICE_FRONT_DESK", label: "AI Front Desk" },
-} as const;
-
-type PlanId = keyof typeof PLANS;
+/* Checkout from a button on the page. The body carries what the browser
+ * knows — the campaign and the free check that sold them — and
+ * lib/checkout.ts turns it into a Stripe session. */
 
 export async function POST(request: NextRequest) {
   try {
-    const secret = env("STRIPE_SECRET_KEY");
-    const site = env("NEXT_PUBLIC_SITE_URL", "https://bilabs.ai").replace(/\/+$/, "");
-    if (!secret) {
-      console.error("[checkout] stripe secret missing");
-      return NextResponse.json({ error: "Checkout is unavailable. Please email hello@bilabs.ai." }, { status: 503 });
-    }
-
     const body = await request.json().catch(() => null);
-    const planId = (typeof body?.plan === "string" ? body.plan : "") as PlanId;
-    const plan = PLANS[planId];
-    if (!plan) return NextResponse.json({ error: "Unknown plan." }, { status: 400 });
+    if (!isPlanId(body?.plan)) return NextResponse.json({ error: "Unknown plan." }, { status: 400 });
 
-    const price = env(plan.price);
-    if (!price) {
-      console.error("[checkout] price id missing for", planId);
-      return NextResponse.json({ error: "Checkout is unavailable. Please email hello@bilabs.ai." }, { status: 503 });
-    }
-
-    const form = new URLSearchParams({
-      mode: "subscription",
-      "line_items[0][price]": price,
-      "line_items[0][quantity]": "1",
-      // Stripe substitutes the placeholder; the welcome page uses the session
-      // to confirm payment and hand over the dashboard link.
-      success_url: `${site}/welcome?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${site}/#packages`,
-      "subscription_data[metadata][plan]": planId,
-      "metadata[plan]": planId,
+    const r = await createCheckoutSession({
+      request,
+      plan: body.plan,
+      email: typeof body?.email === "string" ? body.email : null,
+      evaluationId: typeof body?.evaluationId === "string" && body.evaluationId ? body.evaluationId : null,
+      utm: (typeof body?.utm === "object" && body.utm ? body.utm : {}) as Record<string, string>,
+      via: "button",
     });
-
-    const email = typeof body?.email === "string" ? body.email.trim().slice(0, 160) : "";
-    if (email) form.set("customer_email", email);
-
-    /* Carry the campaign and the visitor out to Stripe and back on the
-     * webhook. Without this every paying customer would attribute to
-     * "direct", because the trip to Checkout and back loses the referrer
-     * and the UTM tags. */
-    const settings = await getSettings();
-    const ctx = contextFrom(request, settings.internalIpHashes);
-    const { visitor } = await touchVisitor({ ctx, countPageView: false });
-    const utm = (typeof body?.utm === "object" && body.utm ? body.utm : {}) as Record<string, string>;
-    const meta: Record<string, string> = {};
-    if (visitor?.id) meta.visitor_id = visitor.id;
-    if (typeof body?.evaluationId === "string" && body.evaluationId) {
-      meta.evaluation_id = body.evaluationId.slice(0, 40);
-    }
-    for (const k of ["utm_source", "utm_medium", "utm_campaign"]) {
-      if (typeof utm[k] === "string" && utm[k]) meta[k] = utm[k].slice(0, 120);
-    }
-    for (const [k, v] of Object.entries(meta)) {
-      form.set(`metadata[${k}]`, v);
-      form.set(`subscription_data[metadata][${k}]`, v);
-    }
-
-    const res = await fetch("https://api.stripe.com/v1/checkout/sessions", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${secret}`, "Content-Type": "application/x-www-form-urlencoded" },
-      body: form,
-    });
-
-    const session = await res.json();
-    if (!res.ok || !session?.url) {
-      console.error("[checkout] stripe", res.status, JSON.stringify(session).slice(0, 300));
-      return NextResponse.json({ error: "Could not start checkout. Please email hello@bilabs.ai." }, { status: 502 });
-    }
-
-    /* "Started", not "paid". This records only that Stripe handed us a
-     * session URL; whether any money moved is decided by a signed webhook. */
-    await recordEvent({
-      name: "checkout_started",
-      origin: "server",
-      visitorId: visitor?.id ?? null,
-      contactId: visitor?.contact_id ?? null,
-      dedupeKey: `checkout_started:${session.id}`,
-      props: { plan: planId, session_id: session.id },
-      isInternal: ctx.isInternal,
-      isTest: ctx.isTest,
-    });
-
-    return NextResponse.json({ url: session.url });
+    if (!r.ok) return NextResponse.json({ error: r.error }, { status: r.status });
+    return NextResponse.json({ url: r.url });
   } catch (e) {
     console.error("[checkout] threw:", e);
     return NextResponse.json({ error: "Could not start checkout. Please email hello@bilabs.ai." }, { status: 500 });
