@@ -790,6 +790,30 @@ test("setup: confirm → models → details, with caps and protected fields enfo
   assert.equal(onboarded.length, 1);
 });
 
+test("reading the website fills only the blanks, never what the customer typed", async () => {
+  // snapshot what setup wrote, so the publish test below sees the same details afterwards
+  const { body: before } = await db(`bilabs_businesses?id=eq.${custBizId}&select=description,services,hours,faqs,areas,phone`);
+  const original = before[0];
+
+  // the customer has typed a description of their own; the mocked reader must leave it alone
+  const mine = "We are a small, friendly dental practice that has looked after Croydon families since 1998.";
+  await db(`bilabs_businesses?id=eq.${custBizId}`, { method: "PATCH", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ description: mine, services: [], faqs: [], hours: [] }) });
+
+  const res = await fetch(`${BASE}/api/me/scan`, { method: "POST", headers: { cookie: custCookie, "Content-Type": "application/json" }, body: "{}" });
+  const text = await res.text();
+  assert.equal(res.status, 200, text);
+  const d = JSON.parse(text);
+  assert.ok(d.filled.includes("services") && d.filled.includes("hours") && d.filled.includes("faqs"), `filled: ${d.filled}`);
+  assert.equal(d.filled.includes("description"), false, "a typed description is never overwritten");
+  assert.equal(d.business.description, mine);
+  assert.ok(d.business.services.length >= 3);
+  assert.equal(d.business.hours.find((h: { day: string }) => h.day === "sun")?.closed, true);
+
+  assert.equal((await fetch(`${BASE}/api/me/scan`, { method: "POST" })).status, 401);
+
+  await db(`bilabs_businesses?id=eq.${custBizId}`, { method: "PATCH", headers: { Prefer: "return=minimal" }, body: JSON.stringify(original) });
+});
+
 test("publishing makes a public, machine-readable profile and starts the first check", async () => {
   const res = await fetch(`${BASE}/api/me/publish`, { method: "POST", headers: { cookie: custCookie } });
   assert.equal(res.status, 200, JSON.stringify(await res.clone().json()));

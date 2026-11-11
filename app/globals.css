@@ -963,3 +963,9 @@ table.ad-table { width: 100%; border-collapse: collapse; font-size: 13px; min-wi
    first screen and the next section the second, so the card steps aside. */
 .hero-answer { display: block; }
 @media (max-width: 719px) { .hero-answer { display: none; } }
+
+/* Dashboard: a good-news notice and a small spinner, used by the website
+   reader in setup. Same family as .ad-err. */
+.ad-ok { background: rgba(31,107,54,.07); border: 1px solid rgba(31,107,54,.28); color: #1f6b36; border-radius: 10px; padding: 11px 13px; font-size: 13px; line-height: 1.55; }
+.ad-spin { width: 18px; height: 18px; border-radius: 999px; border: 2px solid rgba(17,17,18,.15); border-top-color: var(--ad-amber-2, #B8841A); animation: ad-spin .8s linear infinite; flex-shrink: 0; }
+@keyframes ad-spin { to { transform: rotate(360deg); } }

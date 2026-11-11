@@ -25,8 +25,9 @@ export function validateForPublish(b: Business, opts: { force?: boolean } = {}):
   if (!b.business_type) errors.business_type = "Tell us what the business does.";
   if (!b.area) errors.area = "Tell us where the business is.";
   if (!opts.force) {
+    // Services are optional: an online business may have nothing that fits
+    // the word, and the description carries the facts on its own.
     if (!b.description || b.description.length < 40) errors.description = "A short description (at least 40 characters) helps assistants understand what you do.";
-    if (!b.services?.length) errors.services = "Add at least one service.";
   }
   if (!b.target_models?.length) errors.target_models = "Choose at least one assistant to monitor.";
   return Object.keys(errors).length ? { ok: false, errors } : { ok: true };

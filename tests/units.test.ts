@@ -364,3 +364,39 @@ test("a signed token is only readable with its secret, its kind, and before it e
   assert.equal(readToken("s3cret", "cust-link", makeToken("s3cret", "cust-link", "a@b.c", -1)), null);
   assert.equal(readToken("s3cret", "cust-link", t.slice(0, -2) + "zz"), null);
 });
+
+import { candidateLinks, htmlToText, mergeExtracted } from "../lib/extract.ts";
+
+test("htmlToText keeps reading order and drops scripts, styles and tags", () => {
+  const t = htmlToText("<html><head><style>p{}</style><script>var x=1</script></head><body><h1>Smile &amp; Co</h1><p>Open <b>Mon</b>–Fri</p><ul><li>Check-up £65</li></ul></body></html>");
+  assert.equal(t, "Smile & Co\nOpen Mon –Fri\nCheck-up £65");
+});
+
+test("candidateLinks picks same-host fact pages and ignores files and other sites", () => {
+  const base = new URL("https://smile.example/");
+  const links = candidateLinks(
+    '<a href="/about-us">About</a><a href="/services/">Services</a><a href="/blog/2024/a-long-post">Post</a>' +
+      '<a href="https://facebook.com/smile">FB</a><a href="/brochure.pdf">PDF</a><a href="/contact?x=1#top">Contact</a><a href="/">Home</a>',
+    base,
+  );
+  assert.deepEqual([...links].sort(), ["https://smile.example/about-us", "https://smile.example/contact", "https://smile.example/services"]);
+});
+
+test("mergeExtracted fills blanks only, treats a short description as blank, and survives one bad list", () => {
+  const b = {
+    name: "Typed Name", business_type: null, area: null, postcode: null, address: null, description: "Too short", phone: null, email: null,
+    services: [{ name: "Mine" }], hours: [], prices: [], faqs: [], areas: [], socials: [],
+  };
+  const { patch, filled } = mergeExtracted(b, {
+    name: "Model Name", business_type: "dentist", description: "A full description of a dental practice in Croydon with enough words to pass the minimum.",
+    services: [{ name: "Theirs" }], faqs: [{ q: "Parking?", a: "Yes." }],
+    hours: [{ day: "mon", open: "9am", close: "5pm" }], // invalid times: this list is dropped, the rest kept
+  });
+  assert.equal(patch.name, undefined, "never overwrite a typed name");
+  assert.equal(patch.services, undefined, "never overwrite typed services");
+  assert.equal(patch.business_type, "dentist");
+  assert.match(patch.description ?? "", /^A full description/);
+  assert.deepEqual(patch.faqs, [{ q: "Parking?", a: "Yes." }]);
+  assert.equal(patch.hours, undefined);
+  assert.deepEqual(filled.sort(), ["business_type", "description", "faqs"]);
+});

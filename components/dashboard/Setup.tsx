@@ -12,6 +12,12 @@ import { PROVIDER_BLURB, type Call, type Me, type ProviderId } from "@/component
 
 const HONESTY = "Publishing makes your business readable to AI web search. We measure whether assistants name you; we cannot make them.";
 
+const FIELD_LABEL: Record<string, string> = {
+  name: "name", business_type: "what you do", area: "where", postcode: "postcode", address: "address",
+  description: "description", phone: "phone", email: "email", services: "services", hours: "opening hours",
+  prices: "price list", faqs: "FAQ", areas: "areas served", socials: "social links",
+};
+
 export default function Setup({ me, call, onChange }: { me: Me; call: Call; onChange: () => Promise<void> }) {
   const b = me.business!;
   const [step, setStep] = useState<number>(Math.min(b.onboarding_step, 3));
@@ -28,6 +34,26 @@ export default function Setup({ me, call, onChange }: { me: Me; call: Call; onCh
   const [confirm, setConfirm] = useState(false);
   const [models, setModels] = useState<ProviderId[]>(b.target_models?.length ? b.target_models : me.providers.filter((p) => p.enabled).map((p) => p.id));
 
+  /* Reading their website. Kicked off the moment they confirm the business,
+   * so by the time they have chosen assistants the details step is already
+   * filled in and they are correcting rather than typing. The form remounts
+   * (formKey) when the read lands so it shows the new values. */
+  const [scan, setScan] = useState<{ state: "idle" | "running" | "done" | "failed"; filled: string[]; error?: string }>({ state: "idle", filled: [] });
+  const [formKey, setFormKey] = useState(0);
+  const runScan = async (site?: string) => {
+    setScan({ state: "running", filled: [] });
+    const res = await call("/api/me/scan", { method: "POST", body: JSON.stringify(site ? { website: site } : {}) });
+    const d = res ? await res.json().catch(() => ({})) : {};
+    if (!res || !res.ok) {
+      setScan({ state: "failed", filled: [], error: d.error ?? "We could not read your website just now." });
+      return;
+    }
+    await onChange();
+    setFormKey((k) => k + 1);
+    setScan({ state: "done", filled: d.filled ?? [] });
+  };
+  const host = (website || b.website || "").replace(/^https?:\/\//, "").replace(/\/.*$/, "");
+
   const patch = async (body: Record<string, unknown>): Promise<boolean> => {
     setSaving(true); setErr(null); setErrors({});
     const res = await call("/api/me/business", { method: "PATCH", body: JSON.stringify(body) });
@@ -41,7 +67,11 @@ export default function Setup({ me, call, onChange }: { me: Me; call: Call; onCh
 
   const saveConfirm = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (await patch({ step: 1, confirm, name, website, business_type: type, area, postcode })) setStep(1);
+    if (await patch({ step: 1, confirm, name, website, business_type: type, area, postcode })) {
+      // nothing typed in the details yet: read the site in the background
+      if (website.trim() && !b.details_completed_at && !(b.description && b.description.length >= 40)) void runScan();
+      setStep(1);
+    }
   };
   const saveModels = async () => {
     if (await patch({ step: 2, target_models: models })) setStep(2);
@@ -75,7 +105,7 @@ export default function Setup({ me, call, onChange }: { me: Me; call: Call; onCh
       {step === 0 && (
         <form onSubmit={saveConfirm} className="ad-card ad-card-pad">
           <h2 style={{ fontSize: 17, margin: "0 0 4px" }}>Is this your business?</h2>
-          <p className="ad-note" style={{ marginBottom: 14 }}>We&apos;ve filled in what your free check found. Correct anything that&apos;s wrong.</p>
+          <p className="ad-note" style={{ marginBottom: 14 }}>We&apos;ve filled in what your free check found. Correct anything that&apos;s wrong — then we read your website and fill in the rest for you.</p>
           <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}>
             <label className="ad-field"><span className="ad-label">Business name</span><input className="ad-input" required maxLength={120} value={name} onChange={(e) => setName(e.target.value)} /></label>
             <label className="ad-field"><span className="ad-label">Website</span><input className="ad-input" maxLength={160} placeholder="yourbusiness.co.uk" value={website} onChange={(e) => setWebsite(e.target.value)} /></label>
@@ -121,9 +151,42 @@ export default function Setup({ me, call, onChange }: { me: Me; call: Call; onCh
 
       {step === 2 && (
         <div className="ad-card ad-card-pad">
-          <h2 style={{ fontSize: 17, margin: "0 0 4px" }}>Tell assistants what you do</h2>
-          <p className="ad-note">This is what gets published. Plain facts work best — no slogans needed.</p>
-          <DetailsForm initial={detailsFrom(b)} saving={saving} submitLabel="Save and continue →" onSubmit={saveDetails} />
+          <h2 style={{ fontSize: 17, margin: "0 0 4px" }}>Check what we found</h2>
+          <p className="ad-note">This is what gets published. Plain facts work best — no slogans needed. Nothing here is required except the description.</p>
+
+          {scan.state === "running" ? (
+            <div className="ad-card" style={{ padding: 18, margin: "12px 0", display: "flex", gap: 12, alignItems: "center" }}>
+              <span className="ad-spin" aria-hidden />
+              <div>
+                <strong style={{ fontSize: 14 }}>Reading {host || "your website"}…</strong>
+                <p className="ad-note" style={{ margin: "3px 0 0" }}>We&apos;re pulling your services, hours, description and FAQ from your own pages. About 20 seconds.</p>
+              </div>
+            </div>
+          ) : null}
+
+          {scan.state === "done" ? (
+            <div className="ad-ok" style={{ margin: "12px 0" }}>
+              {scan.filled.length
+                ? <>Filled in from {host}: <strong>{scan.filled.map((f) => FIELD_LABEL[f] ?? f).join(", ")}</strong>. Check it, change anything, add what&apos;s missing.</>
+                : <>We read {host} but found nothing new to add — everything it says is already here.</>}
+            </div>
+          ) : null}
+
+          {scan.state === "failed" ? (
+            <div className="ad-err" style={{ margin: "12px 0" }}>{scan.error}</div>
+          ) : null}
+
+          {scan.state !== "running" ? (
+            <>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", margin: "10px 0 4px" }}>
+                <button type="button" className="ad-btn" disabled={!host} onClick={() => runScan()}>
+                  {scan.state === "done" || scan.state === "failed" ? "Read my website again" : "Fill this in from my website"}
+                </button>
+                {!host ? <span className="ad-note">Add your website in step 1 and we can fill this in for you.</span> : null}
+              </div>
+              <DetailsForm key={formKey} initial={detailsFrom(b)} saving={saving} submitLabel="Save and continue →" onSubmit={saveDetails} />
+            </>
+          ) : null}
           <button type="button" className="ad-btn" style={{ marginTop: 10 }} onClick={() => setStep(1)}>← Back</button>
         </div>
       )}

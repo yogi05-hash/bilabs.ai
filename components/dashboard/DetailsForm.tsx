@@ -39,7 +39,7 @@ export function detailsFrom(b: PublicBusiness): Details {
   });
   return {
     description: b.description ?? "",
-    services: b.services?.length ? b.services : [{ name: "", description: "", price: "" }],
+    services: b.services ?? [],
     hours,
     prices: b.prices ?? [],
     areas: b.areas ?? [],
@@ -95,8 +95,8 @@ export default function DetailsForm({
         {err("description")}
       </div>
 
-      {h("Services")}
-      <p style={hint}>One per line. Prices are optional and can be &quot;from £30&quot;.</p>
+      {h("Services or products (optional)")}
+      <p style={hint}>What you offer, one per line — treatments, trades, plans, titles. Prices are optional and can be &quot;from £30&quot;.</p>
       <div style={{ marginTop: 8 }}>
         {list<Service>(d.services, "services", (s, _i, upd) => (
           <>

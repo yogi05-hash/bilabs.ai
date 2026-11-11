@@ -25,7 +25,8 @@ Free check (homepage) ──▶ report email + nurture emails, each with a /star
               bilabs_businesses row, pre-filled from the free check (status: onboarding)
                                    │ not published after 1/3/7/14 days → setup reminder emails
                                    ▼
-   /dashboard: confirm business → choose assistants → services/hours/prices/FAQ → Publish
+   /dashboard: confirm business → (lib/extract reads their website and fills the blanks) → choose assistants
+              → correct services/hours/prices/FAQ → Publish
                                    ▼
    lib/pipeline.publishBusiness: slug → /b/<slug> (HTML + JSON-LD + llms.txt) → IndexNow
                                 → first check (runs immediately via after()) → "you're live" email
@@ -80,6 +81,7 @@ The Stripe webhook endpoint must be subscribed to `checkout.session.completed`, 
 - `lib/providers.ts` — one `ask()` for Claude / ChatGPT / Gemini / Grok with live web search, pure parsers, cost estimates.
 - `lib/questions.ts`, `lib/match.ts` — the five questions and the mention/competitor matcher, shared by the free and paid checks.
 - `lib/businesses.ts`, `lib/businessForm.ts`, `lib/pipeline.ts`, `lib/checks.ts` — the paid product's model, input sanitising, publishing, and check runner.
+- `lib/extract.ts` + `app/api/me/scan` — reads the customer's own website (homepage plus up to five fact pages) and has Claude fill the setup form's blanks; never overwrites what the customer typed, and everything passes through the same sanitiser as the form.
 - `lib/profile.ts`, `lib/snippets.ts` — JSON-LD / llms.txt / FAQ / robots builders for the hosted profile and the customer's own site.
 - `lib/customerAuth.ts`, `lib/adminAuth.ts`, `lib/signedToken.ts` — the two magic-link sign-ins on one token format.
 - `app/dashboard`, `components/dashboard/*` — the customer dashboard. `app/admin`, `components/admin/*` — the admin (Businesses tab for the paid product).
